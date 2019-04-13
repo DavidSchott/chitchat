@@ -1,2 +1,10 @@
-<title>ChitChat</title>
-<h1>title #2 </h1>
+{{ define "content" }}
+    <h1>index page</h1>
+    <form action="http://127.0.0.1:8080/create" method="post" enctype="multipart/form-data">
+        Chat Title: <input type="text" name="title" value="this is a test chat"/>
+        User Name: <input type="text" name="name" value="david schott"/>
+        Type of chat: <input type="text" name="classification" value="0"/>
+        Password (Optional): <input type="text" name="secret" value="my_secret123"/>
+        <input type="submit"/>
+    </form>
+    {{ end }}

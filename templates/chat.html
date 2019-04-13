@@ -1,2 +1,7 @@
-<title>chat here</title>
-<h1>title #1 </h1>
+{{ define "content" }}
+    {{ if . }}
+    <h1 style="color:green;">Public Chat</h1>
+    {{ else }}
+    <h1 style="color:purple;">Private Chat</h1>
+    {{ end }}
+{{ end }}
