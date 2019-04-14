@@ -1,5 +1,9 @@
 $(document).ready(function () {
-    console.log("ready!");
+    $('#sidebarCollapse').on('click', function () {
+        $('#sidebar').toggleClass('active');
+        $(this).toggleClass('active');
+    });
+    console.log("ready");
 });
 
 function runTests() {

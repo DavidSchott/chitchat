@@ -11,7 +11,13 @@ import (
 // GET /
 // Default page
 func index(w http.ResponseWriter, r *http.Request) {
-	generateHTML(w, "", "layout", "public.header", "index")
+	generateHTML(w, "", "layout", "sidebar", "public.header", "index")
+}
+
+// GET /
+// Default page
+func test(w http.ResponseWriter, r *http.Request) {
+	generateHTML(w, "", "layout.1", "sidebar", "public.header", "index")
 }
 
 // main handler function

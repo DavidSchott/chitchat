@@ -15,6 +15,9 @@ func main() {
 	// index
 	mux.HandleFunc("/", logConsole(index))
 
+	// index
+	mux.HandleFunc("/test", logConsole(test))
+
 	//REST-API for chat room
 	mux.HandleFunc("/chat/", logConsole(handleRoom))
 
