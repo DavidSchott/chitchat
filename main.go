@@ -3,15 +3,7 @@ package main
 import (
 	"net/http"
 	"time"
-
-	"github.com/DavidSchott/chitchat/data"
 )
-
-var chatServer data.ChatServer = data.ChatServer{
-	Rooms:        make(map[int]*data.ChatRoom),
-	RoomsByTitle: make(map[string]*data.ChatRoom),
-	Index:        0,
-}
 
 func main() {
 
@@ -23,16 +15,19 @@ func main() {
 	// index
 	mux.HandleFunc("/", logConsole(index))
 
-	//chat
-	mux.HandleFunc("/create", logConsole(create))
+	//REST-API for chat room
+	mux.HandleFunc("/chat/", logConsole(handleRoom))
 
-	// error
+	// test error
 	mux.HandleFunc("/err", logConsole(err))
 
+	// test redirect
 	mux.HandleFunc("/redirect", logConsole(redirect))
 
+	// test json
 	mux.HandleFunc("/json", logConsole(jsonExample))
 
+	// test implement
 	mux.HandleFunc("/todo", logConsole(notImplemented))
 
 	// starting up the server

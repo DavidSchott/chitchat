@@ -10,6 +10,8 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+
+	"github.com/DavidSchott/chitchat/data"
 )
 
 // version
@@ -75,6 +77,26 @@ func danger(args ...interface{}) {
 func warning(args ...interface{}) {
 	logger.SetPrefix("WARNING ")
 	logger.Println(args...)
+}
+
+// ReportSuccess is a helper function to return a JSON reponse indicating success
+func ReportSuccess(w http.ResponseWriter, success bool, err string) {
+	w.Header().Set("Content-Type", "application/json")
+	if success {
+		res := &data.Success{
+			Sucess: success,
+		}
+		response, _ := json.Marshal(res)
+		w.Write(response)
+	} else {
+		res := &data.Failure{
+			Sucess: success,
+			Error:  err,
+		}
+		response, _ := json.Marshal(res)
+		w.Write(response)
+	}
+	return
 }
 
 func generateHTML(writer http.ResponseWriter, data interface{}, filenames ...string) {

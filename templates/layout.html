@@ -14,12 +14,13 @@
 <body>
     {{ template "navbar" }}
     <div class="container">
+    <div style="display:none;" id="error-alert" class="alert alert-danger col-sm-12"></div>
         {{ template "content" . }}
     </div> <!-- /container -->
 
-    <script type="text/javascript" src="/static/js/jquery-2.1.1.min.js"></script>
+    <script src="/static/js/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript" src="/static/js/index.js"></script>
 </body>
 
 </html>

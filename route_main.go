@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
-	"strconv"
+	"path"
 
 	"github.com/DavidSchott/chitchat/data"
 )
@@ -14,6 +14,114 @@ func index(w http.ResponseWriter, r *http.Request) {
 	generateHTML(w, "", "layout", "public.header", "index")
 }
 
+// main handler function
+func handleRoom(w http.ResponseWriter, r *http.Request) {
+	var err error
+	switch r.Method {
+	case "GET":
+		err = handleGet(w, r)
+	case "POST":
+		err = handlePost(w, r)
+	case "PUT":
+		err = handlePut(w, r)
+	case "DELETE":
+		err = handleDelete(w, r)
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// Retrieve a chat room
+// GET /chat/1
+func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
+	title := path.Base(r.URL.Path)
+	cr, err := data.Retrieve(title)
+	if err != nil {
+		return
+	}
+	output, err := json.MarshalIndent(&cr, "", "\t\t")
+	if err != nil {
+		return
+	}
+	// report on success
+	info(cr.User, "retrieved chat room:", cr.Title)
+	p(cr)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(output)
+	return
+}
+
+// Create a ChatRoom
+// POST /chat/
+func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
+	// read in request
+	len := r.ContentLength
+	body := make([]byte, len)
+	r.Body.Read(body)
+
+	// create ChatRoom obj
+	var cr data.ChatRoom
+	json.Unmarshal(body, &cr)
+	err = cr.Create()
+
+	// report on success/error
+	if err != nil {
+		warning("error encountered creating chat room:", err.Error())
+		ReportSuccess(w, false, err.Error())
+		return
+	}
+	info(cr.User, "created chat room:", cr.Title)
+	ReportSuccess(w, true, "")
+	return
+}
+
+// Update a room
+// PUT /chat/<id>
+func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
+	title := path.Base(r.URL.Path)
+	cr, err := data.Retrieve(title)
+	if err != nil {
+		return
+	}
+	len := r.ContentLength
+	body := make([]byte, len)
+	r.Body.Read(body)
+	json.Unmarshal(body, &cr)
+	err = cr.Update()
+	if err != nil {
+		warning("error encountered updating chat room:", err.Error())
+		ReportSuccess(w, false, err.Error())
+		return
+	}
+	// report on success
+	info(cr.User, "updated chat room:", cr.Title)
+	ReportSuccess(w, true, "")
+	return
+}
+
+// Delete a room
+// DELETE /chat/<id>
+func handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
+	title := path.Base(r.URL.Path)
+	cr, err := data.Retrieve(title)
+	if err != nil {
+		return
+	}
+	err = cr.Delete()
+	if err != nil {
+		warning("error encountered deleting chat room:", err.Error())
+		ReportSuccess(w, false, err.Error())
+		return
+	}
+	// report on success
+	info(cr.User, "deleted chat room:", cr.Title)
+	ReportSuccess(w, true, "")
+	return
+}
+
+/*
 // POST /chat
 // Create chat page
 func create(w http.ResponseWriter, r *http.Request) {
@@ -29,27 +137,12 @@ func create(w http.ResponseWriter, r *http.Request) {
 			User:     r.MultipartForm.Value["name"][0],
 			Type:     uint(classification),
 			Password: r.MultipartForm.Value["secret"][0],
-			ID:       chatServer.Index,
+			ID:       data.CS.Index,
 		}
-		chatServer.Push(cr)
-		chatServer.Index++
+		data.CS.Push(cr)
+		data.CS.Index++
 		generateHTML(w, cr.Type == 0, "layout", "public.header", "chat")
 		info(cr.User, "created chat room:", cr.Title)
 	}
 }
-
-// User joins a chat room
-func join(w http.ResponseWriter, r *http.Request) {
-}
-
-// User deletes a chat room
-func delete(w http.ResponseWriter, r *http.Request) {
-}
-
-// Check for duplicate chatrooms
-func check(w http.ResponseWriter, r *http.Request) {
-}
-
-// List chatrooms
-func list(w http.ResponseWriter, r *http.Request) {
-}
+*/

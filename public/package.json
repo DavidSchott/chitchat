@@ -1,0 +1,19 @@
+{
+    "name": "chitchat",
+    "version": "1.0.0",
+    "description": "real-time chat application",
+    "main": "js/index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DavidSchott/chitchat.git"
+      },
+    "author": "David Schott",
+    "license": "MIT",
+    "dependencies": {
+      "arithmetic": "^1.0.1",
+      "repeat-string": "^1.6.1"
+    }
+  }
