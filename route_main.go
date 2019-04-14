@@ -20,6 +20,18 @@ func test(w http.ResponseWriter, r *http.Request) {
 	generateHTML(w, "", "layout.1", "sidebar", "public.header", "index")
 }
 
+// GET /chat/list
+func listChats(w http.ResponseWriter, r *http.Request) {
+	//vals := r.URL.Query()
+	rooms, err := data.CS.Chats()
+	if err != nil {
+		error_message(w, r, "Cannot retrieve chats")
+	} else {
+		p(rooms)
+		generateHTML(w, &rooms, "layout", "sidebar", "public.header", "list")
+	}
+}
+
 // main handler function
 func handleRoom(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -71,7 +83,8 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	var cr data.ChatRoom
 	json.Unmarshal(body, &cr)
 	err = cr.Create()
-
+	p("index", *data.CS.Index)
+	p(data.CS.Rooms)
 	// report on success/error
 	if err != nil {
 		warning("error encountered creating chat room:", err.Error())
@@ -126,29 +139,3 @@ func handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ReportSuccess(w, true, "")
 	return
 }
-
-/*
-// POST /chat
-// Create chat page
-func create(w http.ResponseWriter, r *http.Request) {
-	r.ParseMultipartForm(1024)
-	classification, err := strconv.ParseInt(r.MultipartForm.Value["classification"][0], 10, 0)
-	if err != nil {
-		p(err)
-		danger("Could not create chat page", err)
-		fmt.Fprintf(w, "Error creating chat")
-	} else {
-		cr := &data.ChatRoom{
-			Title:    r.MultipartForm.Value["title"][0],
-			User:     r.MultipartForm.Value["name"][0],
-			Type:     uint(classification),
-			Password: r.MultipartForm.Value["secret"][0],
-			ID:       data.CS.Index,
-		}
-		data.CS.Push(cr)
-		data.CS.Index++
-		generateHTML(w, cr.Type == 0, "layout", "public.header", "chat")
-		info(cr.User, "created chat room:", cr.Title)
-	}
-}
-*/

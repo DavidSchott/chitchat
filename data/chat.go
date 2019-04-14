@@ -1,6 +1,13 @@
 package data
 
-import "strings"
+import (
+	"strings"
+)
+
+const (
+	PublicRoom  = iota
+	PrivateRoom = iota
+)
 
 type ChatRoom struct {
 	Title    string `json:"title"`
@@ -13,7 +20,7 @@ type ChatRoom struct {
 type ChatServer struct {
 	//	Rooms        map[int]*ChatRoom
 	Rooms map[string]*ChatRoom
-	Index int
+	Index *int
 }
 
 type Success struct {
@@ -25,18 +32,31 @@ type Failure struct {
 	Error  string `json:"error"`
 }
 
+var index int
 var CS ChatServer = ChatServer{
 	//	Rooms:        make(map[int]*ChatRoom),
 	Rooms: make(map[string]*ChatRoom),
-	Index: 0,
+	Index: &index,
 }
 
 func (cs ChatServer) push(cr *ChatRoom) {
 	cs.Rooms[strings.ToLower(cr.Title)] = cr
+	*cs.Index++
 }
 
 func (cs ChatServer) pop(title string) {
-	cs.Rooms[strings.ToLower(title)] = nil
+	delete(cs.Rooms, strings.ToLower(title))
+	*cs.Index--
+}
+
+func (cs ChatServer) Chats() (rooms []ChatRoom, err error) {
+	rooms = make([]ChatRoom, 0)
+	for _, v := range CS.Rooms {
+		if v.Type == PublicRoom {
+			rooms = append(rooms, *v)
+		}
+	}
+	return
 }
 
 // Retrieve returns a single chat room based on title
@@ -49,7 +69,6 @@ func Retrieve(title string) (cr ChatRoom, err error) {
 // Create a new chat room
 func (cr *ChatRoom) Create() (err error) {
 	CS.push(cr)
-	CS.Index++
 	//cr.ID = CS.Index // TODO: remove
 	return
 }

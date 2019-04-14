@@ -1,23 +1,45 @@
+var create = function() {
+    console.log("Create Rooms...");
+    createRoom("Title 1", 0, "david", "");
+    createRoom("Title 2 Private", 1, "david_private", "!!123abc");
+    createRoom("forever public chat", 0, "alexa", "");
+}
+
 $(document).ready(function () {
     $('#sidebarCollapse').on('click', function () {
         $('#sidebar').toggleClass('active');
         $(this).toggleClass('active');
     });
+//    create();
     console.log("ready");
 });
 
+
+
 function runTests() {
-    console.log("Create Rooms...");
-    createRoom("Title 1", 0, "david", "");
-    createRoom("Title 2 Private", 1, "david_private", "!!123abc");
-    console.log("Retrieve Rooms...");
-    retrieveRoom("title 1");
-    retrieveRoom("title 2 private");
-    console.log("update rooms");
-    putRoom("Title 1", 1, "new_user", "secret");
-    retrieveRoom("title 1");
-    deleteRoom("title 1")
-    deleteRoom("title 2 private")
+
+    var retrieve = function(){
+        console.log("Retrieve Rooms...");
+        retrieveRoom("title 1");
+        retrieveRoom("title 2 private");
+    }
+    var update = function(){
+        console.log("update rooms");
+        putRoom("Title 1", 1, "new_user", "secret");
+        retrieveRoom("title 1");
+    }
+
+    var del = function(){
+        console.log("deleting rooms...")
+        deleteRoom("title 1")
+        deleteRoom("title 2 private")
+    }
+
+
+    // call 
+    retrieve()
+    update()
+//    del()
     alert("Completed tests successfully!")
 }
 
