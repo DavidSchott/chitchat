@@ -2,18 +2,21 @@ package data
 
 import (
 	"strings"
+	"time"
 )
 
 const (
-	PublicRoom  = iota
-	PrivateRoom = iota
+	PublicRoom  = "public"
+	PrivateRoom = "private"
 )
 
 type ChatRoom struct {
-	Title    string `json:"title"`
-	User     string `json:"name"`
-	Type     uint   `json:"classification"` // 0 = public, 1 = private
-	Password string `json:"password"`       // optional
+	Title        string    `json:"title"`
+	User         string    `json:"name"`
+	Type         string    `json:"classification"` // 0 = public, 1 = private
+	Password     string    `json:"password"`       // optional
+	CreatedAt    time.Time `json:"time"`
+	Participants int       `json:"participants"`
 	//	ID       int    `json:"id"`
 }
 
@@ -52,11 +55,15 @@ func (cs ChatServer) pop(title string) {
 func (cs ChatServer) Chats() (rooms []ChatRoom, err error) {
 	rooms = make([]ChatRoom, 0)
 	for _, v := range CS.Rooms {
-		if v.Type == PublicRoom {
-			rooms = append(rooms, *v)
-		}
+		rooms = append(rooms, *v)
 	}
 	return
+}
+
+// PrettyTime prints the creation date in a pretty format
+func (cr ChatRoom) PrettyTime() string {
+	layout := "Mon Jan _2 15:04"
+	return cr.CreatedAt.Format(layout)
 }
 
 // Retrieve returns a single chat room based on title
@@ -68,6 +75,7 @@ func Retrieve(title string) (cr ChatRoom, err error) {
 
 // Create a new chat room
 func (cr *ChatRoom) Create() (err error) {
+	cr.CreatedAt = time.Now()
 	CS.push(cr)
 	//cr.ID = CS.Index // TODO: remove
 	return

@@ -1,10 +1,24 @@
 {{ define "content" }}
-<h1>Open Chats</h1>
+<h1>Available Chat Rooms</h1>
 
-<ul>
-{{range . }}
-    <li>{{.Title}}</li>
-{{ end }} 
-</ul>
-
-{{ end }}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Type</th>
+            <th scope="col">Date</th>
+            <th scope="col">Active Users</th>
+        </tr>
+    </thead>
+    <tbody>
+            {{range . }}
+        <tr>
+            <th scope="row">{{.Title}}</th>
+            <td>{{ .Type }}</td>
+            <td>{{.PrettyTime}}</td>
+            <td>{{.Participants}}</td>
+        </tr>
+        {{ end }}
+    </tbody>
+    </table>
+    {{ end }}

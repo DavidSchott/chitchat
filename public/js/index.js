@@ -1,8 +1,31 @@
-var create = function() {
+var create = function () {
     console.log("Create Rooms...");
-    createRoom("Title 1", 0, "david", "");
-    createRoom("Title 2 Private", 1, "david_private", "!!123abc");
-    createRoom("forever public chat", 0, "alexa", "");
+    createRoom("Default Chat", "public", "david", "");
+    createRoom("Title 2 Private", "private", "david_private", "!!123abc");
+    createRoom("forever public chat", "public", "alexa", "");
+}
+
+// Create new room
+function newRoom() {
+    var title = document.getElementById("input-title").value;
+    var classification = document.getElementById("input-type").value;
+    var user = document.getElementById("input-user").value;
+    var password = document.getElementById("input-password").value;
+
+    var valid = validateForm(title, classification, user, password)
+    if (valid) {
+        // Submit new room
+        createRoom(title, classification, user, password);
+        // close modal
+        $('#create-modal').modal('toggle');
+        // display new chat room and join it
+        return true;
+    }
+}
+
+function validateForm(title, classification, user, password) {
+    // validate input
+    return true;
 }
 
 $(document).ready(function () {
@@ -10,42 +33,38 @@ $(document).ready(function () {
         $('#sidebar').toggleClass('active');
         $(this).toggleClass('active');
     });
-//    create();
     console.log("ready");
 });
 
 
-
+// For debugging
 function runTests() {
-
-    var retrieve = function(){
+    var retrieve = function () {
         console.log("Retrieve Rooms...");
-        retrieveRoom("title 1");
+        retrieveRoom("Default Chat");
         retrieveRoom("title 2 private");
     }
-    var update = function(){
+
+    var update = function () {
         console.log("update rooms");
-        putRoom("Title 1", 1, "new_user", "secret");
-        retrieveRoom("title 1");
+        putRoom("Default Chat", "private", "new_user", "secret");
+        retrieveRoom("Default Chat");
     }
 
-    var del = function(){
+    var del = function () {
         console.log("deleting rooms...")
-        deleteRoom("title 1")
+        deleteRoom("Default Chat")
         deleteRoom("title 2 private")
     }
-
 
     // call 
     retrieve()
     update()
-//    del()
+    //    del()
     alert("Completed tests successfully!")
 }
 
-// Globals
-var user
-
+// REST API calls
 // POST /chat/
 function createRoom(title, classification, user, password) {
     $.post('/chat/', JSON.stringify({ title: title, name: user, classification: classification, password: password }), "json")
@@ -103,35 +122,35 @@ function putRoom(title, classification, user, password) {
             reject("Error fetching chat room " + title);
             console.log(xhr);
         });
-    }
+}
 
-    function deleteRoom(title) {
-        $.ajax({
-            url: "/chat/" + title,
-            method: 'DELETE'
+function deleteRoom(title) {
+    $.ajax({
+        url: "/chat/" + title,
+        method: 'DELETE'
+    })
+        .done(function (data) {
+            console.log(data)
+            if (!data.hasOwnProperty('error')) {
+                console.log("successfully deleted " + title)
+                return data;
+            }
+            else {
+                displayAlert("Could not delete chat room  " + title);
+            }
         })
-            .done(function (data) {
-                console.log(data)
-                if (!data.hasOwnProperty('error')) {
-                    console.log("successfully deleted " + title)
-                    return data;
-                }
-                else {
-                    displayAlert("Could not delete chat room  " + title);
-                }
-            })
-            .fail(function (xhr) {
-                reject("Error deleting chat room " + title);
-                console.log(xhr);
-            });
-    }
+        .fail(function (xhr) {
+            reject("Error deleting chat room " + title);
+            console.log(xhr);
+        });
+}
 
-    function displayAlert(msg) {
-        $('#error-alert').html('<strong>' + msg + '</strong>');
-        $('#error-alert').show();
-        //$('.loading').hide();
-    }
+function displayAlert(msg) {
+    $('#error-alert').html('<strong>' + msg + '</strong>');
+    $('#error-alert').show();
+    //$('.loading').hide();
+}
 
-    function hideAlert() {
-        $('#error-alert').hide();
-    }
+function hideAlert() {
+    $('#error-alert').hide();
+}

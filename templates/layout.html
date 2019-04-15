@@ -10,21 +10,72 @@
     <link rel="stylesheet" href="/static/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/css/font-awesome.min.css">
     <link rel="stylesheet" href="/static/css/sidebar.css">
+    <link rel="stylesheet" href="/static/css/custom.css">
     <script type="text/javascript" src="/static/js/font-awesome.min.js"></script>
 </head>
 
 <body>
-<div class="wrapper">
-{{ template "sidebar" }}
-    <!-- Page Content  -->
-    <div id="content">
-    {{ template "navbar" }}
+    <!-- Modal -->
+    <div class="modal fade" id="create-modal" tabindex="-1" role="dialog" aria-labelledby="create-modal-title"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Creating chat room...</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="post" id="create-new-room">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="input-title">Title</label>
+                            <input type="text" class="form-control" id="input-title" placeholder="my chat room">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="input-type">Type</label>
+                                <select id="input-type" class="form-control" aria-describedby="typeHelpInline">
+                                    <option selected>Public</option>
+                                    <option>Private</option>
+                                </select>
+                                <small id="typeHelpInline" class="text-muted">
+                                    Private rooms require a <i>password</i> and are <i>encrypted</i>.
+                                </small>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="input-password">Password</label>
+                                <input type="password" class="form-control" id="input-password"
+                                    aria-describedby="passwordHelpInline">
+                                <small id="passwordHelpInline" class="text-muted">
+                                    Must be 8-20 characters long.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="input-user">Username</label>
+                                <input type="text" class="form-control" id="input-user" placeholder="anonymous">
+                        </div>
+                    </div>
 
-    <div style="display:none;" id="error-alert" class="alert alert-danger col-sm-12"></div>
-    
-    {{ template "content" . }}
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <!--<button type="submit" class="btn btn-primary">Submit</button>-->
+                        <button type="button" class="btn btn-primary" onclick="newRoom();">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-</div>
+    <div class="wrapper">
+        <div style="display:none;" id="error-alert" class="alert alert-danger col-sm-12"></div>
+        {{ template "sidebar" }}
+        <!-- Page Content  -->
+        <div id="content">
+            {{ template "navbar" }}
+            {{ template "content" . }}
+        </div>
+    </div>
 
     <script src="/static/js/jquery-3.4.0.min.js"></script>
     <script src="/static/js/popper.min.js"></script>

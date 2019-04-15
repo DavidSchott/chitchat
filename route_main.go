@@ -17,7 +17,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 // GET /
 // Default page
 func test(w http.ResponseWriter, r *http.Request) {
-	generateHTML(w, "", "layout.1", "sidebar", "public.header", "index")
+	generateHTML(w, "", "layout", "sidebar", "public.header", "create")
 }
 
 // GET /chat/list
@@ -27,7 +27,6 @@ func listChats(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		error_message(w, r, "Cannot retrieve chats")
 	} else {
-		p(rooms)
 		generateHTML(w, &rooms, "layout", "sidebar", "public.header", "list")
 	}
 }
@@ -65,7 +64,6 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	}
 	// report on success
 	info(cr.User, "retrieved chat room:", cr.Title)
-	p(cr)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(output)
 	return
@@ -83,8 +81,6 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	var cr data.ChatRoom
 	json.Unmarshal(body, &cr)
 	err = cr.Create()
-	p("index", *data.CS.Index)
-	p(data.CS.Rooms)
 	// report on success/error
 	if err != nil {
 		warning("error encountered creating chat room:", err.Error())
