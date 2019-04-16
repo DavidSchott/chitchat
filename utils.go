@@ -108,6 +108,12 @@ func generateHTML(writer http.ResponseWriter, data interface{}, filenames ...str
 	templates.ExecuteTemplate(writer, "layout", data)
 }
 
+func generateHTMLContent(writer http.ResponseWriter, data interface{}, file string) {
+	writer.Header().Set("Content-Type", "text/html")
+	t, _ := template.ParseFiles(fmt.Sprintf("templates/%s.html", file))
+	t.Execute(writer, data)
+}
+
 // convenience function to be chained with another HandlerFunc
 // that prints to the console which handler was called.
 func logConsole(h http.HandlerFunc) http.HandlerFunc {

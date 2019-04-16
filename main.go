@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 	"time"
+
+	"github.com/DavidSchott/chitchat/data"
 )
 
 func main() {
@@ -44,6 +46,9 @@ func main() {
 		WriteTimeout:   time.Duration(config.WriteTimeout * int64(time.Second)),
 		MaxHeaderBytes: 1 << 20,
 	}
+
+	// initialize chat server
+	data.CS.Init()
 	p("ChitChat", version(), "started at", config.Address)
 	//server.ListenAndServeTLS("gencert/cert.pem", "gencert/key.pem")
 	server.ListenAndServe()

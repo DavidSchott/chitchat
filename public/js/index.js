@@ -23,6 +23,25 @@ function newRoom() {
     }
 }
 
+function getChatList(){
+    $.get('/chat/list')
+        .done(function (data) {
+            console.log(data)
+            if (!data.hasOwnProperty('error')) {
+                console.log("success")
+                console.log(data);
+                document.getElementById("inner-content").innerHTML = data;
+            }
+            else {
+                displayAlert("Could not retrieve chat room");
+            }
+        })
+        .fail(function (xhr) {
+            console.log("Error fetching chat room list");
+            console.log(xhr);
+        });
+}
+
 function validateForm(title, classification, user, password) {
     // validate input
     return true;
@@ -78,7 +97,7 @@ function createRoom(title, classification, user, password) {
             }
         })
         .fail(function (xhr) {
-            reject("Error creating room " + title);
+            console.log("Error creating room " + title);
             console.log(xhr);
         });
 }
@@ -97,7 +116,7 @@ function retrieveRoom(title) {
             }
         })
         .fail(function (xhr) {
-            reject("Error fetching chat room " + title);
+            console.log("Error fetching chat room " + title);
             console.log(xhr);
         });
 }
@@ -119,7 +138,7 @@ function putRoom(title, classification, user, password) {
             }
         })
         .fail(function (xhr) {
-            reject("Error fetching chat room " + title);
+            console.log("Error fetching chat room " + title);
             console.log(xhr);
         });
 }
@@ -140,7 +159,7 @@ function deleteRoom(title) {
             }
         })
         .fail(function (xhr) {
-            reject("Error deleting chat room " + title);
+            console.log("Error deleting chat room " + title);
             console.log(xhr);
         });
 }

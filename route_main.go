@@ -22,12 +22,14 @@ func test(w http.ResponseWriter, r *http.Request) {
 
 // GET /chat/list
 func listChats(w http.ResponseWriter, r *http.Request) {
-	//vals := r.URL.Query()
 	rooms, err := data.CS.Chats()
 	if err != nil {
 		error_message(w, r, "Cannot retrieve chats")
 	} else {
-		generateHTML(w, &rooms, "layout", "sidebar", "public.header", "list")
+		// to return back to refreshing page:
+		//generateHTML(w, &rooms, "layout", "sidebar", "public.header", "list")
+		generateHTMLContent(w, &rooms, "list2")
+		return
 	}
 }
 

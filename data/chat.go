@@ -17,7 +17,7 @@ type ChatRoom struct {
 	Password     string    `json:"password"`       // optional
 	CreatedAt    time.Time `json:"time"`
 	Participants int       `json:"participants"`
-	//	ID       int    `json:"id"`
+	ID           int       `json:"id"`
 }
 
 type ChatServer struct {
@@ -42,9 +42,23 @@ var CS ChatServer = ChatServer{
 	Index: &index,
 }
 
+//TODO: Remove
+func (cs ChatServer) Init() {
+	CS.push(&ChatRoom{
+		Title:        "Public Chat",
+		User:         "Server",
+		Type:         "public",
+		Password:     "",
+		CreatedAt:    time.Now(),
+		Participants: 0,
+		ID:           0,
+	})
+}
+
 func (cs ChatServer) push(cr *ChatRoom) {
-	cs.Rooms[strings.ToLower(cr.Title)] = cr
 	*cs.Index++
+	cr.ID = *cs.Index
+	cs.Rooms[strings.ToLower(cr.Title)] = cr
 }
 
 func (cs ChatServer) pop(title string) {
