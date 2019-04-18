@@ -12,7 +12,7 @@
     <tbody>
             {{range . }}
         <tr>
-            <th scope="row">{{.Title}}</th>
+            <th scope="row" onclick="setInnerContent('/chat/join/', {{.Title}});">{{.Title}}</th>
             <td>{{ .Type }}</td>
             <td>{{.PrettyTime}}</td>
             <td>{{.Participants}}</td>

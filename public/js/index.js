@@ -5,6 +5,10 @@ var create = function () {
     createRoom("forever public chat", "public", "alexa", "");
 }
 
+function append(){
+    document.getElementById("chat-box").innerHTML += '<p>User 1: diLorem ipsum dolor sit amet, consectetur apisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliqu </p><p>User 5: msg 10 </p>';
+}
+
 // Create new room
 function newRoom() {
     var title = document.getElementById("input-title").value;
@@ -23,13 +27,12 @@ function newRoom() {
     }
 }
 
-function getChatList(){
-    $.get('/chat/list')
+function setInnerContent(url,title=''){
+    console.log(url+title)
+    $.get(url+title)
         .done(function (data) {
-            console.log(data)
+            console.log(data);
             if (!data.hasOwnProperty('error')) {
-                console.log("success")
-                console.log(data);
                 document.getElementById("inner-content").innerHTML = data;
             }
             else {

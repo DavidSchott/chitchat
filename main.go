@@ -23,8 +23,11 @@ func main() {
 	//REST-API for chat room
 	mux.HandleFunc("/chat/", logConsole(handleRoom))
 
-	// "Join a chat room"
-	mux.HandleFunc("/chat/list", logConsole(listChats))
+	// List all rooms / "Join a chat room"
+	mux.HandleFunc("/chat/join", logConsole(listChats))
+
+	// Join action
+	mux.HandleFunc("/chat/join/", logConsole(joinRoom))
 
 	// test error
 	mux.HandleFunc("/err", logConsole(err))

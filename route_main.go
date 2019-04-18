@@ -14,10 +14,24 @@ func index(w http.ResponseWriter, r *http.Request) {
 	generateHTML(w, "", "layout", "sidebar", "public.header", "index")
 }
 
-// GET /
+// GET /test
 // Default page
 func test(w http.ResponseWriter, r *http.Request) {
-	generateHTML(w, "", "layout", "sidebar", "public.header", "create")
+	generateHTML(w, "", "layout", "sidebar", "public.header", "chat")
+}
+
+// GET /
+// Default page
+func joinRoom(w http.ResponseWriter, r *http.Request) {
+	title := path.Base(r.URL.Path)
+	info(title)
+	cr, err := data.Retrieve(title)
+	p(cr)
+	if err != nil {
+		return
+	}
+	generateHTMLContent(w, &cr, "test")
+	//generateHTML(w, &cr, "layout", "sidebar", "public.header", "content")
 }
 
 // GET /chat/list
@@ -28,7 +42,7 @@ func listChats(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// to return back to refreshing page:
 		//generateHTML(w, &rooms, "layout", "sidebar", "public.header", "list")
-		generateHTMLContent(w, &rooms, "list2")
+		generateHTMLContent(w, &rooms, "list")
 		return
 	}
 }

@@ -38,6 +38,7 @@
                                 <select id="input-type" class="form-control" aria-describedby="typeHelpInline">
                                     <option selected>Public</option>
                                     <option>Private</option>
+                                    <option>Hidden</option>
                                 </select>
                                 <small id="typeHelpInline" class="text-muted">
                                     Private rooms require a <i>password</i> and are <i>encrypted</i>.
@@ -52,9 +53,11 @@
                                 </small>
                             </div>
                         </div>
-                        <div class="form-group">
-                                <label for="input-user">Username</label>
-                                <input type="text" class="form-control" id="input-user" placeholder="anonymous">
+                        <div class="form-group input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="basic-addon1">@</span>
+                                  </div>
+                                <input type="text" class="form-control" id="input-user" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
                         </div>
                     </div>
 

@@ -1,0 +1,9 @@
+{{ block "content" .}}
+<h1>{{.Title}}</h1>
+<ul>
+<li>Type: {{ .Type }}</li>
+<li>Created at: {{.PrettyTime}}</li>
+<li>Participants:{{.Participants}}</li>
+<li>Admin: {{ .User }}</li>
+</ul>
+{{end}}

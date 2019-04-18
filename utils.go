@@ -110,7 +110,7 @@ func generateHTML(writer http.ResponseWriter, data interface{}, filenames ...str
 
 func generateHTMLContent(writer http.ResponseWriter, data interface{}, file string) {
 	writer.Header().Set("Content-Type", "text/html")
-	t, _ := template.ParseFiles(fmt.Sprintf("templates/%s.html", file))
+	t, _ := template.ParseFiles(fmt.Sprintf("templates/content/%s.html", file))
 	t.Execute(writer, data)
 }
 
