@@ -8,6 +8,7 @@ import (
 const (
 	PublicRoom  = "public"
 	PrivateRoom = "private"
+	HiddenRoom  = "hidden"
 )
 
 type ChatRoom struct {
@@ -16,7 +17,7 @@ type ChatRoom struct {
 	Type         string    `json:"classification"` // 0 = public, 1 = private
 	Password     string    `json:"password"`       // optional
 	CreatedAt    time.Time `json:"time"`
-	Participants int       `json:"participants"`
+	Participants []string  `json:"participants"`
 	ID           int       `json:"id"`
 }
 
@@ -50,7 +51,7 @@ func (cs ChatServer) Init() {
 		Type:         "public",
 		Password:     "",
 		CreatedAt:    time.Now(),
-		Participants: 0,
+		Participants: []string{"Server"},
 		ID:           0,
 	})
 }
@@ -69,7 +70,10 @@ func (cs ChatServer) pop(title string) {
 func (cs ChatServer) Chats() (rooms []ChatRoom, err error) {
 	rooms = make([]ChatRoom, 0)
 	for _, v := range CS.Rooms {
-		rooms = append(rooms, *v)
+		if v.Type != HiddenRoom {
+			rooms = append(rooms, *v)
+		}
+
 	}
 	return
 }

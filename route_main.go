@@ -17,7 +17,10 @@ func index(w http.ResponseWriter, r *http.Request) {
 // GET /test
 // Default page
 func test(w http.ResponseWriter, r *http.Request) {
-	generateHTML(w, "", "layout", "sidebar", "public.header", "chat")
+	ce := data.ChatEvent{
+		Color: "black",
+	}
+	generateHTML(w, &ce, "layout", "sidebar", "public.header", "chat")
 }
 
 // GET /

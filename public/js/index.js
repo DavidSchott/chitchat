@@ -15,7 +15,6 @@ function newRoom() {
     var classification = document.getElementById("input-type").value;
     var user = document.getElementById("input-user").value;
     var password = document.getElementById("input-password").value;
-
     var valid = validateForm(title, classification, user, password)
     if (valid) {
         // Submit new room
