@@ -17,6 +17,7 @@ type ChatEvent struct {
 	Timestamp time.Time `json:"time"`
 	RoomID    int       `json:"id"`
 	Color     string    `json:"color"`
+	Msg       string    `json:"msg"`
 }
 
 func (ce ChatEvent) ColorHTML() (css template.CSS) {

@@ -14,13 +14,14 @@ const (
 type ChatRoom struct {
 	Title        string    `json:"title"`
 	Description  string    `json:"description"`
-	User         string    `json:"name"`
-	Type         string    `json:"classification"` // 0 = public, 1 = private
-	Password     string    `json:"password"`       // optional
+	Admin        string    `json:"name"`
+	Type         string    `json:"classification"`
+	Password     string    `json:"password"` // optional
 	CreatedAt    time.Time `json:"time"`
 	Participants []string  `json:"participants"`
 	ID           int       `json:"id"`
 	Broker       *Broker
+	Clients      map[string]*Client
 }
 
 type ChatServer struct {
@@ -49,13 +50,14 @@ func (cs ChatServer) Init() {
 	CS.push(&ChatRoom{
 		Title:        "Public Chat",
 		Description:  "This is the default chat, available to everyone!",
-		User:         "Server",
+		Admin:        "Server",
 		Type:         "public",
 		Password:     "",
 		CreatedAt:    time.Now(),
 		Participants: []string{"Server"},
 		ID:           0,
 		Broker:       NewBroker(),
+		Clients:      make(map[string]*Client),
 	})
 }
 
@@ -63,6 +65,7 @@ func (cs ChatServer) push(cr *ChatRoom) {
 	// Update indices, create new session
 	*cs.Index++
 	cr.ID = *cs.Index
+	cr.Clients = make(map[string]*Client)
 	// Push to chat server
 	cs.Rooms[strings.ToLower(cr.Title)] = cr
 	cs.RoomsID[cr.ID] = cr
@@ -108,7 +111,7 @@ func RetrieveID(ID int) (cr ChatRoom, err error) {
 // Create a new chat room
 func (cr *ChatRoom) Create() (err error) {
 	cr.CreatedAt = time.Now()
-	cr.Participants = []string{cr.User}
+	cr.Participants = []string{cr.Admin}
 	cr.Broker = NewBroker()
 	CS.push(cr)
 	return

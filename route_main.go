@@ -81,7 +81,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 		return
 	}
 	// report on success
-	info(cr.User, "retrieved chat room:", cr.Title)
+	info(cr.Admin, "retrieved chat room:", cr.Title)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(output)
 	return
@@ -105,7 +105,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 		ReportSuccess(w, false, err.Error())
 		return
 	}
-	info(cr.User, "created chat room:", cr.Title)
+	info(cr.Admin, "created chat room:", cr.Title)
 	ReportSuccess(w, true, "")
 	return
 }
@@ -129,7 +129,7 @@ func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 		return
 	}
 	// report on success
-	info(cr.User, "updated chat room:", cr.Title)
+	info(cr.Admin, "updated chat room:", cr.Title)
 	ReportSuccess(w, true, "")
 	return
 }
@@ -149,7 +149,7 @@ func handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 		return
 	}
 	// report on success
-	info(cr.User, "deleted chat room:", cr.Title)
+	info(cr.Admin, "deleted chat room:", cr.Title)
 	ReportSuccess(w, true, "")
 	return
 }

@@ -1,3 +1,7 @@
 package data
 
-// TODO: Implement client struct
+type Client struct {
+	Username string
+	Color    string
+	Conn     chan chan []byte
+}
