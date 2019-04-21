@@ -2,58 +2,28 @@
 <div class="card bg-sohbet border-0 m-0 p-0">
 
     <div class="card-header text-center">
-            <h4>Featured Title</h4>
-    <p class="lead">Description about this current chat</p>
-        </div>
+        <h4>{{.Title}}</h4>
+        <p class="lead">{{.Description}}</p>
+    </div>
     <hr class="my-4">
     <div class="card-body">
-            <div id="sohbet" class="card border-0 m-0 p-0 position-relative bg-transparent"
-            style="overflow-y: auto; height: 50vh;">
+        <div id="chat-box" class="card border-0 m-0 p-0 position-relative bg-transparent" style="overflow-y: auto; height: 50vh;">
             <div class="balon1 p-2 m-0 position-relative" data-is="You - 3:20 pm">
-                    <a class="float-right"> Hey there! What's up? </a>
-                </div>
-    
-                <div class="balon2 p-2 m-0 position-relative" data-is="user1 - 3:22 pm">
-                    <a class="float-left sohbet2" style="{{.ColorHTML}}"> Purple Lorem ipsum dolor sit amet, consectetur a </a>
-                </div>
-    
-                <div class="balon1 p-2 m-0 position-relative" data-is="You - 3:23 pm">
-                    <a class="float-right"> Lorem ipsum dolor sit amet, consectetur a </a>
-                </div>
-                <div class="balon1 p-2 m-0 position-relative" data-is="You - 3:20 pm">
-                        <a class="float-right"> Hey there! What's up? </a>
-                    </div>
-        
-                    <div class="balon2 p-2 m-0 position-relative" data-is="user1 - 3:22 pm">
-                        <a class="float-left sohbet2"> Lorem ipsum dolor sit amet, consectetur a </a>
-                    </div>
-        
-                    <div class="balon1 p-2 m-0 position-relative" data-is="You - 3:23 pm">
-                        <a class="float-right"> Lorem ipsum dolor sit amet, consectetur a </a>
-                    </div>
-        
-                    <div class="balon2 p-2 m-0 position-relative" data-is="user1 - 3:26 pm">
-                        <a class="float-left sohbet2"> Lorem ipsum dolor sit amet, consectetuz a </a>
-                    </div>
-        
-                    <div class="balon1 p-2 m-0 position-relative" data-is="You - 3:28 pm">
-                        <a class="float-right"> Lorem ipsum dolor sit amet, consectetur a </a>
-                    </div>
-        
-                    <div class="balon2 p-2 m-0 position-relative" data-is="user2 - 3:33 pm">
-                        <a class="float-left sohbet2">Lorem ipsum dolor sit amet, consectetur a diLorem ipsum dolor sit amet,
-                            consectet</a>
-                    </div>
-        </div>
-        </div>
-        <div class="card-footer text-muted">
-                <div class="input-group">
-                        <textarea class="form-control" aria-label="With textarea" aria-describedby="button-addon1"></textarea>
-                        <div class="input-group-append">
-                            <button class="btn btn-primary" type="button" id="button-addon1">Send</button>
-                        </div>
-                    </div>
-        </div>
-</div>
+                <a class="float-right"> Hey there! What's up? </a>
+            </div>
 
+            <div class="balon2 p-2 m-0 position-relative" data-is="user1 - 3:22 pm">
+                <a class="float-left"> Purple Lorem ipsum dolor sit amet, consectetur a </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer text-muted">
+        <div class="input-group">
+            <textarea class="form-control" aria-label="With textarea" aria-describedby="send-btn" id="msg"></textarea>
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" id="send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
 {{end}}

@@ -3,6 +3,8 @@ package data
 import (
 	"strings"
 	"time"
+
+	"github.com/DavidSchott/chitchat/chat"
 )
 
 const (
@@ -13,18 +15,20 @@ const (
 
 type ChatRoom struct {
 	Title        string    `json:"title"`
+	Description  string    `json:"description"`
 	User         string    `json:"name"`
 	Type         string    `json:"classification"` // 0 = public, 1 = private
 	Password     string    `json:"password"`       // optional
 	CreatedAt    time.Time `json:"time"`
 	Participants []string  `json:"participants"`
 	ID           int       `json:"id"`
+	Session      *chat.Hub
 }
 
 type ChatServer struct {
-	//	Rooms        map[int]*ChatRoom
-	Rooms map[string]*ChatRoom
-	Index *int
+	RoomsID map[int]*ChatRoom
+	Rooms   map[string]*ChatRoom
+	Index   *int
 }
 
 type Success struct {
@@ -38,32 +42,39 @@ type Failure struct {
 
 var index int
 var CS ChatServer = ChatServer{
-	//	Rooms:        make(map[int]*ChatRoom),
-	Rooms: make(map[string]*ChatRoom),
-	Index: &index,
+	RoomsID: make(map[int]*ChatRoom),
+	Rooms:   make(map[string]*ChatRoom),
+	Index:   &index,
 }
 
-//TODO: Remove
 func (cs ChatServer) Init() {
+	hub := chat.NewHub()
+	go hub.Run()
 	CS.push(&ChatRoom{
 		Title:        "Public Chat",
+		Description:  "This is the default chat, available to everyone!",
 		User:         "Server",
 		Type:         "public",
 		Password:     "",
 		CreatedAt:    time.Now(),
 		Participants: []string{"Server"},
 		ID:           0,
+		Session:      hub,
 	})
 }
 
 func (cs ChatServer) push(cr *ChatRoom) {
+	// Update indices, create new session
 	*cs.Index++
 	cr.ID = *cs.Index
+	// Push to chat server
 	cs.Rooms[strings.ToLower(cr.Title)] = cr
+	cs.RoomsID[cr.ID] = cr
 }
 
-func (cs ChatServer) pop(title string) {
+func (cs ChatServer) pop(title string, ID int) {
 	delete(cs.Rooms, strings.ToLower(title))
+	delete(cs.RoomsID, ID)
 	*cs.Index--
 }
 
@@ -91,11 +102,20 @@ func Retrieve(title string) (cr ChatRoom, err error) {
 	return
 }
 
+// Retrieve returns a single chat room based on ID
+func RetrieveID(ID int) (cr ChatRoom, err error) {
+	cr = *CS.RoomsID[ID]
+	//err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
+	return
+}
+
 // Create a new chat room
 func (cr *ChatRoom) Create() (err error) {
 	cr.CreatedAt = time.Now()
+	cr.Participants = []string{cr.User}
+	cr.Session = chat.NewHub()
+	go cr.Session.Run()
 	CS.push(cr)
-	//cr.ID = CS.Index // TODO: remove
 	return
 }
 
@@ -108,7 +128,7 @@ func (cr *ChatRoom) Update() (err error) {
 
 // Delete a chat room
 func (cr *ChatRoom) Delete() (err error) {
-	CS.pop(strings.ToLower(cr.Title))
+	CS.pop(strings.ToLower(cr.Title), cr.ID)
 	//_, err = Db.Exec("delete from posts where id = $1", post.Id)
 	return
 }

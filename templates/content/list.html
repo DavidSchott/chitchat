@@ -12,7 +12,8 @@
     <tbody>
             {{range . }}
         <tr>
-            <th scope="row" onclick="setInnerContent('/chat/join/', {{.Title}});">{{.Title}}</th>
+            <!-- <th scope="row" onclick="setInnerContent('/chat/join/',{{.ID}});">{{.Title}}</th>-->
+            <th scope="row" ><a href="/chat/join/{{.ID}}">{{.Title}}</a></th>
             <td>{{ .Type }}</td>
             <td>{{.PrettyTime}}</td>
             <td>{{.Participants}}</td>

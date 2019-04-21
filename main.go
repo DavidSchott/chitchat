@@ -24,22 +24,23 @@ func main() {
 	mux.HandleFunc("/chat/", logConsole(handleRoom))
 
 	// List all rooms / "Join a chat room"
-	mux.HandleFunc("/chat/join", logConsole(listChats))
+	mux.HandleFunc("/chat/list", logConsole(listChats))
 
 	// Join action
 	mux.HandleFunc("/chat/join/", logConsole(joinRoom))
 
+	// Send action
+	//	mux.HandleFunc("/chat/send/", logConsole(chatHandler))
+
+	// Chat Sessions (WebSockets)
+	mux.HandleFunc("/chat/ws/", logConsole(socketHandler))
+
+	//	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	//		chat.ServeWs(hub, w, r)
+	//	})
+
 	// test error
 	mux.HandleFunc("/err", logConsole(err))
-
-	// test redirect
-	mux.HandleFunc("/redirect", logConsole(redirect))
-
-	// test json
-	mux.HandleFunc("/json", logConsole(jsonExample))
-
-	// test implement
-	mux.HandleFunc("/todo", logConsole(notImplemented))
 
 	// starting up the server
 	server := &http.Server{

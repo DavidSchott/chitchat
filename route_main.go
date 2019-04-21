@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"path"
+	"strconv"
 
 	"github.com/DavidSchott/chitchat/data"
 )
@@ -23,18 +24,16 @@ func test(w http.ResponseWriter, r *http.Request) {
 	generateHTML(w, &ce, "layout", "sidebar", "public.header", "chat")
 }
 
-// GET /
+// GET /chat/join/<id>
 // Default page
 func joinRoom(w http.ResponseWriter, r *http.Request) {
-	title := path.Base(r.URL.Path)
-	info(title)
-	cr, err := data.Retrieve(title)
-	p(cr)
+	ID, err := strconv.Atoi(path.Base(r.URL.Path))
+	info("joining room", ID)
+	cr, err := data.RetrieveID(ID)
 	if err != nil {
 		return
 	}
-	generateHTMLContent(w, &cr, "test")
-	//generateHTML(w, &cr, "layout", "sidebar", "public.header", "content")
+	generateHTML(w, &cr, "layout", "sidebar", "public.header", "chat")
 }
 
 // GET /chat/list

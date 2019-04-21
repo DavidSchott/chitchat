@@ -1,6 +1,20 @@
 package data
 
-import "html/template"
+import (
+	"html/template"
+	"net/http"
+	"time"
+
+	"github.com/gorilla/websocket"
+)
+
+var Clients = make(map[*websocket.Conn]bool)
+var Transmission = make(chan *ChatEvent)
+var Upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 const (
 	Subscribe   = "join"
@@ -9,11 +23,11 @@ const (
 )
 
 type ChatEvent struct {
-	//	EventType string    `json:"type"`
-	//	User      string    `json:"name"`
-	//	Timestamp time.Time `json:"time"`
-	//	RoomID    int       `json:"id"`
-	Color string `json:"color"`
+	EventType string    `json:"type"`
+	User      string    `json:"name"`
+	Timestamp time.Time `json:"time"`
+	RoomID    int       `json:"id"`
+	Color     string    `json:"color"`
 }
 
 func (ce ChatEvent) ColorHTML() (css template.CSS) {
