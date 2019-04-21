@@ -67,6 +67,7 @@ func (c *Client) readPump() {
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
+				c.hub.broadcast <- []byte("I left!")
 			}
 			break
 		}
@@ -98,7 +99,7 @@ func (c *Client) writePump() {
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.
-				c.conn.WriteMessage(websocket.CloseMessage, []byte("Server closed the channel"))
+				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 

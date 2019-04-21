@@ -4,8 +4,6 @@
 
 package chat
 
-import "github.com/gorilla/websocket"
-
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
@@ -38,7 +36,6 @@ func (h *Hub) Run() {
 			h.clients[client] = true
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
-				client.write(websocket.TextMessage, []byte("I left!"))
 				delete(h.clients, client)
 				close(client.send)
 			}

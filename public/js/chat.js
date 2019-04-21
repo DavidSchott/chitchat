@@ -43,6 +43,11 @@ var initChat = function () {
     else {
         // If supported, create web socket
         startSession(ID); // TODO: Pass ID here,
+        // Close the connection when the window is closed
+        window.addEventListener('beforeunload', function() {
+            socket.close();
+         });
+         
         // Handle msg send events
         document.getElementById("send-btn").onclick = send;
         msg.onkeydown = function (evt) {
