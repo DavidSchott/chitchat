@@ -123,3 +123,35 @@ func logConsole(h http.HandlerFunc) http.HandlerFunc {
 		h(w, r)
 	}
 }
+
+// convenience function to be chained with another HandlerFunc
+// Checks if streaming via Server-Side Events is supported by the device
+func checkStreamingSupport(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, ok := w.(http.Flusher)
+
+		// Check if streaming is supported
+		if !ok {
+			http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		h(w, r)
+	}
+}
+
+func formatEventData(msg string, user string, color string) (data []byte) {
+	json := strings.Join([]string{
+		"data: {\n",
+		"data: \"msg\": \"" + msg + "\",\n",
+		"data: \"name\": \"" + user + "\",\n",
+		"data: \"color\": \"" + color + "\"\n",
+		"data: }\n\n",
+	}, "")
+
+	data = []byte(json)
+	return
+}

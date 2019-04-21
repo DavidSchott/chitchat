@@ -33,10 +33,10 @@ func main() {
 	//	mux.HandleFunc("/chat/send/", logConsole(chatHandler))
 
 	// Chat Sessions (init)
-	mux.HandleFunc("/chat/sse/", logConsole(sseHandler))
+	mux.HandleFunc("/chat/sse/", checkStreamingSupport(logConsole(sseHandler)))
 
 	// Chat Sessions (Client sent events)
-	mux.HandleFunc("/chat/sse/event", logConsole(sseActionHandler))
+	mux.HandleFunc("/chat/sse/event", checkStreamingSupport(logConsole(sseActionHandler)))
 
 	// test error
 	mux.HandleFunc("/err", logConsole(err))

@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"log"
 	"time"
 )
@@ -48,14 +47,14 @@ func (broker *Broker) listen() {
 			// Register their message channel
 			broker.Clients[s] = true
 			log.Printf("Client added. %d registered Clients", len(broker.Clients))
-			broker.Notifier <- []byte(fmt.Sprintf("Client added. %d registered Clients", len(broker.Clients)))
+			//broker.Notifier <- []byte(fmt.Sprintf("Client added. %d registered Clients", len(broker.Clients)))
 		case s := <-broker.ClosingClients:
 
 			// A client has dettached and we want to
 			// stop sending them messages.
 			delete(broker.Clients, s)
 			log.Printf("Removed client. %d registered Clients", len(broker.Clients))
-			broker.Notifier <- []byte(fmt.Sprintf("Removed client. %d registered Clients", len(broker.Clients)))
+			//broker.Notifier <- []byte(fmt.Sprintf("Removed client. %d registered Clients", len(broker.Clients)))
 		case event := <-broker.Notifier:
 
 			// We got a new event from the outside!
