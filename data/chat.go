@@ -3,8 +3,6 @@ package data
 import (
 	"strings"
 	"time"
-
-	"github.com/DavidSchott/chitchat/chat"
 )
 
 const (
@@ -22,7 +20,7 @@ type ChatRoom struct {
 	CreatedAt    time.Time `json:"time"`
 	Participants []string  `json:"participants"`
 	ID           int       `json:"id"`
-	Session      *chat.Hub
+	Broker       *Broker
 }
 
 type ChatServer struct {
@@ -48,8 +46,6 @@ var CS ChatServer = ChatServer{
 }
 
 func (cs ChatServer) Init() {
-	hub := chat.NewHub()
-	go hub.Run()
 	CS.push(&ChatRoom{
 		Title:        "Public Chat",
 		Description:  "This is the default chat, available to everyone!",
@@ -59,7 +55,7 @@ func (cs ChatServer) Init() {
 		CreatedAt:    time.Now(),
 		Participants: []string{"Server"},
 		ID:           0,
-		Session:      hub,
+		Broker:       NewBroker(),
 	})
 }
 
@@ -113,8 +109,7 @@ func RetrieveID(ID int) (cr ChatRoom, err error) {
 func (cr *ChatRoom) Create() (err error) {
 	cr.CreatedAt = time.Now()
 	cr.Participants = []string{cr.User}
-	cr.Session = chat.NewHub()
-	go cr.Session.Run()
+	cr.Broker = NewBroker()
 	CS.push(cr)
 	return
 }

@@ -32,15 +32,11 @@ func main() {
 	// Send action
 	//	mux.HandleFunc("/chat/send/", logConsole(chatHandler))
 
-	// Chat Sessions (WebSockets)
-	mux.HandleFunc("/chat/ws/", logConsole(socketHandler))
-
-	// Chat Sessions (WebSockets)
+	// Chat Sessions (init)
 	mux.HandleFunc("/chat/sse/", logConsole(sseHandler))
 
-	//	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-	//		chat.ServeWs(hub, w, r)
-	//	})
+	// Chat Sessions (Client sent events)
+	mux.HandleFunc("/chat/sse/event", logConsole(sseActionHandler))
 
 	// test error
 	mux.HandleFunc("/err", logConsole(err))

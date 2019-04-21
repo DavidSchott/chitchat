@@ -1,41 +1,73 @@
 
-var initChat = function () {
+
     var ID = window.location.pathname.split("/").pop();
-    var socket;
+    var stream;
     var msg = document.getElementById("msg");
     var log = document.getElementById("chat-box");
     var direction = "right";
-
-    // Chat-related functions
-    function appendLog(item) {
-        console.log(item)
-        var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
-        log.appendChild(item);
-        if (doScroll) {
-            log.scrollTop = log.scrollHeight - log.clientHeight;
+        // Chat-related functions
+        function appendLog(item) {
+            var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
+            log.appendChild(item);
+            if (doScroll) {
+                log.scrollTop = log.scrollHeight - log.clientHeight;
+            }
         }
-    }
+if(typeof(EventSource) == "undefined") {
+    var item = document.createElement("div");
+    item.innerHTML = "<b>Sorry, your browser does not support Server-Sent Events! "</b>";
+    appendLog(item);
+}
+else{
+
+
+
+
 
     function startSession(id) {
-        //socket = new WebSocket("ws://" + document.location.host + "/chat/ws/" + id);
-        stream = new EventSource(document.location.host + "/chat/sse/" + id);
+        stream = new EventSource("/chat/sse/" + id);
         console.log("established stream: ", stream)
+    }
+
+    function sendClientEvent(action,user,room,col=""){
+        event = JSON.stringify({ type: action, name: user, id: parseInt(room), color: col })
+        console.log(event);
+        $.post('/chat/sse/event', event, "json")
+        .done(function (data) {
+            console.log(data)
+            if (!data.hasOwnProperty('error')) {
+                console.log("successfully left!")
+            }
+            else {
+                displayAlert("Could not leave source event.");
+            }
+        })
+        .fail(function (xhr) {
+            console.log("Could not leave source event.");
+            console.log(xhr);
+        });
+        stream.close();
     }
 
     // Send a msg
     var send = function () {
-        if (!socket) {
+        if (!stream) {
             return false;
         }
         if (!msg.value) {
             return false;
         }
-        socket.send(msg.value);
+        // TODO: Implement how to send data
+        console.log("implement to send" , msg.value);
+        //stream.send(msg.value);
         msg.value = "";
         return false;
     };
-        // If supported, create web socket
-        startSession(ID); // TODO: Pass ID here,
+        // If supported, create EventSource
+        startSession(ID);
+        window.addEventListener('beforeunload', function() {
+            sendClientEvent("leave", "david", ID);
+          });
         // Handle msg send events
         document.getElementById("send-btn").onclick = send;
         msg.onkeydown = function (evt) {
@@ -47,15 +79,13 @@ var initChat = function () {
         }
 
         // Connection opened
-        socket.addEventListener('open', function (event) {
-            socket.send('I joined!');
-        });
+        stream.onopen = function() {
+            console.log('Opened connection');
+          };
 
         // Listen for messages
-        socket.addEventListener('message', function (evt) {
-            console.log('Message from server ', evt.data);
-            var messages = evt.data.split('\n');
-            for (var i = 0; i < messages.length; i++) {
+        stream.onmessage = function (evt) {
+            var message = evt.data;
                 var item = document.createElement("div");
                 item.setAttribute("data-is", "username - 15:20"); // TODO
                 // TODO: Add colors
@@ -64,7 +94,7 @@ var initChat = function () {
                     item.className = "balon1 p-2 m-0 position-relative"
                     // set text
                     text.className = "float-right";
-                    text.innerText = messages[i];
+                    text.innerText = message;
                     // Make it a child
                     item.appendChild(text);
                     // Toggle direction
@@ -74,27 +104,24 @@ var initChat = function () {
                     item.className = "balon2 p-2 m-0 position-relative"
                     // set text
                     text.className = "float-left sohbet2";
-                    text.innerText = messages[i];
+                    text.innerText = message;
                     // Make it a child
                     item.appendChild(text);
                     // Toggle direction
                     direction = "right";
                 }
                 appendLog(item);
-            }
-        });
+        };
 
         // Connection closed
-        socket.addEventListener('close', function (evt) {
+        stream.onclose = function(code, reason) {
             var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
+            item.innerHTML = "<b>Connection closed. Reason: " + "reason" + "</b>";
             appendLog(item);
-        });
+        };
 
-        // Connection closed
-        socket.addEventListener('error', function (evt) {
-            console.log("error", evt);
-        });
-    
-}
-initChat();
+        // Connection error
+        stream.onerror = function (event) {
+            console.log(event);
+          };
+        }
