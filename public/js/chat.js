@@ -17,8 +17,9 @@ var initChat = function () {
     }
 
     function startSession(id) {
-        socket = new WebSocket("ws://" + document.location.host + "/chat/ws/" + id);
-        console.log("established websocket: ", socket)
+        //socket = new WebSocket("ws://" + document.location.host + "/chat/ws/" + id);
+        stream = new EventSource(document.location.host + "/chat/sse/" + id);
+        console.log("established stream: ", stream)
     }
 
     // Send a msg
@@ -33,14 +34,6 @@ var initChat = function () {
         msg.value = "";
         return false;
     };
-
-    // check if websockets are not supported
-    if (!window["WebSocket"]) {
-        var item = document.createElement("div");
-        item.innerHTML = "<b>Your browser does not support WebSockets. You cannot use this application, sorry!</b>";
-        document.body.appendChild(item);
-    }
-    else {
         // If supported, create web socket
         startSession(ID); // TODO: Pass ID here,
         // Handle msg send events
@@ -102,6 +95,6 @@ var initChat = function () {
         socket.addEventListener('error', function (evt) {
             console.log("error", evt);
         });
-    }
+    
 }
 initChat();

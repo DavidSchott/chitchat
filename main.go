@@ -35,6 +35,9 @@ func main() {
 	// Chat Sessions (WebSockets)
 	mux.HandleFunc("/chat/ws/", logConsole(socketHandler))
 
+	// Chat Sessions (WebSockets)
+	mux.HandleFunc("/chat/sse/", logConsole(sseHandler))
+
 	//	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 	//		chat.ServeWs(hub, w, r)
 	//	})
@@ -54,6 +57,6 @@ func main() {
 	// initialize chat server
 	data.CS.Init()
 	p("ChitChat", version(), "started at", config.Address)
-	//server.ListenAndServeTLS("gencert/cert.pem", "gencert/key.pem")
-	server.ListenAndServe()
+	server.ListenAndServeTLS("gencert/cert.pem", "gencert/key.pem")
+	//server.ListenAndServe()
 }

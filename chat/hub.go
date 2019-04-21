@@ -39,6 +39,7 @@ func (h *Hub) Run() {
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				client.write(websocket.TextMessage, []byte("I left!"))
+
 				delete(h.clients, client)
 				close(client.send)
 			}
