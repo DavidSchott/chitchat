@@ -1,7 +1,7 @@
 $(document).ready(function () {
     // Get user session vars
-    var username = "david"
-    var color = "purple"
+    var username = (Math.random() + 1).toString(36).substring(7).toString();
+    var color = "gray"
     var password = "plaintext"
     // Get Room ID
     var ID = window.location.pathname.split("/").pop();
@@ -136,30 +136,29 @@ $(document).ready(function () {
         var item = document.createElement("div");
         item.setAttribute("data-is", user + " - " + time); // TODO
         var text = document.createElement("a");
-        // TODO: Add colors
-        if (col != "") {
-            text = applyColor(text, col);
-        }
+
         if (direction == "right") {
             item.className = "balon1 p-2 m-0 position-relative"
-            // set text
+            // set float
             text.className = "float-right";
-            text.innerText = message;
-            // Make it a child
-            item.appendChild(text);
             // Toggle direction
             direction = "left";
         }
         else if (direction == "left") {
             item.className = "balon2 p-2 m-0 position-relative"
-            // set text
-            text.className = "float-left sohbet2";
-            text.innerText = message;
-            // Make it a child
-            item.appendChild(text);
+            // set float
+            text.className = "float-left";
             // Toggle direction
             direction = "right";
         }
+        // Set txt
+        text.innerText = message;
+        // Add colors
+        if (col != "") {
+            text = applyColor(text, col);
+        }
+        // Make it a child
+        item.appendChild(text);
         appendLog(item);
     }
     function applyColor(elem, color) {
@@ -182,7 +181,7 @@ $(document).ready(function () {
                 break;
             case "gray":
                 elem.style.background = '#f1f1f1';
-                elem.style.color = '#000 !important';
+                elem.style.color = "#000 !important";
                 break;
             case "turquoise":
                 elem.style.background = '#40E0D0';
