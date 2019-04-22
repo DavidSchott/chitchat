@@ -1,7 +1,7 @@
 $(document).ready(function () {
     // Get user session vars
     var username = (Math.random() + 1).toString(36).substring(7).toString();
-    var color = "gray"
+    var color = "purple"
     var password = "plaintext"
     // Get Room ID
     var ID = window.location.pathname.split("/").pop();
@@ -164,48 +164,37 @@ $(document).ready(function () {
     function applyColor(elem, color) {
         switch (color) {
             case "purple":
-                elem.style.background = '#7386D5';
-                elem.style.color = '#ffffff !important';
+                elem.setAttribute("style", "background: #7386D5; color: #ffffff !important;")
                 break;
             case "blue":
-                elem.style.background = '#42a5f5';
-                elem.style.color = '#ffffff !important';
+                elem.setAttribute("style", "background: #42a5f5; color: #ffffff !important;")
                 break;
             case "red":
-                elem.style.background = '#DC143C';
-                elem.style.color = '#ffffff !important';
+                elem.setAttribute("style", "background: #DC143C; color: #ffffff !important;")
                 break;
             case "green":
-                elem.style.background = '#2E8B57';
-                elem.style.color = '#ffffff !important';
+                elem.setAttribute("style", "background: #2E8B57; color: #ffffff !important;")
                 break;
             case "gray":
-                elem.style.background = '#f1f1f1';
-                elem.style.color = "#000 !important";
+                elem.setAttribute("style","background: #f1f1f1; color: #000 !important")
                 break;
             case "turquoise":
-                elem.style.background = '#40E0D0';
-                elem.style.color = '#000 !important';
+                elem.setAttribute("style", "background: #40E0D0; color: #000 !important;")
                 break;
             case "indigo":
-                elem.style.background = '#4B0082';
-                elem.style.color = '#ffffff !important';
+                elem.setAttribute("style", "background: #4B0082; color: #ffffff !important;")
                 break;
             case "magenta":
-                elem.style.background = '#8B008B';
-                elem.style.color = '#ffffff !important';
+                elem.setAttribute("style", "background:#8B008B ; color: #ffffff !important;")
                 break;
             case "black":
-                elem.style.background = '#000000';
-                elem.style.color = '#ffffff !important';
+                elem.setAttribute("style", "background: #000000; color: #ffffff !important;")
                 break;
             case "yellow":
-                elem.style.background = '#FFD700';
-                elem.style.color = '#ffffff !important';
+                elem.setAttribute("style", "background: #FFD700; color: #ffffff !important;")
                 break;
             case "orange":
-                elem.style.background = '#FF8C00';
-                elem.style.color = '#000 !important';
+                elem.setAttribute("style", "background: #FF8C00; color: #000 !important;")
                 break;
         }
         return elem
