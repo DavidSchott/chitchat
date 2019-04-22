@@ -38,6 +38,7 @@ func broadcast(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 	if cr, err := data.RetrieveID(c.RoomID); err == nil {
 		flusher, _ := w.(http.Flusher)
 		cr.Broker.Notifier <- []byte(c.Msg)
+		cr.Broker.Notifier <- formatEventData(c.Msg, c.User, cr.Clients[c.User].Color)
 		flusher.Flush()
 	}
 }
@@ -50,6 +51,8 @@ func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 			Color:    c.Color,
 		}
 		cr.Clients[c.User] = client
+		info("Adding client to Chatroom: ", cr.Clients[c.User])
+		cr.Broker.Notifier <- formatEventData(fmt.Sprintf("%s entered the room.", c.User), c.User, c.Color)
 	}
 }
 
@@ -60,7 +63,7 @@ func unsubscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 		delete(cr.Clients, c.User)
 		info(fmt.Sprintf("Unsubscribing %s in room %d", c.User, cr.ID))
 		// PREV: cr.Broker.Notifier <- []byte(fmt.Sprintf("%s left the room.", c.User))
-
+		cr.Broker.Notifier <- formatEventData(fmt.Sprintf("%s left the room.", c.User), c.User, cr.Clients[c.User].Color)
 		flusher.Flush()
 	}
 }
