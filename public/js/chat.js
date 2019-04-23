@@ -1,7 +1,7 @@
 $(document).ready(function () {
     // Get user session vars
     var username = (Math.random() + 1).toString(36).substring(7).toString();
-    var color = "purple"
+    var color = "green"
     var password = "plaintext"
     // Get Room ID
     var ID = window.location.pathname.split("/").pop();
@@ -18,12 +18,12 @@ $(document).ready(function () {
         // TODO: Use WebSockets or PolyFill instead.
     }
     else {
-        // If supported, create EventSource
-        startSession(ID);
+        // Start EventSource
+        register(ID);
         // Defer close
         window.addEventListener('beforeunload', function () {
             stream.close();
-            sendClientEvent("leave", username, ID);
+            sendClientEvent("leave", username, ID,color);
         });
 
         // Handle msg send events
@@ -37,65 +37,67 @@ $(document).ready(function () {
             return true;
         }
 
-        // Event Source is opened
-        stream.onopen = function () {
-            console.log('Opened connection');
-            // TODO: Use send to announce?
-            // TODO: Remove Modal once joined
-            // TODO: Display errors
-        };
-
-        // Received server notification (chat message)
-        stream.onmessage = function (evt) {
-            console.log(evt);
-            json = JSON.parse(evt.data);
-            var message = json.msg;
-            var usr = json.name;
-            var color = json.color;
-            console.log(message, usr, color);
-            pushBalon(message, usr, new Date().toLocaleTimeString(), color);
-        };
-        // TODO: Implement
-        stream.addEventListener('join', function (e) {
-            var data = JSON.parse(e.data);
-            console.log('User login:' + data.username);
-        }, false);
-
-
-        stream.addEventListener('leave', function (e) {
-            var data = JSON.parse(e.data);
-            console.log('User login:' + data.username);
-        }, false);
-
-
-        // Server connection closed
-        stream.onclose = function (code, reason) {
-            var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed. Reason: " + "reason" + "</b>";
-            appendLog(item);
-        };
-
-        stream.addEventListener('error', function (event) {
-            console.log("Streaming Error:", event);
-            switch (event.target.readyState) {
-
-                case EventSource.CONNECTING:
-                    console.log('Reconnecting...');
-                    break;
-
-                case EventSource.CLOSED:
-                    console.log('Connection failed, will not reconnect');
-                    break;
-            }
-
-        }, false);
-
         // Functions for Event sources
         // Start event source for current Room ID
         function startSession(id) {
             stream = new EventSource("/chat/sse/" + id);
             sendClientEvent("join", username, ID, "", color);
             console.log("established EventSource stream for " + id);
+            return stream;
+        }
+        function register(id) {
+            stream = startSession(id)
+            // Event Source is opened
+            stream.onopen = function () {
+                console.log('Opened connection');
+                // TODO: Use send to announce?
+                // TODO: Remove Modal once joined
+                // TODO: Display errors
+            };
+
+            // Received server notification (chat message)
+            stream.onmessage = function (evt) {
+                console.log(evt);
+                json = JSON.parse(evt.data);
+                var message = json.msg;
+                var usr = json.name;
+                var color = json.color;
+                console.log(message, usr, color);
+                pushBalon(message, usr, new Date().toLocaleTimeString(), color);
+            };
+            // TODO: Implement
+            stream.addEventListener('join', function (e) {
+                var data = JSON.parse(e.data);
+                console.log('User login:' + data.username);
+            }, false);
+            stream.addEventListener('leave', function (e) {
+                var data = JSON.parse(e.data);
+                console.log('User login:' + data.username);
+            }, false);
+
+
+            // Server connection closed
+            stream.onclose = function (code, reason) {
+                var item = document.createElement("div");
+                item.innerHTML = "<b>Connection closed. Reason: " + "reason" + "</b>";
+                appendLog(item);
+            };
+
+            stream.addEventListener('error', function (event) {
+                console.log("Streaming Error:", event);
+                switch (event.target.readyState) {
+
+                    case EventSource.CONNECTING:
+                        console.log('Reconnecting...');
+                        break;
+
+                    case EventSource.CLOSED:
+                        console.log('Connection failed, will try to re-register');
+                        register(ID);
+                        break;
+                }
+
+            }, false);
         }
         // Send notification to server
         function sendClientEvent(action, user, room, message = "", col = "") {
@@ -116,7 +118,7 @@ $(document).ready(function () {
             if (!msg.value) {
                 return false;
             }
-            sendClientEvent("send", username, ID, msg.value);
+            sendClientEvent("send", username, ID, msg.value,color);
             msg.value = "";
             return false;
         };
@@ -176,7 +178,7 @@ $(document).ready(function () {
                 elem.setAttribute("style", "background: #2E8B57; color: #ffffff !important;")
                 break;
             case "gray":
-                elem.setAttribute("style","background: #f1f1f1; color: #000 !important")
+                elem.setAttribute("style", "background: #f1f1f1; color: #000 !important")
                 break;
             case "turquoise":
                 elem.setAttribute("style", "background: #40E0D0; color: #000 !important;")
@@ -199,5 +201,19 @@ $(document).ready(function () {
         }
         return elem
     }
+// Tests
+function testChat() {
+    if (typeof (Worker) !== "undefined") {
+        if (typeof (w) == "undefined") {
+            w = new Worker("/static/js/test.js");
+        }
+        w.onmessage = function (event) {
+            msg.value = event.data;
+            send();
+        };
+    } else {
+        document.getElementById("result").innerHTML = "Sorry! No Web Worker support.";
+    }
+}
 });
 
