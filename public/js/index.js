@@ -22,16 +22,19 @@ function append(){
 // Create new room
 function newRoom() {
     var title = document.getElementById("input-title").value;
+    var description = document.getElementById("input-description").value;
     var classification = document.getElementById("input-type").value;
     var user = document.getElementById("input-user").value;
     var password = document.getElementById("input-password").value;
     var valid = validateForm(title, classification, user, password)
     if (valid) {
         // Submit new room
-        createRoom(title, classification, user, password);
+        createRoom(title, description, classification, user, password);
         // close modal
         $('#create-modal').modal('toggle');
         // display new chat room and join it
+        room = retrieveRoom(title);
+        console.log(room);
         return true;
     }
 }

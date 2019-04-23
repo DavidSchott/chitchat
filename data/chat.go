@@ -83,7 +83,6 @@ func (cs ChatServer) Chats() (rooms []ChatRoom, err error) {
 		if v.Type != HiddenRoom {
 			rooms = append(rooms, *v)
 		}
-
 	}
 	return
 }

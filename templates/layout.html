@@ -29,12 +29,17 @@
                 <form method="post" id="create-new-room">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="input-title">Title</label>
+                            <label for="input-title">Title:</label>
                             <input type="text" class="form-control" id="input-title" placeholder="my chat room">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-description">Description:</label>
+                            <input type="text" class="form-control" id="input-description" placeholder="Description"
+                                aria-label="Description" aria-describedby="addon-dots">
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="input-type">Type</label>
+                                <label for="input-type">Type:</label>
                                 <select id="input-type" class="form-control" aria-describedby="typeHelpInline">
                                     <option selected>Public</option>
                                     <option>Private</option>
@@ -45,7 +50,7 @@
                                 </small>
                             </div>
                             <div class="form-group col-md-6">
-                                <label for="input-password">Password</label>
+                                <label for="input-password">Password:</label>
                                 <input type="password" class="form-control" id="input-password"
                                     aria-describedby="passwordHelpInline">
                                 <small id="passwordHelpInline" class="text-muted">
@@ -54,10 +59,11 @@
                             </div>
                         </div>
                         <div class="form-group input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text" id="basic-addon1">@</span>
-                                  </div>
-                                <input type="text" class="form-control" id="input-user" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">@</span>
+                            </div>
+                            <input type="text" class="form-control" id="input-user" placeholder="Username"
+                                aria-label="Username" aria-describedby="basic-addon1">
                         </div>
                     </div>
 
@@ -77,7 +83,7 @@
         <div id="content">
             {{ template "navbar" }}
             <div id="inner-content">
-            {{ template "content" . }}
+                {{ template "content" . }}
             </div>
         </div>
     </div>
