@@ -96,24 +96,24 @@ func (cr ChatRoom) Participants() int {
 }
 
 // Retrieve returns a single chat room based on title
-func (cs ChatServer) Retrieve(title string) (cr ChatRoom, err error) {
+func (cs ChatServer) Retrieve(title string) (cr *ChatRoom, err error) {
 	if !cs.roomExists(title) {
 		return cr, &APIError{
 			code: 101,
 		}
 	}
 	if id := isInt(title); id != -1 {
-		cr = *cs.RoomsID[id]
+		cr = cs.RoomsID[id]
 	} else {
-		cr = *cs.Rooms[strings.ToLower(title)]
+		cr = cs.Rooms[strings.ToLower(title)]
 	}
 	//err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
 	return
 }
 
 // Retrieve returns a single chat room based on ID
-func (cs ChatServer) RetrieveID(ID int) (cr ChatRoom, err error) {
-	cr = *cs.RoomsID[ID]
+func (cs ChatServer) RetrieveID(ID int) (cr *ChatRoom, err error) {
+	cr = cs.RoomsID[ID]
 	//err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
 	return
 }
@@ -136,23 +136,23 @@ func (cs ChatServer) roomExists(titleorID string) bool {
 }
 
 // Create a new chat room
-func (cr *ChatRoom) Create() (err error) {
+func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 	cr.CreatedAt = time.Now()
 	cr.Broker = NewBroker()
-	CS.push(cr)
+	cs.push(cr)
 	return
 }
 
 // Update a chat room
-func (cr *ChatRoom) Update() (err error) {
-	CS.Rooms[strings.ToLower(cr.Title)] = cr
+func (cs ChatServer) Update(cr *ChatRoom) (err error) {
+	cs.Rooms[strings.ToLower(cr.Title)] = cr
 	//_, err = Db.Exec("update posts set content = $2, author = $3 where id = $1", post.Id, post.Content, post.Author)
 	return
 }
 
 // Delete a chat room
-func (cr *ChatRoom) Delete() (err error) {
-	CS.pop(strings.ToLower(cr.Title), cr.ID)
+func (cs ChatServer) Delete(cr *ChatRoom) (err error) {
+	cs.pop(strings.ToLower(cr.Title), cr.ID)
 	//_, err = Db.Exec("delete from posts where id = $1", post.Id)
 	return
 }

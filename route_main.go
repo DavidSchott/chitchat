@@ -98,7 +98,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	// create ChatRoom obj
 	var cr data.ChatRoom
 	json.Unmarshal(body, &cr)
-	err = cr.Create()
+	err = data.CS.Add(&cr)
 	// report on success/error
 	if err != nil {
 		warning("error encountered creating chat room:", err.Error())
@@ -122,7 +122,7 @@ func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	body := make([]byte, len)
 	r.Body.Read(body)
 	json.Unmarshal(body, &cr)
-	err = cr.Update()
+	err = data.CS.Update(cr)
 	if err != nil {
 		warning("error encountered updating chat room:", err.Error())
 		ReportSuccess(w, false, err.Error())
@@ -142,7 +142,7 @@ func handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	if err != nil {
 		return
 	}
-	err = cr.Delete()
+	err = data.CS.Delete(cr)
 	if err != nil {
 		warning("error encountered deleting chat room:", err.Error())
 		ReportSuccess(w, false, err.Error())

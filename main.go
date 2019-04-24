@@ -1,17 +1,20 @@
 package main
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/DavidSchott/chitchat/data"
 )
 
-func main() {
+/*func main() {
 	// initialize chat server
 	data.CS.Init()
 	testCreate()
 	testRetrieve()
 }
+*/
 
-/*
 func main() {
 
 	// handle static assets
@@ -61,4 +64,3 @@ func main() {
 	server.ListenAndServeTLS("gencert/cert.pem", "gencert/key.pem")
 	//server.ListenAndServe()
 }
-*/

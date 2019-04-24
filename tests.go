@@ -26,21 +26,24 @@ func testCreate() {
 		Password:    "123",
 		ID:          0,
 	}
-	cr1.Create()
-	cr2.Create()
-	cr3.Create()
+	data.CS.Add(cr1)
+	data.CS.Add(cr2)
+	data.CS.Add(cr3)
 	p("Created:", "\n", data.CS)
 }
 
 func testRetrieve() {
 	c1, _ := data.CS.Retrieve("public chat")
-
 	if _, err := data.CS.Retrieve("not exist Chat"); err != nil {
 		p(err.Error())
 	}
 	c2, _ := data.CS.Retrieve("test chat 2")
 	c3, _ := data.CS.Retrieve("2")
-	c4, _ := data.CS.RetrieveID(4)
+	c4, _ := data.CS.Retrieve("4")
 	p("Retrieved:", c1, "\n", c2, "\n", c3, "\n", c4)
 	//p(c1, c2)
+}
+
+func testUpdate() {
+
 }

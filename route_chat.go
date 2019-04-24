@@ -19,7 +19,6 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) {
 	// create ChatEvent obj
 	var ce data.ChatEvent
 	json.Unmarshal(body, &ce)
-
 	// Fetch time
 	ce.Timestamp = time.Now()
 

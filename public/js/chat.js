@@ -1,8 +1,7 @@
 $(document).ready(function () {
-    var chat = function () {
         // Get user session vars
         var username = (Math.random() + 1).toString(36).substring(7).toString();
-        var color = "green"
+        var color = "purple"
         var password = "plaintext"
         // Get Room ID
         var ID = window.location.pathname.split("/").pop();
@@ -24,7 +23,7 @@ $(document).ready(function () {
             // Defer close
             window.addEventListener('beforeunload', function () {
                 stream.close();
-                sendClientEvent("leave", username, ID, color);
+                sendClientEvent("leave", username, ID,"", color);
             });
 
             // Handle msg send events
@@ -37,7 +36,7 @@ $(document).ready(function () {
                 }
                 return true;
             }
-
+            //testChat();
             // Functions for Event sources
             // Start event source for current Room ID
             function startSession(id) {
@@ -216,6 +215,5 @@ $(document).ready(function () {
                 appendLog("<p>Sorry! No Web Worker support.</p>");
             }
         }
-    }
 });
 
