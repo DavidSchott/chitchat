@@ -1,6 +1,7 @@
 package data
 
 import (
+	"strconv"
 	"strings"
 	"time"
 )
@@ -12,16 +13,14 @@ const (
 )
 
 type ChatRoom struct {
-	Title        string    `json:"title"`
-	Description  string    `json:"description"`
-	Admin        string    `json:"name"`
-	Type         string    `json:"classification"`
-	Password     string    `json:"password"` // optional
-	CreatedAt    time.Time `json:"time"`
-	Participants []string  `json:"participants"`
-	ID           int       `json:"id"`
-	Broker       *Broker
-	Clients      map[string]*Client
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Type        string             `json:"classification"`
+	Password    string             `json:"password"` // optional
+	CreatedAt   time.Time          `json:"time"`
+	ID          int                `json:"id"`
+	Broker      *Broker            `json:"-"`
+	Clients     map[string]*Client `json:"-"`
 }
 
 type ChatServer struct {
@@ -48,16 +47,14 @@ var CS ChatServer = ChatServer{
 
 func (cs ChatServer) Init() {
 	CS.push(&ChatRoom{
-		Title:        "Public Chat",
-		Description:  "This is the default chat, available to everyone!",
-		Admin:        "Server",
-		Type:         "public",
-		Password:     "",
-		CreatedAt:    time.Now(),
-		Participants: []string{"Server"},
-		ID:           0,
-		Broker:       NewBroker(),
-		Clients:      make(map[string]*Client),
+		Title:       "Public Chat",
+		Description: "This is the default chat, available to everyone!",
+		Type:        "public",
+		Password:    "",
+		CreatedAt:   time.Now(),
+		ID:          0,
+		Broker:      NewBroker(),
+		Clients:     make(map[string]*Client),
 	})
 }
 
@@ -93,24 +90,54 @@ func (cr ChatRoom) PrettyTime() string {
 	return cr.CreatedAt.Format(layout)
 }
 
+// Participants prints the # of active clients
+func (cr ChatRoom) Participants() int {
+	return len(cr.Clients)
+}
+
 // Retrieve returns a single chat room based on title
-func Retrieve(title string) (cr ChatRoom, err error) {
-	cr = *CS.Rooms[strings.ToLower(title)]
+func (cs ChatServer) Retrieve(title string) (cr ChatRoom, err error) {
+	if !cs.roomExists(title) {
+		return cr, &APIError{
+			code: 101,
+		}
+	}
+	if id := isInt(title); id != -1 {
+		cr = *cs.RoomsID[id]
+	} else {
+		cr = *cs.Rooms[strings.ToLower(title)]
+	}
 	//err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
 	return
 }
 
 // Retrieve returns a single chat room based on ID
-func RetrieveID(ID int) (cr ChatRoom, err error) {
-	cr = *CS.RoomsID[ID]
+func (cs ChatServer) RetrieveID(ID int) (cr ChatRoom, err error) {
+	cr = *cs.RoomsID[ID]
 	//err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
 	return
+}
+
+func (cs ChatServer) roomExists(titleorID string) bool {
+	if id, err := strconv.Atoi(titleorID); err == nil {
+		for k, _ := range CS.RoomsID {
+			if k == id {
+				return true
+			}
+		}
+	} else {
+		for k, _ := range CS.Rooms {
+			if k == titleorID {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // Create a new chat room
 func (cr *ChatRoom) Create() (err error) {
 	cr.CreatedAt = time.Now()
-	cr.Participants = []string{cr.Admin}
 	cr.Broker = NewBroker()
 	CS.push(cr)
 	return

@@ -35,7 +35,7 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func broadcast(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
-	if cr, err := data.RetrieveID(c.RoomID); err == nil {
+	if cr, err := data.CS.RetrieveID(c.RoomID); err == nil {
 		flusher, _ := w.(http.Flusher)
 		cr.Broker.Notifier <- formatEventData(c.Msg, c.User, c.Color)
 		flusher.Flush()
@@ -43,7 +43,7 @@ func broadcast(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 }
 
 func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
-	if cr, err := data.RetrieveID(c.RoomID); err == nil {
+	if cr, err := data.CS.RetrieveID(c.RoomID); err == nil {
 		// Add client
 		client := &data.Client{
 			Username: c.User,
@@ -56,7 +56,7 @@ func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 }
 
 func unsubscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
-	if cr, err := data.RetrieveID(c.RoomID); err == nil {
+	if cr, err := data.CS.RetrieveID(c.RoomID); err == nil {
 		flusher, _ := w.(http.Flusher)
 		cr.Broker.Notifier <- formatEventData(fmt.Sprintf("%s left the room.", c.User), c.User, c.Color)
 		// Remove Client from tracked list
@@ -72,7 +72,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 	if id, err := strconv.Atoi(path.Base(r.URL.Path)); err != nil {
 		warning("Error creating sse for ", id, " Reason: ", err)
 	} else {
-		if cr, err := data.RetrieveID(id); err == nil {
+		if cr, err := data.CS.RetrieveID(id); err == nil {
 			// Do stuff
 			// Make sure that the writer supports flushing.
 			//

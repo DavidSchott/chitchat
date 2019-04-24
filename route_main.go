@@ -29,7 +29,7 @@ func test(w http.ResponseWriter, r *http.Request) {
 func joinRoom(w http.ResponseWriter, r *http.Request) {
 	ID, err := strconv.Atoi(path.Base(r.URL.Path))
 	info("joining room", ID)
-	cr, err := data.RetrieveID(ID)
+	cr, err := data.CS.RetrieveID(ID)
 	if err != nil {
 		return
 	}
@@ -72,7 +72,7 @@ func handleRoom(w http.ResponseWriter, r *http.Request) {
 // GET /chat/1
 func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	title := path.Base(r.URL.Path)
-	cr, err := data.Retrieve(title)
+	cr, err := data.CS.Retrieve(title)
 	if err != nil {
 		return
 	}
@@ -81,7 +81,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 		return
 	}
 	// report on success
-	info(cr.Admin, "retrieved chat room:", cr.Title)
+	info("retrieved chat room:", cr.Title)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(output)
 	return
@@ -105,7 +105,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 		ReportSuccess(w, false, err.Error())
 		return
 	}
-	info(cr.Admin, "created chat room:", cr.Title)
+	info("created chat room:", cr.Title)
 	ReportSuccess(w, true, "")
 	return
 }
@@ -114,7 +114,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 // PUT /chat/<id>
 func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	title := path.Base(r.URL.Path)
-	cr, err := data.Retrieve(title)
+	cr, err := data.CS.Retrieve(title)
 	if err != nil {
 		return
 	}
@@ -129,7 +129,7 @@ func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 		return
 	}
 	// report on success
-	info(cr.Admin, "updated chat room:", cr.Title)
+	info("updated chat room:", cr.Title)
 	ReportSuccess(w, true, "")
 	return
 }
@@ -138,7 +138,7 @@ func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 // DELETE /chat/<id>
 func handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	title := path.Base(r.URL.Path)
-	cr, err := data.Retrieve(title)
+	cr, err := data.CS.Retrieve(title)
 	if err != nil {
 		return
 	}
@@ -149,7 +149,7 @@ func handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 		return
 	}
 	// report on success
-	info(cr.Admin, "deleted chat room:", cr.Title)
+	info("deleted chat room:", cr.Title)
 	ReportSuccess(w, true, "")
 	return
 }

@@ -14,7 +14,7 @@ type ChatEvent struct {
 	EventType string    `json:"type"`
 	User      string    `json:"name"`
 	Timestamp time.Time `json:"time"`
-	RoomID    int       `json:"id"`
-	Color     string    `json:"color"`
-	Msg       string    `json:"msg"`
+	RoomID    int       `json:"id,omitempty"`
+	Color     string    `json:"color,omitempty"`
+	Msg       string    `json:"msg,omitempty"`
 }

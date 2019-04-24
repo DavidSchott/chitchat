@@ -144,36 +144,13 @@ func checkStreamingSupport(h http.HandlerFunc) http.HandlerFunc {
 }
 
 func formatEventData(msg string, user string, color string) (data []byte) {
-
-	/*f := map[string]interface{}{
-		"data": map[string]interface{}{
-			"msg":   msg,
-			"name":  user,
-			"color": color,
-		},
-	}
-	p(f)
-	if data, err := json.Marshal(f); err != nil {
-		warning("Error encoding JSON", f)
-	} else {
-		p(data)
-		return data
-	}*/
 	json := strings.Join([]string{
 		fmt.Sprintf("data: {\"msg\": \"%s\",", msg),
 		fmt.Sprintf("\"name\": \"%s\",", user),
 		fmt.Sprintf("\"color\": \"%s\"}\n", color),
 		"\n\n",
 	}, "")
-	p(json)
 	data = []byte(json)
-	/*json := strings.Join([]string{
-		"data: {\n",
-		"data: \"msg\": \"" + msg + "\",\n",
-		"data: \"name\": \"" + user + "\",\n",
-		"data: \"color\": \"" + color + "\"\n",
-		"data: }\n\n",
-	}, "")
-	*/
+
 	return
 }
