@@ -16,5 +16,6 @@ type ChatEvent struct {
 	RoomID    int       `json:"id,omitempty"`
 	Color     string    `json:"color,omitempty"`
 	Msg       string    `json:"msg,omitempty"`
+	Password  string    `json:"secret,omitempty"`
 	Timestamp time.Time `json:"time"`
 }

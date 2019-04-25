@@ -12,6 +12,13 @@ func testCreate() {
 		Password:    "",
 		ID:          0,
 	}
+	cr1Dupe := &data.ChatRoom{
+		Title:       "Test Chat",
+		Description: "New description",
+		Type:        "private",
+		Password:    "asdasd",
+		ID:          0,
+	}
 	cr2 := &data.ChatRoom{
 		Title:       "Test Chat 2",
 		Description: "Second test chat",
@@ -29,6 +36,9 @@ func testCreate() {
 	data.CS.Add(cr1)
 	data.CS.Add(cr2)
 	data.CS.Add(cr3)
+	if err := data.CS.Add(cr1Dupe); err != nil {
+		p(err.Error())
+	}
 	p("Created:", "\n", data.CS)
 }
 
@@ -40,8 +50,10 @@ func testRetrieve() {
 	c2, _ := data.CS.Retrieve("test chat 2")
 	c3, _ := data.CS.Retrieve("2")
 	c4, _ := data.CS.Retrieve("4")
-	p("Retrieved:", c1, "\n", c2, "\n", c3, "\n", c4)
-	//p(c1, c2)
+	if _, err := data.CS.Retrieve("120"); err != nil {
+		p(err.Error())
+	}
+	p("Retrieved:", "\n", c1, "\n", c2, "\n", c3, "\n", c4)
 }
 
 func testUpdate() {

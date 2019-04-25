@@ -1,10 +1,29 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/DavidSchott/chitchat/data"
 )
+
+type appHandler func(http.ResponseWriter, *http.Request) error
+
+func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if err := fn(w, r); err != nil {
+		if apierr, ok := err.(*data.APIError); ok {
+			w.Header().Set("Content-Type", "application/json")
+			json, _ := json.Marshal(apierr)
+			w.Write(json)
+			warning("API error:", apierr.Error())
+		} else {
+			danger("Server error", err.Error())
+			http.Error(w, err.Error(), 500)
+		}
+	}
+}
 
 func notImplemented(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(501)

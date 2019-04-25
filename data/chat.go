@@ -12,6 +12,15 @@ const (
 	HiddenRoom  = "hidden"
 )
 
+type Success struct {
+	Sucess bool `json:"sucess"`
+}
+
+type Failure struct {
+	Sucess bool   `json:"sucess"`
+	Error  string `json:"error"`
+}
+
 type ChatRoom struct {
 	Title       string             `json:"title"`
 	Description string             `json:"description"`
@@ -23,19 +32,46 @@ type ChatRoom struct {
 	Clients     map[string]*Client `json:"-"`
 }
 
+func (cr ChatRoom) AddClient(c *Client) (err error) {
+	if cr.clientExists(c.Username) {
+		return &APIError{
+			code:  202,
+			field: c.Username,
+		}
+	}
+	cr.Clients[strings.ToLower(c.Username)] = c
+	return
+}
+
+func (cr ChatRoom) RemoveClient(user string) (err error) {
+	if !cr.clientExists(user) {
+		return &APIError{
+			code:  201,
+			field: user,
+		}
+	}
+	delete(cr.Clients, strings.ToLower(user))
+	return
+}
+
+func (cr ChatRoom) Authenticate(c *ChatEvent) bool {
+	return cr.Password == c.Password // TODO: Salted passwords
+}
+
+func (cr ChatRoom) clientExists(name string) bool {
+	name = strings.ToLower(name)
+	for k, _ := range cr.Clients {
+		if k == name {
+			return true
+		}
+	}
+	return false
+}
+
 type ChatServer struct {
 	RoomsID map[int]*ChatRoom
 	Rooms   map[string]*ChatRoom
 	Index   *int
-}
-
-type Success struct {
-	Sucess bool `json:"sucess"`
-}
-
-type Failure struct {
-	Sucess bool   `json:"sucess"`
-	Error  string `json:"error"`
 }
 
 var index int
@@ -99,7 +135,8 @@ func (cr ChatRoom) Participants() int {
 func (cs ChatServer) Retrieve(title string) (cr *ChatRoom, err error) {
 	if !cs.roomExists(title) {
 		return cr, &APIError{
-			code: 101,
+			code:  101,
+			field: title,
 		}
 	}
 	if id := isInt(title); id != -1 {
@@ -126,8 +163,9 @@ func (cs ChatServer) roomExists(titleorID string) bool {
 			}
 		}
 	} else {
+		titleorID = strings.ToLower(titleorID)
 		for k, _ := range CS.Rooms {
-			if k == titleorID {
+			if strings.ToLower(k) == titleorID {
 				return true
 			}
 		}
@@ -137,6 +175,13 @@ func (cs ChatServer) roomExists(titleorID string) bool {
 
 // Create a new chat room
 func (cs ChatServer) Add(cr *ChatRoom) (err error) {
+	//fmt.Println(cs.roomExists(cr.Title))
+	if cs.roomExists(cr.Title) { // TODO: What if the room is hidden?
+		return &APIError{
+			code:  102,
+			field: cr.Title,
+		}
+	}
 	cr.CreatedAt = time.Now()
 	cr.Broker = NewBroker()
 	cs.push(cr)

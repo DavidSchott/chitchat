@@ -41,17 +41,22 @@ func broadcast(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 	}
 }
 
-func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
+func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) (err error) {
 	if cr, err := data.CS.RetrieveID(c.RoomID); err == nil {
 		// Add client
 		client := &data.Client{
 			Username: c.User,
 			Color:    c.Color,
 		}
-		cr.Clients[c.User] = client
-		info("Adding client to Chatroom: ", cr.Clients[c.User])
+		if err := cr.AddClient(client); err != nil {
+			warning(err.Error)
+			return err
+		}
+		//cr.Clients[c.User] = client
+		info("Adding client to Chatroom: ", c.User)
 		cr.Broker.Notifier <- formatEventData(fmt.Sprintf("%s entered the room.", c.User), c.User, c.Color)
 	}
+	return
 }
 
 func unsubscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
@@ -59,7 +64,8 @@ func unsubscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 		flusher, _ := w.(http.Flusher)
 		cr.Broker.Notifier <- formatEventData(fmt.Sprintf("%s left the room.", c.User), c.User, c.Color)
 		// Remove Client from tracked list
-		delete(cr.Clients, c.User)
+		//delete(cr.Clients, c.User)
+		cr.RemoveClient(c.User)
 		info(fmt.Sprintf("Unsubscribing %s in room %d", c.User, cr.ID))
 		flusher.Flush()
 	}

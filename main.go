@@ -7,7 +7,8 @@ import (
 	"github.com/DavidSchott/chitchat/data"
 )
 
-/*func main() {
+/*
+func main() {
 	// initialize chat server
 	data.CS.Init()
 	testCreate()
