@@ -1,6 +1,7 @@
 var username
 var password
 var msg
+var log
 var stream
 var direction
 
@@ -174,9 +175,6 @@ function pushBalon(message, user, time, col = "") {
 }
 function applyColor(elem, color) {
     switch (color) {
-        case "purple":
-            elem.setAttribute("style", "background: #7386D5; color: #ffffff !important;")
-            break;
         case "blue":
             elem.setAttribute("style", "background: #42a5f5; color: #ffffff !important;")
             break;
@@ -202,12 +200,28 @@ function applyColor(elem, color) {
             elem.setAttribute("style", "background: #000000; color: #ffffff !important;")
             break;
         case "yellow":
-            elem.setAttribute("style", "background: #FFD700; color: #ffffff !important;")
+            elem.setAttribute("style", "background: #FFD700; color: #000 !important;")
             break;
         case "orange":
             elem.setAttribute("style", "background: #FF8C00; color: #000 !important;")
+            break;
+        case "purple":
+            elem.setAttribute("style", "background: #7386D5; color: #ffffff !important;")
+            break;
+        default:
+            elem.setAttribute("style", "background: #7386D5; color: #ffffff !important;")
             break;
     }
     return elem
 }
 
+function popBalon(){
+    balon = document.getElementsByClassName("balon1");
+    log.removeChild(balon[0]);
+}
+
+function updateTemplateStyle(user, color) {
+    popBalon();
+    pushBalon("Hey there! What's up?", user, new Date().toLocaleTimeString(), color);
+    direction = "right";
+}
