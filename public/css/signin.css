@@ -19,6 +19,14 @@ body {
 }
 
 /*
+.purple-img {
+    background-image: url("/static/img/purple-surreal.jpg");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: cover; 
+}
+*/
+/*
 .purple-img  > #inner-content > #signup {
     background-image: url("/static/img/purple-surreal.jpg");
     background-position: center; 
@@ -26,6 +34,7 @@ body {
     background-size: cover; 
 }
 */
+
 .form-signin {
   width: 100%;
   max-width: 330px;
@@ -45,7 +54,7 @@ body {
 .form-signin .form-control:focus {
   z-index: 2;
 }
-.form-signin input[type="email"] {
+.form-signin input[type="username"] {
   margin-bottom: -1px;
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;

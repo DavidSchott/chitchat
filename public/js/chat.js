@@ -222,6 +222,9 @@ function popBalon(){
 
 function updateTemplateStyle(user, color) {
     popBalon();
+    if (user == ""){
+        user = "You"
+    }
     pushBalon("Hey there! What's up?", user, new Date().toLocaleTimeString(), color);
     direction = "right";
 }

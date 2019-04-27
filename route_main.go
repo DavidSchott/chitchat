@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/DavidSchott/chitchat/data"
 )
@@ -31,7 +32,7 @@ func joinRoom(w http.ResponseWriter, r *http.Request) (err error) {
 	if err != nil {
 		return err
 	}
-	generateHTML(w, &cr, "layout", "sidebar", "public.header", "chat")
+	generateHTML(w, (strings.ToLower(cr.Type) == data.PrivateRoom || cr.Type == data.HiddenRoom), "layout", "sidebar", "public.header", "entrance")
 	return
 }
 
@@ -46,6 +47,21 @@ func listChats(w http.ResponseWriter, r *http.Request) {
 		generateHTMLContent(w, &rooms, "list")
 		return
 	}
+}
+
+// GET /chat/join/<id>
+// Default page
+func joinChat(w http.ResponseWriter, r *http.Request) (err error) {
+	//ID, err := strconv.Atoi(path.Base(r.URL.Path))
+	var ID string = path.Base(r.URL.Path)
+	info("joining room", ID)
+	cr, err := data.CS.Retrieve(ID)
+	if err != nil {
+		return err
+	}
+	//generateHTML(w, &cr, "layout", "sidebar", "public.header", "entrance")
+	generateHTMLContent(w, &cr, "chat")
+	return
 }
 
 // main handler function

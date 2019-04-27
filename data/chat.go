@@ -95,6 +95,7 @@ func (cs ChatServer) push(cr *ChatRoom) {
 	*cs.Index++
 	cr.ID = *cs.Index
 	cr.Clients = make(map[string]*Client)
+	cr.Type = strings.ToLower(cr.Type)
 	// Push to chat server
 	cs.Rooms[strings.ToLower(cr.Title)] = cr
 	cs.RoomsID[cr.ID] = cr

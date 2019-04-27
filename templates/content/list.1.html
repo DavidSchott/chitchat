@@ -1,0 +1,25 @@
+{{block "content" . }}
+<h1>Available Chat Rooms</h1>
+<table class="table table-borderless table-dark" id="room-list">
+    <thead>
+        <tr>
+            <th scope="col">Chat room</th>
+            <th scope="col">Description</th>
+            <th scope="col">Type</th>
+            <th scope="col">Time of Creation</th>
+        </tr>
+    </thead>
+    <tbody>
+            {{range . }}
+        <tr>
+            <th scope="row" ><button type="button" class="btn btn-primary">
+                    <span class="badge badge-light">{{.Participants}}</span> {{ .Title }} 
+                  </button></th>
+            <td>{{ .Description }}</td>
+            <td>{{ .Type }}</td>
+            <td>{{.PrettyTime}}</td>
+        </tr>
+        {{ end }}
+    </tbody>
+    </table>
+{{end }}

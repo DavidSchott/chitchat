@@ -13,6 +13,7 @@
             <input type="username" id="inputuser" class="form-control" placeholder="Username" required autofocus
                 aria-label="Username" aria-describedby="user-addon" onkeyup="updateTemplateStyle($('#inputuser').val(),$('#color-select').val());">
         </div>
+        {{if . }}
         <label for="inputPassword" class="sr-only">Password</label>
         <div class="form-group input-group">
             <div class="input-group-prepend">
@@ -21,7 +22,7 @@
             <input type="password" id="inputPassword" class="form-control" placeholder="Password" required
                 aria-label="Username" aria-describedby="password-addon">
         </div>
-
+        {{ end }}
         <div class="checkbox mb-3">
             <select class="custom-select" id="color-select" onchange="updateTemplateStyle($('#inputuser').val(),$('#color-select').val());">
                 <option selected>Pick a style...</option>
@@ -42,7 +43,7 @@
             <div class="col-sm-12 mb-3">
                 <div class="card">
                     <div class="card-body">
-                            <h5 class="card-title">Your Style:</h5>
+                            <h5 class="card-title">Your Message:</h5>
                         <div id="chat-box" class="card border-0 m-0 p-0 position-relative bg-transparent">
                             <div class="balon1 p-2 m-0 position-relative" data-is="You - 3:20 pm">
                                 <a class="float-right" style="background: #7386D5; color: #ffffff !important;"> Hey there! What's up? </a>

@@ -67,7 +67,6 @@ function checkRequest(title, description, classification, password) {
 function setInnerContent(url, id = '') {
     $.get(url + id)
         .done(function (data) {
-            console.log(data);
             if (!data.hasOwnProperty('error')) {
                 document.getElementById("inner-content").innerHTML = data;
             }
