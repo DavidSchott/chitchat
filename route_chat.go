@@ -41,7 +41,7 @@ func broadcast(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 	}
 }
 
-func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) (err error) {
+func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 	if cr, err := data.CS.RetrieveID(c.RoomID); err == nil {
 		// Add client
 		client := &data.Client{
@@ -49,8 +49,9 @@ func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) (err e
 			Color:    c.Color,
 		}
 		if err := cr.AddClient(client); err != nil {
-			warning(err.Error)
-			return err
+			warning(err.Error())
+			ReportSuccess(w, false, err.Error())
+			return
 		}
 		//cr.Clients[c.User] = client
 		info("Adding client to Chatroom: ", c.User)
@@ -113,6 +114,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		} else {
+			// &data.APIError{Code: 301}
 			error_message(w, r, "Critical error creating SSE: "+err.Error())
 			danger("error creating SSE: ", err)
 		}

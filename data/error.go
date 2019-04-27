@@ -20,44 +20,51 @@ import (
   -204 = unauthorized
 
 -30* = event errors
+  - 301 = could not establish session
   - 303 = invalid json spec
   - 304 = unauthorized
 */
 type APIError struct {
-	code  int    `json:"code"`
-	msg   string `json:"msg"`
-	field string `json:"field"`
+	Code  int    `json:"code"`
+	Msg   string `json:"error,omitempty"`
+	Field string `json:"field,omitempty"`
+}
+
+func (e *APIError) SetMsg() {
+	switch e.Code {
+	case 101:
+		e.Msg = "Room error: Room not found"
+	case 102:
+		e.Msg = "Room error: Duplicate room"
+	case 103:
+		e.Msg = "Room error: Invalid JSON"
+	case 104:
+		e.Msg = "Room error: Invalid content"
+	case 201:
+		e.Msg = "Client error: User not found"
+	case 202:
+		e.Msg = "Client error: Duplicate username"
+	case 203:
+		e.Msg = "Client error: Invalid JSON"
+	case 204:
+		e.Msg = "Client error: Unauthorized access"
+	case 301:
+		e.Msg = "Event error: Could not establish session"
+	case 303:
+		e.Msg = "Event error: Invalid JSON"
+	case 304:
+		e.Msg = "Event error: Unauthorized access"
+	default:
+		e.Msg = "Unknown error: " + e.Msg
+	}
 }
 
 func (e *APIError) Error() string {
-	switch e.code {
-	case 101:
-		e.msg = "Room error: Room not found"
-	case 102:
-		e.msg = "Room error: Duplicate room"
-	case 103:
-		e.msg = "Room error: Invalid JSON"
-	case 104:
-		e.msg = "Room error: Invalid content"
-	case 201:
-		e.msg = "Client error: User not found"
-	case 202:
-		e.msg = "Client error: Duplicate username"
-	case 203:
-		e.msg = "Client error: Invalid JSON"
-	case 204:
-		e.msg = "Client error: Unauthorized access"
-	case 303:
-		e.msg = "Event error: Invalid JSON"
-	case 304:
-		e.msg = "Event error: Unauthorized access"
-	default:
-		e.msg = "Unknown error: " + e.msg
+	e.SetMsg()
+	if e.Field != "" {
+		return fmt.Sprintf("{\"error\": \"%s\", \"code\": %d, \"field\": \"%s\"}", e.Msg, e.Code, e.Field)
 	}
-	if e.field != "" {
-		return fmt.Sprintf("{\"msg\": \"%s\", \"code\": %d, \"field\": \"%s\"}", e.msg, e.code, e.field)
-	}
-	return fmt.Sprintf("{\"msg\": \"%s\", \"code\": %d}", e.msg, e.code)
+	return fmt.Sprintf("{\"error\": \"%s\", \"code\": %d}", e.Msg, e.Code)
 }
 
 func isInt(titleorID string) int {

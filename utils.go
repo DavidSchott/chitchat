@@ -83,13 +83,13 @@ func warning(args ...interface{}) {
 func ReportSuccess(w http.ResponseWriter, success bool, err string) {
 	w.Header().Set("Content-Type", "application/json")
 	if success {
-		res := &data.Success{
+		res := &data.Outcome{
 			Sucess: success,
 		}
 		response, _ := json.Marshal(res)
 		w.Write(response)
 	} else {
-		res := &data.Failure{
+		res := &data.Outcome{
 			Sucess: success,
 			Error:  err,
 		}

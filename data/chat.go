@@ -12,13 +12,9 @@ const (
 	HiddenRoom  = "hidden"
 )
 
-type Success struct {
-	Sucess bool `json:"sucess"`
-}
-
-type Failure struct {
+type Outcome struct {
 	Sucess bool   `json:"sucess"`
-	Error  string `json:"error"`
+	Error  string `json:"error,omitempty"`
 }
 
 type ChatRoom struct {
@@ -35,8 +31,8 @@ type ChatRoom struct {
 func (cr ChatRoom) AddClient(c *Client) (err error) {
 	if cr.clientExists(c.Username) {
 		return &APIError{
-			code:  202,
-			field: c.Username,
+			Code:  202,
+			Field: c.Username,
 		}
 	}
 	cr.Clients[strings.ToLower(c.Username)] = c
@@ -46,8 +42,8 @@ func (cr ChatRoom) AddClient(c *Client) (err error) {
 func (cr ChatRoom) RemoveClient(user string) (err error) {
 	if !cr.clientExists(user) {
 		return &APIError{
-			code:  201,
-			field: user,
+			Code:  201,
+			Field: user,
 		}
 	}
 	delete(cr.Clients, strings.ToLower(user))
@@ -135,8 +131,8 @@ func (cr ChatRoom) Participants() int {
 func (cs ChatServer) Retrieve(title string) (cr *ChatRoom, err error) {
 	if !cs.roomExists(title) {
 		return cr, &APIError{
-			code:  101,
-			field: title,
+			Code:  101,
+			Field: title,
 		}
 	}
 	if id := isInt(title); id != -1 {
@@ -178,8 +174,8 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 	//fmt.Println(cs.roomExists(cr.Title))
 	if cs.roomExists(cr.Title) { // TODO: What if the room is hidden?
 		return &APIError{
-			code:  102,
-			field: cr.Title,
+			Code:  102,
+			Field: cr.Title,
 		}
 	}
 	cr.CreatedAt = time.Now()

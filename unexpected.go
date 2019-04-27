@@ -9,18 +9,20 @@ import (
 	"github.com/DavidSchott/chitchat/data"
 )
 
-type appHandler func(http.ResponseWriter, *http.Request) error
+type errHandler func(http.ResponseWriter, *http.Request) error
 
-func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := fn(w, r); err != nil {
 		if apierr, ok := err.(*data.APIError); ok {
 			w.Header().Set("Content-Type", "application/json")
+			apierr.SetMsg()
 			json, _ := json.Marshal(apierr)
 			w.Write(json)
+			//w.Write([]byte(apierr.Error()))
 			warning("API error:", apierr.Error())
 		} else {
 			danger("Server error", err.Error())
-			http.Error(w, err.Error(), 500)
+			//http.Error(w, err.Error(), 500)
 		}
 	}
 }

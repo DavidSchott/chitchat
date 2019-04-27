@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"path"
-	"strconv"
 
 	"github.com/DavidSchott/chitchat/data"
 )
@@ -17,23 +16,23 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 // GET /test
 // Default page
-func test(w http.ResponseWriter, r *http.Request) {
-	ce := data.ChatEvent{
-		Color: "black",
-	}
-	generateHTML(w, &ce, "layout", "sidebar", "public.header", "chat")
+func test(w http.ResponseWriter, r *http.Request) (err error) {
+	generateHTML(w, "", "layout", "sidebar", "public.header", "test")
+	return
 }
 
 // GET /chat/join/<id>
 // Default page
-func joinRoom(w http.ResponseWriter, r *http.Request) {
-	ID, err := strconv.Atoi(path.Base(r.URL.Path))
+func joinRoom(w http.ResponseWriter, r *http.Request) (err error) {
+	//ID, err := strconv.Atoi(path.Base(r.URL.Path))
+	var ID string = path.Base(r.URL.Path)
 	info("joining room", ID)
-	cr, err := data.CS.RetrieveID(ID)
+	cr, err := data.CS.Retrieve(ID)
 	if err != nil {
-		return
+		return err
 	}
 	generateHTML(w, &cr, "layout", "sidebar", "public.header", "chat")
+	return
 }
 
 // GET /chat/list
@@ -50,8 +49,7 @@ func listChats(w http.ResponseWriter, r *http.Request) {
 }
 
 // main handler function
-func handleRoom(w http.ResponseWriter, r *http.Request) {
-	var err error
+func handleRoom(w http.ResponseWriter, r *http.Request) (err error) {
 	switch r.Method {
 	case "GET":
 		err = handleGet(w, r)
@@ -62,10 +60,7 @@ func handleRoom(w http.ResponseWriter, r *http.Request) {
 	case "DELETE":
 		err = handleDelete(w, r)
 	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	return err
 }
 
 // Retrieve a chat room
@@ -78,6 +73,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	}
 	output, err := json.MarshalIndent(&cr, "", "\t\t")
 	if err != nil {
+		info("error getting chat room: " + title)
 		return
 	}
 	// report on success
@@ -102,11 +98,12 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	// report on success/error
 	if err != nil {
 		warning("error encountered creating chat room:", err.Error())
-		ReportSuccess(w, false, err.Error())
-		return
+		return err
 	}
 	info("created chat room:", cr.Title)
 	ReportSuccess(w, true, "")
+	//url := []string{"/chat/join/", strconv.Itoa(cr.ID)}
+	//http.Redirect(w, r, strings.Join(url, ""), 302)
 	return
 }
 

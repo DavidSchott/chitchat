@@ -27,22 +27,23 @@ func main() {
 	mux.HandleFunc("/", logConsole(index))
 
 	// index
-	mux.HandleFunc("/test", logConsole(test))
+	//mux.HandleFunc("/test", appHandler(test))
+	mux.Handle("/test", errHandler(test))
 
 	//REST-API for chat room
-	mux.HandleFunc("/chat/", logConsole(handleRoom))
+	mux.Handle("/chat/", errHandler(handleRoom))
 
 	// List all rooms / "Join a chat room"
 	mux.HandleFunc("/chat/list", logConsole(listChats))
 
 	// Join action
-	mux.HandleFunc("/chat/join/", logConsole(joinRoom))
+	mux.Handle("/chat/join/", errHandler(joinRoom))
 
 	// Send action
 	//	mux.HandleFunc("/chat/send/", logConsole(chatHandler))
 
 	// Chat Sessions (init)
-	mux.HandleFunc("/chat/sse/", checkStreamingSupport(logConsole(sseHandler)))
+	mux.HandleFunc("/chat/sse/", checkStreamingSupport(sseHandler))
 
 	// Chat Sessions (Client sent events)
 	mux.HandleFunc("/chat/sse/event", checkStreamingSupport(logConsole(sseActionHandler)))
