@@ -5,13 +5,13 @@
 
         </h1>
         <h1 class="h3 mb-3 font-weight-normal">Let's Chat!</h1>
-        <label for="inputuser" class="sr-only">Username</label>
+        <label for="input-user" class="sr-only">Username</label>
         <div class="form-group input-group">
             <div class="input-group-prepend">
                 <span class="input-group-text" id="user-addon">&#128587</span>
             </div>
-            <input type="username" id="inputuser" class="form-control" placeholder="Username" required autofocus
-                aria-label="Username" aria-describedby="user-addon" onkeyup="updateTemplateStyle($('#inputuser').val(),$('#color-select').val());">
+            <input type="username" id="input-user" class="form-control" placeholder="Username" required autofocus
+                aria-label="Username" aria-describedby="user-addon" onkeyup="updateTemplateStyle($('#input-user').val(),$('#color-select').val());">
         </div>
         {{if . }}
         <label for="inputPassword" class="sr-only">Password</label>
@@ -22,9 +22,11 @@
             <input type="password" id="inputPassword" class="form-control" placeholder="Password" required
                 aria-label="Username" aria-describedby="password-addon">
         </div>
+        {{else }}
+            <div id="inputPassword"></div>
         {{ end }}
         <div class="checkbox mb-3">
-            <select class="custom-select" id="color-select" onchange="updateTemplateStyle($('#inputuser').val(),$('#color-select').val());">
+            <select class="custom-select" id="color-select" onchange="updateTemplateStyle($('#input-user').val(),$('#color-select').val());">
                 <option selected>Pick a style...</option>
                 <option value="purple">Purple</option>
                 <option value="blue">Blue</option>
@@ -53,7 +55,7 @@
                 </div>
             </div>
             </div>
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Enter chat</button>
+            <button class="btn btn-lg btn-primary btn-block" type="button" onclick="loadChat();">Enter chat</button>
             <p class="mt-5 mb-3 text-muted">&copy; 2019-2020</p>
     </form>
 </div>

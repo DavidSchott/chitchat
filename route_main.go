@@ -49,19 +49,21 @@ func listChats(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GET /chat/join/<id>
+// GET /chat/box/<id>
 // Default page
-func joinChat(w http.ResponseWriter, r *http.Request) (err error) {
+func chatbox(w http.ResponseWriter, r *http.Request) {
 	//ID, err := strconv.Atoi(path.Base(r.URL.Path))
 	var ID string = path.Base(r.URL.Path)
 	info("joining room", ID)
 	cr, err := data.CS.Retrieve(ID)
 	if err != nil {
-		return err
+		//w.Write([]byte(err.Error()))
+		//return
+		p(err.Error())
+	} else {
+		generateHTMLContent(w, &cr, "chat")
+		return
 	}
-	//generateHTML(w, &cr, "layout", "sidebar", "public.header", "entrance")
-	generateHTMLContent(w, &cr, "chat")
-	return
 }
 
 // main handler function

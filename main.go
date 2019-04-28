@@ -39,6 +39,9 @@ func main() {
 	// Join action
 	mux.Handle("/chat/join/", errHandler(joinRoom))
 
+	// Load chat box
+	mux.HandleFunc("/chat/box/", logConsole(chatbox))
+
 	// Send action
 	//	mux.HandleFunc("/chat/send/", logConsole(chatHandler))
 

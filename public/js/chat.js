@@ -1,24 +1,26 @@
-var username
-var password
+var username = ""
+var password = ""
 var msg
 var log
 var stream
-var direction
+var direction = "right"
+var ID;
 
 $(document).ready(function () {
     // Get user session vars
-    username = (Math.random() + 1).toString(36).substring(7).toString();
-    color = "purple"
-    password = "plaintext"
+    //username = (Math.random() + 1).toString(36).substring(7).toString();
+    //color = "purple"
+    //password = "plaintext"
     // Get Room ID
     ID = window.location.pathname.split("/").pop();
-    stream;
     msg = document.getElementById("msg");
     log = document.getElementById("chat-box");
-    direction = "right";
+    //direction = "right";
 });
 
 var chat = function () {
+    msg = document.getElementById("msg");
+    log = document.getElementById("chat-box");
     // Check if SSE isn't supported
     if (typeof (EventSource) == "undefined") {
         var item = document.createElement("div");
@@ -131,7 +133,6 @@ var chat = function () {
             msg.value = "";
             return false;
         };
-
     }
 }
 // Chat-related cosmetic functions
@@ -215,16 +216,38 @@ function applyColor(elem, color) {
     return elem
 }
 
-function popBalon(){
+function popBalon() {
     balon = document.getElementsByClassName("balon1");
     log.removeChild(balon[0]);
 }
 
 function updateTemplateStyle(user, color) {
     popBalon();
-    if (user == ""){
+    if (user == "") {
         user = "You"
     }
     pushBalon("Hey there! What's up?", user, new Date().toLocaleTimeString(), color);
     direction = "right";
+}
+
+function loadChat() {
+    username = document.getElementById("input-user").value;
+    password = document.getElementById("inputPassword").value;
+    color = document.getElementById("color-select").value;
+
+    new Promise(
+        function (resolve, reject) {
+            setInnerContent("/chat/box/", ID,resolve,reject);
+        })
+        .then(function (result) {
+            if (result.outcome){
+                chat();
+            }
+        })
+        .catch(
+            // Log the rejection reason (Room is invalid')
+            function (outcome) {
+                console.log(outcome);
+                displayAlert(outcome.reason);
+            });
 }

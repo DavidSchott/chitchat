@@ -64,19 +64,21 @@ function checkRequest(title, description, classification, password) {
     return true;
 }
 
-function setInnerContent(url, id = '') {
+function setInnerContent(url, id = '', resolve=console.log,reject=displayAlert) {
     $.get(url + id)
         .done(function (data) {
             if (!data.hasOwnProperty('error')) {
                 document.getElementById("inner-content").innerHTML = data;
+                resolve({outcome: true});
             }
             else {
                 displayAlert("Could not retrieve chat room");
+                reject({outcome: false, reason:"Could not retrieve chat room " + id});
             }
         })
         .fail(function (xhr) {
-            console.log("Error fetching chat room list");
-            console.log(xhr);
+            console.log("Error fetching chat room " + id);
+            reject({outcome: false, reason:"Error fetching chat room " + id});
         });
 }
 
