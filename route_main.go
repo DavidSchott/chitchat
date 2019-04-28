@@ -44,7 +44,7 @@ func listChats(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// to return back to refreshing page:
 		//generateHTML(w, &rooms, "layout", "sidebar", "public.header", "list")
-		generateHTMLContent(w, &rooms, "list")
+		generateHTMLContent(w, &rooms, "list.1")
 		return
 	}
 }

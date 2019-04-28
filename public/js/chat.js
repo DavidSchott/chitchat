@@ -3,7 +3,6 @@ var password = ""
 var msg
 var log
 var stream
-var direction = "right"
 var ID;
 
 $(document).ready(function () {
@@ -15,7 +14,6 @@ $(document).ready(function () {
     ID = window.location.pathname.split("/").pop();
     msg = document.getElementById("msg");
     log = document.getElementById("chat-box");
-    //direction = "right";
 });
 
 var chat = function () {
@@ -145,24 +143,20 @@ function appendLog(item) {
 }
 
 // Populate chat box
-function pushBalon(message, user, time, col = "") {
+function pushBalon(message, user, time, col = "",direction="") {
     var item = document.createElement("div");
     item.setAttribute("data-is", user + " - " + time); // TODO
     var text = document.createElement("a");
 
-    if (direction == "right") {
+    if (user == username || direction == "right") {
         item.className = "balon1 p-2 m-0 position-relative"
         // set float
         text.className = "float-right";
-        // Toggle direction
-        direction = "left";
     }
-    else if (direction == "left") {
+    else{
         item.className = "balon2 p-2 m-0 position-relative"
         // set float
         text.className = "float-left";
-        // Toggle direction
-        direction = "right";
     }
     // Set txt
     text.innerText = message;
@@ -226,8 +220,7 @@ function updateTemplateStyle(user, color) {
     if (user == "") {
         user = "You"
     }
-    pushBalon("Hey there! What's up?", user, new Date().toLocaleTimeString(), color);
-    direction = "right";
+    pushBalon("Hey there! What's up?", user, new Date().toLocaleTimeString(), color,"right");
 }
 
 function loadChat() {

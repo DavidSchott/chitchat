@@ -4,6 +4,7 @@
     <thead>
         <tr>
             <th scope="col">Title</th>
+            <th scope="col">Description</th>
             <th scope="col">Type</th>
             <th scope="col">Time of Creation</th>
             <th scope="col">Active Users</th>
@@ -13,6 +14,7 @@
             {{range . }}
         <tr>
             <th scope="row" ><a href="/chat/join/{{.ID}}">{{.Title}}</a></th>
+            <td>{{ .Description }}</td>
             <td>{{ .Type }}</td>
             <td>{{.PrettyTime}}</td>
             <td><span class="badge badge-light">{{.Participants}}</span></td>

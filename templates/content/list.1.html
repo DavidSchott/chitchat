@@ -1,6 +1,6 @@
 {{block "content" . }}
 <h1>Available Chat Rooms</h1>
-<table class="table table-borderless table-dark" id="room-list">
+<table class="table table-striped" id="room-list">
     <thead>
         <tr>
             <th scope="col">Chat room</th>
@@ -12,8 +12,8 @@
     <tbody>
             {{range . }}
         <tr>
-            <th scope="row" ><button type="button" class="btn btn-primary">
-                    <span class="badge badge-light">{{.Participants}}</span> {{ .Title }} 
+            <th scope="row" ><button type="button" class="btn btn-primary" onclick="window.location.href = '/chat/join/{{.ID}}';">
+                    {{ .Title }} <span class="badge badge-light">{{.Participants}}</span> 
                   </button></th>
             <td>{{ .Description }}</td>
             <td>{{ .Type }}</td>
