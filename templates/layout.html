@@ -28,33 +28,48 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form method="post" id="create-new-room">
+                <form method="post" id="create-new-room" novalidate>
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="input-title">Title:</label>
-                            <input type="text" class="form-control" id="input-title" placeholder="my chat room">
+                            <input type="text" class="form-control" id="input-title" placeholder="My own chat room" required>
+                            <div class="valid-feedback">
+                                Looks good!
+                              </div>
+                              <div class="invalid-feedback" id='title-invalid-feedback'>
+                                Please provide a valid title!
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="input-description">Description:</label>
                             <input type="text" class="form-control" id="input-description" placeholder="Description"
                                 aria-label="Description" aria-describedby="addon-dots">
+                                <div class="valid-feedback">
+                                    Looks good!
+                                </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="input-type">Type:</label>
-                                <select id="input-type" class="form-control" aria-describedby="typeHelpInline">
-                                    <option selected>Public</option>
-                                    <option>Private</option>
-                                    <option>Hidden</option>
+                                <select id="input-type" class="form-control" aria-describedby="typeHelpInline" onchange="updateTypeDescription($(this).val());" required>
+                                    <option selected value="public">Public</option>
+                                    <option value="private">Private</option>
+                                    <option value="hidden">Hidden</option>
                                 </select>
                                 <small id="typeHelpInline" class="text-muted">
-                                    Private rooms require a <i>password</i> and are <i>encrypted</i>.
+                                    Public rooms are fully open and available to join for everyone!
                                 </small>
                             </div>
-                            <div class="form-group col-md-6">
+                            <div class="form-group col-md-6" id="password-option" hidden="true">
                                 <label for="input-password">Password:</label>
                                 <input type="password" class="form-control" id="input-password"
-                                    aria-describedby="passwordHelpInline">
+                                    aria-describedby="passwordHelpInline" minlength=8 maxlength=20>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid password!
+                                    </div>
                                 <small id="passwordHelpInline" class="text-muted">
                                     Must be 8-20 characters long.
                                 </small>
@@ -68,6 +83,26 @@
                         <button type="button" class="btn btn-primary" onclick="newRoom();">Submit</button>
                     </div>
                 </form>
+                <script>
+                    // Example starter JavaScript for disabling form submissions if there are invalid fields
+                    (function() {
+                      'use strict';
+                      window.addEventListener('load', function() {
+                        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+                        var forms = document.getElementsByClassName('needs-validation');
+                        // Loop over them and prevent submission
+                        var validation = Array.prototype.filter.call(forms, function(form) {
+                          form.addEventListener('submit', function(event) {
+                            if (form.checkValidity() === false) {
+                              event.preventDefault();
+                              event.stopPropagation();
+                            }
+                            form.classList.add('was-validated');
+                          }, false);
+                        });
+                      }, false);
+                    })();
+                    </script>
             </div>
         </div>
     </div>

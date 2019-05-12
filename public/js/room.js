@@ -1,6 +1,7 @@
 // REST API calls
 // POST /chat/
  function createRoom(title, description, classification, password, resolve, reject) {
+     console.log("creating room " + title);
     $.post('/chat/', JSON.stringify({ title: title, description: description, classification: classification, password: password }), "json")
         .done(function (data) {
             if (!data.hasOwnProperty('error')) {
@@ -17,14 +18,14 @@
 }
 
 // GET /chat/<id>
-function retrieveRoom(title,resolve,reject) {
+function retrieveRoom(title,resolve=console.log,reject=console.log) {
     $.get('/chat/' + title)
         .done(function (data) {
             if (!data.hasOwnProperty('error')) {
                 resolve(data);
             }
             else {
-                reject("Could not retrieve chat room  " + title)
+                reject(data);
             }
         })
         .fail(function (xhr) {

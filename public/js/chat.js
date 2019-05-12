@@ -6,11 +6,6 @@ var stream
 var ID;
 
 $(document).ready(function () {
-    // Get user session vars
-    //username = (Math.random() + 1).toString(36).substring(7).toString();
-    //color = "purple"
-    //password = "plaintext"
-    // Get Room ID
     ID = window.location.pathname.split("/").pop();
     msg = document.getElementById("msg");
     log = document.getElementById("chat-box");
@@ -59,7 +54,7 @@ var chat = function () {
             stream = startSession(id)
             // Event Source is opened
             stream.onopen = function () {
-                console.log('Opened connection');
+                console.log('Entered session');
                 // TODO: Use send to announce?
                 // TODO: Remove Modal once joined
                 // TODO: Display errors
@@ -67,7 +62,6 @@ var chat = function () {
 
             // Received server notification (chat message)
             stream.onmessage = function (evt) {
-                console.log(evt);
                 json = JSON.parse(evt.data);
                 var message = json.msg;
                 var usr = json.name;
@@ -110,7 +104,7 @@ var chat = function () {
         }
         // Send notification to server
         function sendClientEvent(action, user, room, message = "", col = "") {
-            event = JSON.stringify({ type: action, name: user, id: parseInt(room), color: col, msg: message })
+            event = JSON.stringify({ type: action, name: user, id: parseInt(room), color: col, msg: message,password:password})
             $.post('/chat/sse/event', event, "json")
                 .done(function (data) {
                 })
