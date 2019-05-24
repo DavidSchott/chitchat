@@ -28,7 +28,6 @@ function validateForm(resolve = console.log, reject = console.log) {
     // Read in form
     var form = document.getElementById("create-new-room");
     var titleDOM = document.getElementById("input-title");
-    var descriptionDOM = document.getElementById("input-description");
     var classificationDOM = document.getElementById("input-type");
     var passwordDOM = document.getElementById("input-password");
     valid = true;

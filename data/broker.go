@@ -70,22 +70,3 @@ func (broker *Broker) listen() {
 	}
 
 }
-
-/*
-func main() {
-
-	broker := NewBroker()
-
-	go func() {
-		for {
-			time.Sleep(time.Second * 2)
-			eventString := fmt.Sprintf("the time is %v", time.Now())
-			log.Println("Receiving event")
-			broker.Notifier <- []byte(eventString)
-		}
-	}()
-
-	log.Fatal("HTTP server error: ", http.ListenAndServe("localhost:3000", broker))
-
-}
-*/

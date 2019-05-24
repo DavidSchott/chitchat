@@ -238,3 +238,7 @@ function loadChat() {
                 displayAlert(outcome.reason);
             });
 }
+
+function validateChatEntrance(){
+
+}
