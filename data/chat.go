@@ -19,9 +19,9 @@ type Outcome struct {
 
 type ChatRoom struct {
 	Title       string             `json:"title"`
-	Description string             `json:"description"`
+	Description string             `json:"description,omitempty"`
 	Type        string             `json:"classification"`
-	Password    string             `json:"password"` // optional
+	Password    string             `json:"password,omitempty"` // optional
 	CreatedAt   time.Time          `json:"time"`
 	ID          int                `json:"id"`
 	Broker      *Broker            `json:"-"`

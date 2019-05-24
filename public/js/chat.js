@@ -104,7 +104,7 @@ var chat = function () {
         }
         // Send notification to server
         function sendClientEvent(action, user, room, message = "", col = "") {
-            event = JSON.stringify({ type: action, name: user, id: parseInt(room), color: col, msg: message,password:password})
+            event = JSON.stringify({ type: action, name: user, id: parseInt(room), color: col, msg: message, password: password })
             $.post('/chat/sse/event', event, "json")
                 .done(function (data) {
                 })
@@ -137,7 +137,7 @@ function appendLog(item) {
 }
 
 // Populate chat box
-function pushBalon(message, user, time, col = "",direction="") {
+function pushBalon(message, user, time, col = "", direction = "") {
     var item = document.createElement("div");
     item.setAttribute("data-is", user + " - " + time); // TODO
     var text = document.createElement("a");
@@ -147,7 +147,7 @@ function pushBalon(message, user, time, col = "",direction="") {
         // set float
         text.className = "float-right";
     }
-    else{
+    else {
         item.className = "balon2 p-2 m-0 position-relative"
         // set float
         text.className = "float-left";
@@ -214,7 +214,7 @@ function updateTemplateStyle(user, color) {
     if (user == "") {
         user = "You"
     }
-    pushBalon("Hey there! What's up?", user, new Date().toLocaleTimeString(), color,"right");
+    pushBalon("Hey there! What's up?", user, new Date().toLocaleTimeString(), color, "right");
 }
 
 function loadChat() {
@@ -224,10 +224,10 @@ function loadChat() {
 
     new Promise(
         function (resolve, reject) {
-            setInnerContent("/chat/box/", ID,resolve,reject);
+            setInnerContent("/chat/box/", ID, resolve, reject);
         })
         .then(function (result) {
-            if (result.outcome){
+            if (result.outcome) {
                 chat();
             }
         })
@@ -239,6 +239,69 @@ function loadChat() {
             });
 }
 
-function validateChatEntrance(){
+function userExists(user, roomID, resolve = console.log, reject = console.log) {
+    reject("TODO: look for user " + user + " in room " + roomID);
+}
 
+function checkPassword(password, resolve = console.log, reject = console.log) {
+    reject("TODO: verify password = " + password);
+}
+
+function validateChatEntrance() {
+    // Read in form
+    var form = document.getElementsByClassName("form-signin")[0];
+    var userDOM = document.getElementById("input-user");
+    var passwordDOM = document.getElementById("inputPassword");
+    var colorDOM = document.getElementById("color-select");
+    valid = true;
+    // validate fields look OK
+
+    // check color is selected
+    if (colorDOM.value.length < 1) {
+        valid = false;
+        colorDOM.setCustomValidity("No color selected");
+    } else {
+        colorDOM.setCustomValidity("");
+    }
+    // check user isn't empty
+    if (userDOM.value.length < 1) {
+        valid = false;
+        userDOM.setCustomValidity("No user selected");
+    } else {
+        userDOM.setCustomValidity("");
+    }
+    // Check for duplicated user(s)
+    if (valid) {
+        new Promise(
+            function (resolve, reject) {
+                // Validate form looks good
+                userExists(userDOM.value, ID, resolve, reject);
+            })  // Check password
+            .then(function (outcome) {
+                // Define new promise to retrieve room
+                console.log(outcome);
+                new Promise(
+                    function (resolve, reject) {
+                        checkPassword(passwordDOM.value, resolve, reject);
+                    })
+                    .then(function (pwd) {
+                        // Success! All conditions passed
+                        console.log("joining chat room");
+                        //loadChat();
+                    }).catch(
+                        function (reason) {
+                            console.log(reason);
+                            //displayAlert(reason);
+                        });
+            })
+            .catch(
+                function (issue) {
+                    console.log("duplicate user " + userDOM.value);
+                    document.getElementById('user-invalid-feedback').innerText = "Username already taken!";
+                    userDOM.setCustomValidity("user-taken");
+                    form.classList.add('was-validated');
+                    reject(issue);
+                });
+    }
+    form.classList.add('was-validated');
 }
