@@ -43,7 +43,7 @@ function retrieveRoomID(ID) {
                 return data;
             }
             else {
-                displayAlert("Could not retrieve chat room  " + ID);
+                console.warn("Could not retrieve chat room  " + ID);
             }
         })
         .fail(function (xhr) {

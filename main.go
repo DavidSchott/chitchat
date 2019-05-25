@@ -11,13 +11,11 @@ import (
 func main() {
 	// initialize chat server
 	data.CS.Init()
-	testCreate()
-	testRetrieve()
-}
-*/
+	//testCreate()
+	//testRetrieve()
+}*/
 
 func main() {
-
 	// handle static assets
 	mux := http.NewServeMux()
 	files := http.FileServer(http.Dir(config.Static))
@@ -26,9 +24,10 @@ func main() {
 	// index
 	mux.HandleFunc("/", logConsole(index))
 
-	// index
-	//mux.HandleFunc("/test", appHandler(test))
-	mux.Handle("/test", errHandler(test))
+	// Random junk for experimentation
+	//mux.Handle("/test", errHandler(test))
+	// test error
+	//mux.HandleFunc("/err", logConsole(err))
 
 	//REST-API for chat room
 	mux.Handle("/chat/", errHandler(handleRoom))
@@ -48,11 +47,11 @@ func main() {
 	// Chat Sessions (init)
 	mux.HandleFunc("/chat/sse/", checkStreamingSupport(sseHandler))
 
+	// Check password matches room
+	mux.Handle("/chat/sse/login", errHandler(login))
+
 	// Chat Sessions (Client sent events)
 	mux.HandleFunc("/chat/sse/event", checkStreamingSupport(logConsole(sseActionHandler)))
-
-	// test error
-	mux.HandleFunc("/err", logConsole(err))
 
 	// starting up the server
 	server := &http.Server{
@@ -67,5 +66,4 @@ func main() {
 	data.CS.Init()
 	p("ChitChat", version(), "started at", config.Address)
 	server.ListenAndServeTLS("gencert/cert.pem", "gencert/key.pem")
-	//server.ListenAndServe()
 }

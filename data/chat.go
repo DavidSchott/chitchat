@@ -50,8 +50,14 @@ func (cr ChatRoom) RemoveClient(user string) (err error) {
 	return
 }
 
+// Authenticate authenticates a given ChatEvent for the Room
 func (cr ChatRoom) Authenticate(c *ChatEvent) bool {
-	return cr.Password == c.Password // TODO: Salted passwords
+	return cr.MatchesPassword(c.Password)
+}
+
+// MatchesPassword takes in a value and compares it with the room's password
+func (cr ChatRoom) MatchesPassword(val string) bool {
+	return cr.Password == val // TODO: Salted passwords
 }
 
 func (cr ChatRoom) clientExists(name string) bool {

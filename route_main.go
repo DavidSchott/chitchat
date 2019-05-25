@@ -36,6 +36,12 @@ func joinRoom(w http.ResponseWriter, r *http.Request) (err error) {
 	return
 }
 
+// GET /chat/join/<id>
+// TODO: Implement as a chained handler
+func authenticate(w http.ResponseWriter, r *http.Request) (err error) {
+	return
+}
+
 // GET /chat/list
 func listChats(w http.ResponseWriter, r *http.Request) {
 	rooms, err := data.CS.Chats()
@@ -89,15 +95,37 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(&cr, "", "\t\t")
+
+	// Populare client slice
+	clients_slice := make([]data.Client, len(cr.Clients))
+	var i int = 0
+	for _, v := range cr.Clients {
+		//clients_slice = append(clients_slice, *v)
+		clients_slice[i] = *v
+		i++
+	}
+	// Create new JSON struct with clients
+	out, err := json.Marshal(struct {
+		*data.ChatRoom
+		Clients []data.Client `json:"clients"`
+	}{
+		ChatRoom: cr,
+		Clients:  clients_slice,
+	})
 	if err != nil {
 		info("error getting chat room: " + title)
 		return
 	}
+
+	//output, err := json.MarshalIndent(&cr, "", "\t\t")
+	//if err != nil {
+	//	info("error getting chat room: " + title)
+	//	return
+	//}
 	// report on success
 	info("retrieved chat room:", cr.Title)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(output)
+	w.Write(out)
 	return
 }
 

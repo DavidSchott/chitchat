@@ -11,6 +11,12 @@ import (
 	"github.com/DavidSchott/chitchat/data"
 )
 
+// POST /chat/sse/login
+func login(w http.ResponseWriter, r *http.Request) (err error) {
+	return
+}
+
+// /chat/sse/event
 func sseActionHandler(w http.ResponseWriter, r *http.Request) {
 	// read in request
 	len := r.ContentLength
@@ -19,6 +25,11 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) {
 	// create ChatEvent obj
 	var ce data.ChatEvent
 	json.Unmarshal(body, &ce)
+
+	// Check for invalid/random input
+	if ce.User == "" || ce.Password != data.CS.RoomsID[ce.RoomID].Password {
+		return
+	}
 	// Fetch time
 	ce.Timestamp = time.Now()
 
@@ -31,6 +42,8 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		broadcast(w, r, &ce)
 	}
+	// Populate activity
+	data.CS.RoomsID[ce.RoomID].Clients[ce.User].LastActivity = ce.Timestamp
 }
 
 func broadcast(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
@@ -45,8 +58,9 @@ func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 	if cr, err := data.CS.RetrieveID(c.RoomID); err == nil {
 		// Add client
 		client := &data.Client{
-			Username: c.User,
-			Color:    c.Color,
+			Username:     c.User,
+			Color:        c.Color,
+			LastActivity: time.Now(),
 		}
 		if err := cr.AddClient(client); err != nil {
 			warning(err.Error())
@@ -79,6 +93,7 @@ func unsubscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 
 // Upgrade to a sse connection
 // Add to active chat session
+// /chat/sse
 func sseHandler(w http.ResponseWriter, r *http.Request) {
 	if id, err := strconv.Atoi(path.Base(r.URL.Path)); err != nil {
 		warning("Error creating sse for ", id, " Reason: ", err)

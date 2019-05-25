@@ -241,6 +241,7 @@ function loadChat() {
 
 function userExists(user, roomID, resolve = console.log, reject = console.log) {
     reject("TODO: look for user " + user + " in room " + roomID);
+    
 }
 
 function checkPassword(password, resolve = console.log, reject = console.log) {
