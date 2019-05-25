@@ -36,14 +36,17 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) {
 	// Perform requested action
 	switch ce.EventType {
 	case data.Unsubscribe:
+		// Populate activity
+		data.CS.RoomsID[ce.RoomID].Clients[ce.User].LastActivity = ce.Timestamp
 		unsubscribe(w, r, &ce)
 	case data.Subscribe:
 		subscribe(w, r, &ce)
 	default:
+		// Populate activity
+		data.CS.RoomsID[ce.RoomID].Clients[ce.User].LastActivity = ce.Timestamp
 		broadcast(w, r, &ce)
 	}
-	// Populate activity
-	data.CS.RoomsID[ce.RoomID].Clients[ce.User].LastActivity = ce.Timestamp
+
 }
 
 func broadcast(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
