@@ -359,10 +359,12 @@ function validateChatEntrance() {
                     .then(function (pwd) {
                         // Success! All conditions passed
                         console.log("joining chat room");
-                        //loadChat();
+                        loadChat();
                     }).catch(
                         function (reason) {
-                            console.log(reason);
+                            console.log("invalid password " + passwordDOM.value);
+                            passwordDOM.setCustomValidity("invalid-password");
+                            form.classList.add('was-validated');
                         });
             })
             .catch(
