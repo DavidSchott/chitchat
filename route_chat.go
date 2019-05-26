@@ -13,6 +13,34 @@ import (
 
 // POST /chat/sse/login
 func login(w http.ResponseWriter, r *http.Request) (err error) {
+	// read in request
+	len := r.ContentLength
+	body := make([]byte, len)
+	r.Body.Read(body)
+	var c data.ChatEvent
+	json.Unmarshal(body, &c)
+
+	if cr, err := data.CS.RetrieveID(c.RoomID); err == nil {
+		if cr.Type == data.PublicRoom {
+			// Ignore public room
+			ReportSuccess(w, true, "")
+		} else if c.Password == cr.Password {
+			// Success! Set Password
+			cookieSecret := http.Cookie{
+				Name:     "secret_cookie",
+				Value:    c.Password,
+				HttpOnly: true,
+			}
+			http.SetCookie(w, &cookieSecret)
+			ReportSuccess(w, true, "")
+		} else {
+			// send unauthorized error. TODO: send ReportSuccess false?
+			return &data.APIError{
+				Code:  304,
+				Field: "secret",
+			}
+		}
+	}
 	return
 }
 
@@ -25,28 +53,45 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) {
 	// create ChatEvent obj
 	var ce data.ChatEvent
 	json.Unmarshal(body, &ce)
-
-	// Check for invalid/random input
-	if ce.User == "" || ce.Password != data.CS.RoomsID[ce.RoomID].Password {
-		return
-	}
-	// Fetch time
+	// Set timestamp
 	ce.Timestamp = time.Now()
 
-	// Perform requested action
-	switch ce.EventType {
-	case data.Unsubscribe:
-		// Populate activity
-		data.CS.RoomsID[ce.RoomID].Clients[ce.User].LastActivity = ce.Timestamp
-		unsubscribe(w, r, &ce)
-	case data.Subscribe:
-		subscribe(w, r, &ce)
-	default:
-		// Populate activity
-		data.CS.RoomsID[ce.RoomID].Clients[ce.User].LastActivity = ce.Timestamp
-		broadcast(w, r, &ce)
-	}
+	// Fetch room & authenticate
+	if cr, err := data.CS.RetrieveID(ce.RoomID); err == nil {
+		// Check for invalid/random input
+		if ce.User == "" || ce.Password != cr.Password {
+			ReportSuccess(w, false, "Invalid credentials.")
+			return
+		}
+		// Authenticate
+		if cr.Type != data.PublicRoom {
+			// if isn't public room, authenticate
+			cookieSecret, err := r.Cookie("secret_cookie")
+			if err != nil {
+				ReportSuccess(w, false, "Error verifying credentials.")
+				warning("error attempting to authenticate "+strconv.Itoa(cr.ID)+" by:", ce)
+				return
+			}
+			if cookieSecret.Value != cr.Password {
+				ReportSuccess(w, false, "Invalid credentials.")
+				return
+			}
+		}
 
+		// Perform requested action
+		switch ce.EventType {
+		case data.Unsubscribe:
+			// Populate activity
+			cr.Clients[ce.User].LastActivity = ce.Timestamp
+			unsubscribe(w, r, &ce)
+		case data.Subscribe:
+			subscribe(w, r, &ce)
+		default:
+			// Populate activity
+			cr.Clients[ce.User].LastActivity = ce.Timestamp
+			broadcast(w, r, &ce)
+		}
+	}
 }
 
 func broadcast(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
@@ -102,7 +147,20 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 		warning("Error creating sse for ", id, " Reason: ", err)
 	} else {
 		if cr, err := data.CS.RetrieveID(id); err == nil {
-			// Do stuff
+			if cr.Type != data.PublicRoom {
+				// if isn't public room, authenticate
+				cookieSecret, err := r.Cookie("secret_cookie")
+				if err != nil {
+					warning("error attempting to authenticate "+strconv.Itoa(id)+" by:", *r)
+					ReportSuccess(w, false, "Error verifying credentials.")
+					return
+				}
+				if cookieSecret.Value != cr.Password {
+					ReportSuccess(w, false, "Unauthorized credentials.")
+					return
+				}
+			}
+			// Do stuff here
 			// Make sure that the writer supports flushing.
 			//
 			flusher, _ := w.(http.Flusher)

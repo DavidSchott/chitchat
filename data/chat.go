@@ -94,6 +94,16 @@ func (cs ChatServer) Init() {
 		Broker:      NewBroker(),
 		Clients:     make(map[string]*Client),
 	})
+	CS.push(&ChatRoom{
+		Title:       "Private Chat",
+		Description: "This is a test private chat, used for testing!",
+		Type:        "private",
+		Password:    "secret123",
+		CreatedAt:   time.Now(),
+		ID:          99,
+		Broker:      NewBroker(),
+		Clients:     make(map[string]*Client),
+	})
 }
 
 func (cs ChatServer) push(cr *ChatRoom) {

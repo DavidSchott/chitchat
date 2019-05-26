@@ -4,6 +4,7 @@ var msg
 var log
 var stream
 var ID;
+var validNavigation = false;
 
 $(document).ready(function () {
     ID = window.location.pathname.split("/").pop();
@@ -25,9 +26,36 @@ var chat = function () {
         // Start EventSource
         register(ID);
         // Defer close
-        window.addEventListener('beforeunload', function () {
-            stream.close();
-            sendClientEvent("leave", username, ID, "", color);
+        //   window.addEventListener('beforeunload', function () {
+        //      stream.close();
+        //     sendClientEvent("leave", username, ID, "", color);
+        // });
+        window.onbeforeunload = function () {
+            if (!validNavigation) {
+                endSession();
+            }
+        }
+
+        // Attach the event keypress to exclude the F5 refresh
+        $(document).bind('keypress', function (e) {
+            if (e.keyCode == 116) {
+                validNavigation = true;
+            }
+        });
+
+        // Attach the event click for all links in the page
+        $("a").bind("click", function () {
+            validNavigation = true;
+        });
+
+        // Attach the event submit for all forms in the page
+        $("form").bind("submit", function () {
+            validNavigation = true;
+        });
+
+        // Attach the event click for all inputs in the page
+        $("input[type=submit]").bind("click", function () {
+            validNavigation = true;
         });
 
         // Handle msg send events
@@ -47,9 +75,14 @@ var chat = function () {
         function startSession(id) {
             stream = new EventSource("/chat/sse/" + id);
             sendClientEvent("join", username, ID, "", color);
-            console.log("established EventSource stream for " + id);
             return stream;
         }
+        // Stop event source
+        function endSession() {
+            stream.close();
+            sendClientEvent("leave", username, ID, "", color);
+        }
+        // Start session and notify onopen
         function register(id) {
             stream = startSession(id)
             // Event Source is opened
@@ -89,7 +122,6 @@ var chat = function () {
             stream.addEventListener('error', function (event) {
                 console.log("Streaming Error:", event);
                 switch (event.target.readyState) {
-
                     case EventSource.CONNECTING:
                         console.log('Reconnecting...');
                         break;
@@ -104,7 +136,7 @@ var chat = function () {
         }
         // Send notification to server
         function sendClientEvent(action, user, room, message = "", col = "") {
-            event = JSON.stringify({ type: action, name: user, id: parseInt(room), color: col, msg: message, password: password })
+            event = JSON.stringify({ type: action, name: user, id: parseInt(room), color: col, msg: message, secret: password })
             $.post('/chat/sse/event', event, "json")
                 .done(function (data) {
                 })
@@ -240,12 +272,50 @@ function loadChat() {
 }
 
 function userExists(user, roomID, resolve = console.log, reject = console.log) {
-    reject("TODO: look for user " + user + " in room " + roomID);
-    
+    // reject("TODO: look for user " + user + " in room " + roomID);
+    duplicate = false;
+    new Promise(
+        function (resolve, reject) {
+            retrieveRoom(roomID, resolve, reject);
+        })  // Check password
+        .then(function (outcome) {
+            if (outcome.hasOwnProperty('error')) {
+                reject(outcome);
+            } else {
+                outcome.clients.forEach(function (client) {
+                    if (client.username == user) {
+                        reject(JSON.stringify({ error: "duplicate name" }));
+                        duplicate = true;
+                    }
+                });
+                if (!duplicate) {
+                    resolve(JSON.stringify({ outcome: "success" }));
+                }
+            }
+        });
 }
 
 function checkPassword(password, resolve = console.log, reject = console.log) {
-    reject("TODO: verify password = " + password);
+    //reject("TODO: verify password = " + password);
+    event = JSON.stringify({ id: parseInt(ID), secret: password })
+    $.post('/chat/sse/login', event, "json")
+        .done(function (data) {
+            if (data.hasOwnProperty('error')) {
+                // Authentication error!
+                reject(data);
+            } else {
+                resolve(data);
+            }
+        })
+        .catch(
+            function (outcome) {
+                reject(outcome);
+            }
+        )
+        .fail(function (xhr) {
+            console.log("Failed sending client event:", event);
+            reject(outcome);
+        });
 }
 
 function validateChatEntrance() {
@@ -268,6 +338,7 @@ function validateChatEntrance() {
     if (userDOM.value.length < 1) {
         valid = false;
         userDOM.setCustomValidity("No user selected");
+        document.getElementById('user-invalid-feedback').innerText = "Please provide a valid username!";
     } else {
         userDOM.setCustomValidity("");
     }
@@ -292,7 +363,6 @@ function validateChatEntrance() {
                     }).catch(
                         function (reason) {
                             console.log(reason);
-                            //displayAlert(reason);
                         });
             })
             .catch(
@@ -301,7 +371,6 @@ function validateChatEntrance() {
                     document.getElementById('user-invalid-feedback').innerText = "Username already taken!";
                     userDOM.setCustomValidity("user-taken");
                     form.classList.add('was-validated');
-                    reject(issue);
                 });
     }
     form.classList.add('was-validated');

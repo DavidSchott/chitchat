@@ -11,11 +11,11 @@ const (
 )
 
 type ChatEvent struct {
-	EventType string    `json:"type"`
-	User      string    `json:"name"`
+	EventType string    `json:"type,omitempty"`
+	User      string    `json:"name,omitempty"`
 	RoomID    int       `json:"id,omitempty"`
 	Color     string    `json:"color,omitempty"`
 	Msg       string    `json:"msg,omitempty"`
 	Password  string    `json:"secret,omitempty"`
-	Timestamp time.Time `json:"time"`
+	Timestamp time.Time `json:"time,omitempty"`
 }
