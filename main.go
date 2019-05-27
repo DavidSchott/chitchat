@@ -23,6 +23,8 @@ func main() {
 
 	// index
 	mux.HandleFunc("/", logConsole(index))
+	//"about" page
+	mux.Handle("/about", logConsole(about))
 
 	// Random junk for experimentation
 	//mux.Handle("/test", errHandler(test))

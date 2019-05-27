@@ -15,6 +15,12 @@ func index(w http.ResponseWriter, r *http.Request) {
 	generateHTML(w, "", "layout", "sidebar", "public.header", "index")
 }
 
+// GET /about
+// Default page
+func about(w http.ResponseWriter, r *http.Request) {
+	generateHTML(w, "", "layout", "sidebar", "public.header", "about")
+}
+
 // GET /test
 // Default page
 func test(w http.ResponseWriter, r *http.Request) (err error) {

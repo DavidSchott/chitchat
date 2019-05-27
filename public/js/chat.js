@@ -296,7 +296,6 @@ function userExists(user, roomID, resolve = console.log, reject = console.log) {
 }
 
 function checkPassword(password, resolve = console.log, reject = console.log) {
-    //reject("TODO: verify password = " + password);
     event = JSON.stringify({ id: parseInt(ID), secret: password })
     $.post('/chat/sse/login', event, "json")
         .done(function (data) {
@@ -343,37 +342,46 @@ function validateChatEntrance() {
         userDOM.setCustomValidity("");
     }
     // Check for duplicated user(s)
-    if (valid) {
-        new Promise(
-            function (resolve, reject) {
-                // Validate form looks good
-                userExists(userDOM.value, ID, resolve, reject);
-            })  // Check password
-            .then(function (outcome) {
-                // Define new promise to retrieve room
-                console.log(outcome);
-                new Promise(
-                    function (resolve, reject) {
-                        checkPassword(passwordDOM.value, resolve, reject);
-                    })
-                    .then(function (pwd) {
-                        // Success! All conditions passed
-                        console.log("joining chat room");
+    //   if (valid) {
+    new Promise(
+        function (resolve, reject) {
+            // Validate form looks good
+            userExists(userDOM.value, ID, resolve, reject);
+        })  // Check password
+        .then(function (outcome) {
+            // Define new promise to retrieve room
+            new Promise(
+                function (resolve, reject) {
+                    checkPassword(passwordDOM.value, resolve, reject);
+                })
+                .then(function (pwd) {
+                    // Success! All conditions passed
+                    passwordDOM.setCustomValidity("");
+                    if (valid){
                         loadChat();
-                    }).catch(
-                        function (reason) {
-                            console.log("invalid password " + passwordDOM.value);
-                            passwordDOM.setCustomValidity("invalid-password");
-                            form.classList.add('was-validated');
-                        });
-            })
-            .catch(
-                function (issue) {
-                    console.log("duplicate user " + userDOM.value);
-                    document.getElementById('user-invalid-feedback').innerText = "Username already taken!";
-                    userDOM.setCustomValidity("user-taken");
+                    }
+                }).catch(function (reason) {
+                    passwordDOM.setCustomValidity("invalid-password");
                     form.classList.add('was-validated');
                 });
-    }
+        })
+        .catch(function (issue) {
+            document.getElementById('user-invalid-feedback').innerText = "Username already taken!";
+            userDOM.setCustomValidity("user-taken");
+            form.classList.add('was-validated');
+            // Define new promise to retrieve room
+            new Promise(
+                function (resolve, reject) {
+                    checkPassword(passwordDOM.value, resolve, reject);
+                }).then(function (data) {
+                    // Success! Password ok
+                    passwordDOM.setCustomValidity("");
+                })
+                .catch(function (reason) {
+                    passwordDOM.setCustomValidity("invalid-password");
+                    form.classList.add('was-validated');
+                });
+        });
+    //   }
     form.classList.add('was-validated');
 }
