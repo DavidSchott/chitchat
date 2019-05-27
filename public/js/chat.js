@@ -25,17 +25,11 @@ var chat = function () {
     else {
         // Start EventSource
         register(ID);
-        // Defer close
-        //   window.addEventListener('beforeunload', function () {
-        //      stream.close();
-        //     sendClientEvent("leave", username, ID, "", color);
-        // });
         window.onbeforeunload = function () {
             if (!validNavigation) {
                 endSession();
             }
         }
-
         // Attach the event keypress to exclude the F5 refresh
         $(document).bind('keypress', function (e) {
             if (e.keyCode == 116) {
@@ -101,7 +95,7 @@ var chat = function () {
                 var color = json.color;
                 pushBalon(message, usr, new Date().toLocaleTimeString(), color);
             };
-            /* TODO: Implement
+            /* TODO: Implement proper binding
             stream.addEventListener('join', function (e) {
                 var data = JSON.parse(e.data);
                 console.log('User login:' + data.username);
@@ -356,13 +350,17 @@ function validateChatEntrance() {
                 })
                 .then(function (pwd) {
                     // Success! All conditions passed
-                    passwordDOM.setCustomValidity("");
                     if (valid){
                         loadChat();
                     }
+                    if (passwordDOM.value != undefined){
+                        passwordDOM.setCustomValidity("");
+                    }
+
                 }).catch(function (reason) {
-                    passwordDOM.setCustomValidity("invalid-password");
-                    form.classList.add('was-validated');
+                    console.log(reason);
+                        passwordDOM.setCustomValidity("invalid-password");
+                        form.classList.add('was-validated');
                 });
         })
         .catch(function (issue) {
