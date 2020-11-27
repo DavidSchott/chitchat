@@ -55,7 +55,3 @@ func testRetrieve() {
 	}
 	p("Retrieved:", "\n", c1, "\n", c2, "\n", c3, "\n", c4)
 }
-
-func testUpdate() {
-
-}
