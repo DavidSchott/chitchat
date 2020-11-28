@@ -196,7 +196,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			// &data.APIError{Code: 301}
-			error_message(w, r, "Critical error creating SSE: "+err.Error())
+			errorMessage(w, r, "Critical error creating SSE: "+err.Error())
 			danger("error creating SSE: ", err)
 		}
 	}

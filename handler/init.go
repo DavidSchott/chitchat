@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/DavidSchott/chitchat/data"
 )
 
 // Configuration stores config info of server
@@ -15,10 +17,14 @@ type Configuration struct {
 	Static       string
 }
 
+// Config captures parsed input from config.json
 var Config Configuration
 
-// SetUp will register all HTTP handlers
-func SetUp() *http.ServeMux {
+// Mux contains all the HTTP handlers
+var Mux *http.ServeMux
+
+// registerHandlers will register all HTTP handlers
+func registerHandlers() *http.ServeMux {
 	mux := http.NewServeMux()
 	// index
 	mux.HandleFunc("/", logConsole(index))
@@ -59,9 +65,20 @@ func SetUp() *http.ServeMux {
 
 func init() {
 	loadConfig()
+	loadLog()
+	Mux = registerHandlers()
+	// initialize chat server
+	data.CS.Init()
+}
+
+func loadLog() {
 	file, err := os.OpenFile("chitchat.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalln("Failed to open log file", err)
+		file, err = os.OpenFile("../chitchat.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalln("Failed to open log file", err)
+		}
+
 	}
 	logger = log.New(file, "INFO ", log.Ldate|log.Ltime|log.Lshortfile)
 }
@@ -69,7 +86,10 @@ func init() {
 func loadConfig() {
 	file, err := os.Open("config.json")
 	if err != nil {
-		log.Fatalln("Cannot open config file", err)
+		file, err = os.Open("../config.json")
+		if err != nil {
+			log.Fatalln("Cannot open config file", err)
+		}
 	}
 	decoder := json.NewDecoder(file)
 	Config = Configuration{}

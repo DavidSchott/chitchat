@@ -17,7 +17,17 @@ Send different HTTP queries to `/chat/`:
   * `PUT /chat/<room_id>`: update a chat room by ID or title
   * `DEL /chat/<room_id>`: delete a chat room
 
-## Chatting API ##
+E.g. a sample chat room body could look as follows:
+```
+{
+   "title":"My chat room",
+   "description":"There are many like it, but this one is mine.",
+   "classification":"public"
+}
+```
+The minimum required fields to create a chat room are title and classification.
+
+## Chatting ##
 Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedure:
   1. Send a HTTP POST to `/chat/sse/login` to start a session (only needed for private and secret rooms)
   2. Subscribe to chat notifications by listening to `/chat/sse` source events

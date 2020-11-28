@@ -52,7 +52,7 @@ func authenticate(w http.ResponseWriter, r *http.Request) (err error) {
 func listChats(w http.ResponseWriter, r *http.Request) {
 	rooms, err := data.CS.Chats()
 	if err != nil {
-		error_message(w, r, "Cannot retrieve chats")
+		errorMessage(w, r, "Cannot retrieve chats")
 	} else {
 		// to return back to refreshing page:
 		//generateHTML(w, &rooms, "layout", "sidebar", "public.header", "list")
@@ -103,11 +103,11 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	}
 
 	// Populare client slice
-	clients_slice := make([]data.Client, len(cr.Clients))
+	clientsSlice := make([]data.Client, len(cr.Clients))
 	var i int = 0
 	for _, v := range cr.Clients {
-		//clients_slice = append(clients_slice, *v)
-		clients_slice[i] = *v
+		//clientsSlice = append(clientsSlice, *v)
+		clientsSlice[i] = *v
 		i++
 	}
 	// Create new JSON struct with clients
@@ -116,7 +116,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 		Clients []data.Client `json:"clients"`
 	}{
 		ChatRoom: cr,
-		Clients:  clients_slice,
+		Clients:  clientsSlice,
 	})
 	if err != nil {
 		info("error getting chat room: " + title)

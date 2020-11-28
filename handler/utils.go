@@ -20,12 +20,6 @@ func p(a ...interface{}) {
 	fmt.Println(a...)
 }
 
-// Convenience function to redirect to the error message page
-func errorMessage(writer http.ResponseWriter, request *http.Request, msg string) {
-	url := []string{"/err?msg=", msg}
-	http.Redirect(writer, request, strings.Join(url, ""), 302)
-}
-
 // for logging
 func info(args ...interface{}) {
 	logger.SetPrefix("INFO ")
@@ -47,13 +41,13 @@ func ReportSuccess(w http.ResponseWriter, success bool, err string) {
 	w.Header().Set("Content-Type", "application/json")
 	if success {
 		res := &data.Outcome{
-			Sucess: success,
+			Success: success,
 		}
 		response, _ := json.Marshal(res)
 		w.Write(response)
 	} else {
 		res := &data.Outcome{
-			Sucess: success,
+			Success: success,
 			Error:  err,
 		}
 		response, _ := json.Marshal(res)

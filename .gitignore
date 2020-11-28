@@ -16,3 +16,6 @@
 
 # logging files
 *.log
+
+# IDE
+.vscode
