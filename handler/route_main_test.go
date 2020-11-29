@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -100,7 +101,7 @@ func TestHandleGetRooms(t *testing.T) {
 		{"public room", "this is a public room", true},
 		{"private room", "this is a private room", true},
 		{"secret room", "this is a secret room", true},
-		{"0", "This is the default chat, available to everyone!", true},
+		{"1", "This is the default chat, available to everyone!", true},
 	}
 	var cr data.ChatRoom
 	for _, tc := range cases {
@@ -109,7 +110,7 @@ func TestHandleGetRooms(t *testing.T) {
 			writer = httptest.NewRecorder()
 			// Craft HTTP req
 			writer.Header().Set("Content-Type", "application/json")
-			request, _ := http.NewRequest("GET", tc.titleOrID, nil)
+			request, _ := http.NewRequest("GET", fmt.Sprintf("/chat/%s", tc.titleOrID), nil)
 			mux.ServeHTTP(writer, request)
 			// Check assertions
 			if writer.Code != 200 {
@@ -117,7 +118,8 @@ func TestHandleGetRooms(t *testing.T) {
 			}
 
 			json.Unmarshal(writer.Body.Bytes(), &cr)
-			if strings.ToLower(cr.Title) != tc.titleOrID {
+			var assertion bool = strings.ToLower(cr.Title) == tc.titleOrID || strconv.Itoa(cr.ID) == tc.titleOrID
+			if assertion != tc.expectedOutcome {
 				t.Errorf("Cannot retrieve chat room")
 				t.Logf("Response: %s", writer.Body.String())
 			} else {
