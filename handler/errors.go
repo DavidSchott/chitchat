@@ -32,7 +32,7 @@ func notImplemented(w http.ResponseWriter, r *http.Request) {
 }
 
 func redirect(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Location", "http://google.com")
+	w.Header().Set("Location", "/index.html")
 	w.WriteHeader(302)
 }
 

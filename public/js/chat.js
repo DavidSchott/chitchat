@@ -133,6 +133,9 @@ var chat = function () {
             event = JSON.stringify({ type: action, name: user, id: parseInt(room), color: col, msg: message, secret: password })
             $.post('/chat/sse/event', event, "json")
                 .done(function (data) {
+                    if (data.hasOwnProperty('error')) {
+                        console.log("error sending client event", event, data)
+                    }
                 })
                 .fail(function (xhr) {
                     console.log("Failed sending client event:", event);
