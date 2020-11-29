@@ -134,16 +134,16 @@ function setInnerContent(url, id = '', resolve = console.log, reject = console.l
         .done(function (data) {
             if (!data.hasOwnProperty('error')) {
                 document.getElementById("inner-content").innerHTML = data;
-                resolve({ success: true });
+                resolve({ outcome: true });
             }
             else {
                 //displayAlert("Could not retrieve chat room");
-                reject({ success: false, reason: "Could not retrieve chat room " + id });
+                reject({ outcome: false, reason: "Could not retrieve chat room " + id });
             }
         })
         .fail(function (xhr) {
             console.log("Error fetching chat room " + id);
-            reject({ success: false, reason: "Error fetching chat room " + id });
+            reject({ outcome: false, reason: "Error fetching chat room " + id });
         });
 }
 function updateTypeDescription(classification) {

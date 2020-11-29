@@ -273,7 +273,7 @@ function userExists(user, roomID, resolve = console.log, reject = console.log) {
             retrieveRoom(roomID, resolve, reject);
         })  // Check password
         .then(function (outcome) {
-            if (data.hasOwnProperty('error')) {
+            if (outcome.hasOwnProperty('error')) {
                 reject(outcome);
             } else {
                 outcome.clients.forEach(function (client) {
@@ -283,7 +283,7 @@ function userExists(user, roomID, resolve = console.log, reject = console.log) {
                     }
                 });
                 if (!duplicate) {
-                    resolve(JSON.stringify({ success: true }));
+                    resolve(JSON.stringify({ outcome: "success" }));
                 }
             }
         });
@@ -301,13 +301,13 @@ function checkPassword(password, resolve = console.log, reject = console.log) {
             }
         })
         .catch(
-            function (data) {
-                reject(data);
+            function (outcome) {
+                reject(outcome);
             }
         )
         .fail(function (xhr) {
             console.log("Failed sending client event:", event);
-            reject(xhr);
+            reject(outcome);
         });
 }
 
