@@ -52,13 +52,13 @@ func registerHandlers() *http.ServeMux {
 	//	mux.HandleFunc("/chat/send/", logConsole(chatHandler))
 
 	// Chat Sessions (init)
-	mux.HandleFunc("/chat/sse/", checkStreamingSupport(sseHandler))
+	mux.Handle("/chat/sse/", errHandler(sseHandler))
 
 	// Check password matches room
 	mux.Handle("/chat/sse/login", errHandler(login))
 
 	// Chat Sessions (Client sent events)
-	mux.HandleFunc("/chat/sse/event", checkStreamingSupport(logConsole(sseActionHandler)))
+	mux.Handle("/chat/sse/event", errHandler(sseActionHandler))
 
 	return mux
 }

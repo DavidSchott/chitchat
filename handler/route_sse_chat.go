@@ -23,7 +23,7 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 	if cr, err := data.CS.RetrieveID(c.RoomID); err == nil {
 		if cr.Type == data.PublicRoom {
 			// Ignore public room
-			ReportSuccess(w, true, "")
+			ReportSuccess(w, true, nil)
 		} else if c.Password == cr.Password {
 			// Success! Set Password
 			cookieSecret := http.Cookie{
@@ -32,7 +32,7 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 				HttpOnly: true,
 			}
 			http.SetCookie(w, &cookieSecret)
-			ReportSuccess(w, true, "")
+			ReportSuccess(w, true, nil)
 		} else {
 			// send unauthorized error. TODO: send ReportSuccess false?
 			return &data.APIError{
@@ -45,7 +45,7 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 }
 
 // /chat/sse/event
-func sseActionHandler(w http.ResponseWriter, r *http.Request) {
+func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 	// read in request
 	len := r.ContentLength
 	body := make([]byte, len)
@@ -60,21 +60,27 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) {
 	if cr, err := data.CS.RetrieveID(ce.RoomID); err == nil {
 		// Check for invalid/random input
 		if ce.User == "" || ce.Password != cr.Password {
-			ReportSuccess(w, false, "Invalid credentials.")
-			return
+			return &data.APIError{
+				Code:  304,
+				Field: "secret",
+			}
 		}
 		// Authenticate
 		if cr.Type != data.PublicRoom {
 			// if isn't public room, authenticate
 			cookieSecret, err := r.Cookie("secret_cookie")
 			if err != nil {
-				ReportSuccess(w, false, "Error verifying credentials.")
 				warning("error attempting to authenticate "+strconv.Itoa(cr.ID)+" by:", ce)
-				return
+				return &data.APIError{
+					Code:  304,
+					Field: "secret",
+				}
 			}
 			if cookieSecret.Value != cr.Password {
-				ReportSuccess(w, false, "Invalid credentials.")
-				return
+				return &data.APIError{
+					Code:  304,
+					Field: "secret",
+				}
 			}
 		}
 
@@ -92,6 +98,7 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) {
 			broadcast(w, r, &ce)
 		}
 	}
+	return
 }
 
 func broadcast(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
@@ -112,7 +119,7 @@ func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 		}
 		if err := cr.AddClient(client); err != nil {
 			warning(err.Error())
-			ReportSuccess(w, false, err.Error())
+			ReportSuccess(w, false, err.(*data.APIError))
 			return
 		}
 		info("Adding client to Chatroom: ", c.User)
@@ -142,7 +149,7 @@ func unsubscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 // Upgrade to a sse connection
 // Add to active chat session
 // /chat/sse
-func sseHandler(w http.ResponseWriter, r *http.Request) {
+func sseHandler(w http.ResponseWriter, r *http.Request) (err error) {
 	if id, err := strconv.Atoi(path.Base(r.URL.Path)); err != nil {
 		warning("Error creating sse for ", id, " Reason: ", err)
 	} else {
@@ -152,12 +159,16 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 				cookieSecret, err := r.Cookie("secret_cookie")
 				if err != nil {
 					warning("error attempting to authenticate "+strconv.Itoa(id)+" by:", *r)
-					ReportSuccess(w, false, "Error verifying credentials.")
-					return
+					return &data.APIError{
+						Code:  304,
+						Field: "secret",
+					}
 				}
 				if cookieSecret.Value != cr.Password {
-					ReportSuccess(w, false, "Unauthorized credentials.")
-					return
+					return &data.APIError{
+						Code:  304,
+						Field: "secret",
+					}
 				}
 			}
 			// Do stuff here
@@ -184,7 +195,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 				select {
 				case <-notify:
 					info("Closed connection in ", cr.Title)
-					return
+					return err
 				default:
 					// Write to the ResponseWriter
 					// Server Sent Events compatible
@@ -200,4 +211,5 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 			danger("error creating SSE: ", err)
 		}
 	}
+	return
 }

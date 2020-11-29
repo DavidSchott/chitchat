@@ -1,10 +1,11 @@
 // REST API calls
 // POST /chat/
- function createRoom(title, description, classification, password, resolve, reject) {
+ function createRoom(title, description, classification, password, resolve=console.log, reject=console.log) {
      console.log("creating room " + title);
     $.post('/chat/', JSON.stringify({ title: title, description: description, classification: classification, password: password }), "json")
         .done(function (data) {
-            if (!data.hasOwnProperty('error')) {
+            console.log(data);
+            if (data.success) {
                 console.log("successfully created room!")
                 resolve(data)
             }

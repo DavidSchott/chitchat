@@ -8,13 +8,14 @@ import (
 	"github.com/DavidSchott/chitchat/handler"
 )
 
-/*
+/* Random sanity checks to aid in development
 func main() {
 	// initialize chat server
 	data.CS.Init()
-	//testCreate()
-	//testRetrieve()
-}*/
+	test.TestCreate()
+	test.TestRetrieve()
+}
+*/
 
 func main() {
 	// handle static assets

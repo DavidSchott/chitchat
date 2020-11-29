@@ -23,13 +23,15 @@ import (
   - 301 = could not establish session
   - 303 = invalid json spec
   - 304 = unauthorized
+  - 305 = unsupported client device
 */
 type APIError struct {
-	Code  int    `json:"code"`
+	Code  int    `json:"code,omitempty"`
 	Msg   string `json:"error,omitempty"`
 	Field string `json:"field,omitempty"`
 }
 
+// SetMsg will set the Msg based on the provided code
 func (e *APIError) SetMsg() {
 	switch e.Code {
 	case 101:
@@ -54,6 +56,8 @@ func (e *APIError) SetMsg() {
 		e.Msg = "Event error: Invalid JSON"
 	case 304:
 		e.Msg = "Event error: Unauthorized access"
+	case 305:
+		e.Msg = "Event error: Unsupported client device"
 	default:
 		e.Msg = "Unknown error: " + e.Msg
 	}
@@ -73,3 +77,5 @@ func isInt(titleorID string) int {
 	}
 	return -1
 }
+
+// (w http.ResponseWriter, r *http.Request) (err error)

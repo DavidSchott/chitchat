@@ -17,8 +17,8 @@ function testChat() {
 function runTests() {
     var create = function () {
         console.log("Creating rooms")
-        createRoom("default chat", "gay fuckfest", "public", "");
-        createRoom("title 2 private", "gay fuckfest", "private", "");
+        createRoom("default chat", "test room", "public", "");
+        createRoom("title 2 private", "test room", "private", "");
     }
     var retrieve = function () {
         console.log("Retrieve Rooms...");

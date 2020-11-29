@@ -1,10 +1,13 @@
-package main
+/*Package test contains random sanity checks to aid in development and supplement actual testing */
+package test
 
 import (
+	"fmt"
+
 	"github.com/DavidSchott/chitchat/data"
 )
 
-func testCreate() {
+func TestCreate() {
 	cr1 := &data.ChatRoom{
 		Title:       "Test Chat",
 		Description: "Random test chat",
@@ -37,21 +40,21 @@ func testCreate() {
 	data.CS.Add(cr2)
 	data.CS.Add(cr3)
 	if err := data.CS.Add(cr1Dupe); err != nil {
-		p(err.Error())
+		fmt.Println((err.Error()))
 	}
-	p("Created:", "\n", data.CS)
+	fmt.Println("Created:", "\n", data.CS)
 }
 
-func testRetrieve() {
+func TestRetrieve() {
 	c1, _ := data.CS.Retrieve("public chat")
 	if _, err := data.CS.Retrieve("not exist Chat"); err != nil {
-		p(err.Error())
+		fmt.Println(err.Error())
 	}
 	c2, _ := data.CS.Retrieve("test chat 2")
 	c3, _ := data.CS.Retrieve("2")
 	c4, _ := data.CS.Retrieve("4")
 	if _, err := data.CS.Retrieve("120"); err != nil {
-		p(err.Error())
+		fmt.Println(err.Error())
 	}
-	p("Retrieved:", "\n", c1, "\n", c2, "\n", c3, "\n", c4)
+	fmt.Println("Retrieved:", "\n", c1, "\n", c2, "\n", c3, "\n", c4)
 }

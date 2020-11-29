@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -16,13 +15,13 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if apierr, ok := err.(*data.APIError); ok {
 			w.Header().Set("Content-Type", "application/json")
 			apierr.SetMsg()
-			json, _ := json.Marshal(apierr)
-			w.Write(json)
-			//w.Write([]byte(apierr.Error()))
+			//			json, _ := json.Marshal(apierr)
+			//			w.Write(json)
 			warning("API error:", apierr.Error())
+			ReportSuccess(w, false, err.(*data.APIError))
 		} else {
 			danger("Server error", err.Error())
-			//http.Error(w, err.Error(), 500)
+			http.Error(w, err.Error(), 500)
 		}
 	}
 }
@@ -45,7 +44,7 @@ func errorMessage(writer http.ResponseWriter, request *http.Request, msg string)
 
 // GET /err?msg=
 // shows the error message page
-func err(writer http.ResponseWriter, request *http.Request) {
+func handleError(writer http.ResponseWriter, request *http.Request) {
 	vals := request.URL.Query()
 	fmt.Fprintf(writer, "Error: %s!", vals.Get("msg"))
 	warning(fmt.Sprintf("Error: %s!", vals.Get("msg")))

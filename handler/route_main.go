@@ -120,7 +120,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	})
 	if err != nil {
 		info("error getting chat room: " + title)
-		return
+		return err
 	}
 
 	//output, err := json.MarshalIndent(&cr, "", "\t\t")
@@ -153,7 +153,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 		return err
 	}
 	info("created chat room:", cr.Title)
-	ReportSuccess(w, true, "")
+	ReportSuccess(w, true, nil)
 	//url := []string{"/chat/join/", strconv.Itoa(cr.ID)}
 	//http.Redirect(w, r, strings.Join(url, ""), 302)
 	return
@@ -174,12 +174,12 @@ func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	err = data.CS.Update(cr)
 	if err != nil {
 		warning("error encountered updating chat room:", err.Error())
-		ReportSuccess(w, false, err.Error())
+		ReportSuccess(w, false, err.(*data.APIError))
 		return
 	}
 	// report on success
 	info("updated chat room:", cr.Title)
-	ReportSuccess(w, true, "")
+	ReportSuccess(w, true, nil)
 	return
 }
 
@@ -194,11 +194,11 @@ func handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	err = data.CS.Delete(cr)
 	if err != nil {
 		warning("error encountered deleting chat room:", err.Error())
-		ReportSuccess(w, false, err.Error())
+		ReportSuccess(w, false, err.(*data.APIError))
 		return
 	}
 	// report on success
 	info("deleted chat room:", cr.Title)
-	ReportSuccess(w, true, "")
+	ReportSuccess(w, true, nil)
 	return
 }

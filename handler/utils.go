@@ -36,8 +36,8 @@ func warning(args ...interface{}) {
 	logger.Println(args...)
 }
 
-// ReportSuccess is a helper function to return a JSON reponse indicating success
-func ReportSuccess(w http.ResponseWriter, success bool, err string) {
+// ReportSuccess is a helper function to return a JSON reponse indicating outcome success/failure
+func ReportSuccess(w http.ResponseWriter, success bool, err *data.APIError) {
 	w.Header().Set("Content-Type", "application/json")
 	if success {
 		res := &data.Outcome{
@@ -48,7 +48,7 @@ func ReportSuccess(w http.ResponseWriter, success bool, err string) {
 	} else {
 		res := &data.Outcome{
 			Success: success,
-			Error:  err,
+			Error:   err,
 		}
 		response, _ := json.Marshal(res)
 		w.Write(response)
@@ -83,7 +83,7 @@ func logConsole(h http.HandlerFunc) http.HandlerFunc {
 
 // convenience function to be chained with another HandlerFunc
 // Checks if streaming via Server-Side Events is supported by the device
-func checkStreamingSupport(h http.HandlerFunc) http.HandlerFunc {
+func checkStreamingSupport(h errHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, ok := w.(http.Flusher)
 

@@ -13,8 +13,8 @@ const (
 )
 
 type Outcome struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error,omitempty"`
+	Success bool      `json:"success"`
+	Error   *APIError `json:"error,omitempty"`
 }
 
 type ChatRoom struct {
