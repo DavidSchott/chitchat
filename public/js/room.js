@@ -1,8 +1,8 @@
 // REST API calls
 // POST /chat/
-function createRoom(title, description, classification, password, resolve=console.log, reject=console.log) {
+function createRoom(title, description, visibility, password, resolve=console.log, reject=console.log) {
     console.log("creating room " + title);
-   $.post('/chat/', JSON.stringify({ title: title, description: description, classification: classification, password: password }), "json")
+   $.post('/chat/', JSON.stringify({ title: title, description: description, visibility: visibility, password: password }), "json")
        .done(function (data) {
            if (!data.hasOwnProperty('error')) {
                console.log("successfully created room!")
@@ -52,11 +52,11 @@ function retrieveRoomID(ID) {
        });
 }
 // PUT /chat/<id>
-function putRoom(title, description, classification, password) {
+function putRoom(title, description, visibility, password) {
    $.ajax({
        url: "/chat/" + title,
        method: 'PUT',
-       data: JSON.stringify({ title: title, description: description, classification: classification, password: password })
+       data: JSON.stringify({ title: title, description: description, visibility: visibility, password: password })
    })
        .done(function (data) {
            console.log(data)

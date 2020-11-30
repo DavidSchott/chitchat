@@ -38,7 +38,7 @@ func TestHandlePost(t *testing.T) {
 	cases := []struct {
 		title                  string
 		description            string
-		classification         string
+		visibility         string
 		password               string
 		expectedOutcome        bool
 		expectedHTTPStatusCode int
@@ -55,7 +55,7 @@ func TestHandlePost(t *testing.T) {
 			writer = httptest.NewRecorder()
 			writer.Header().Set("Content-Type", "application/json")
 			// JSON body
-			requestJSON := fmt.Sprintf(`{"title":"%s","description":"%s", "classification":"%s", "password":"%s"}`, tc.title, tc.description, tc.classification, tc.password)
+			requestJSON := fmt.Sprintf(`{"title":"%s","description":"%s", "visibility":"%s", "password":"%s"}`, tc.title, tc.description, tc.visibility, tc.password)
 			requestBody := strings.NewReader(requestJSON)
 			// URI and HTTP method
 			request, _ := http.NewRequest("POST", "/chat/", requestBody)
@@ -67,7 +67,7 @@ func TestHandlePost(t *testing.T) {
 			}
 
 			json.Unmarshal(writer.Body.Bytes(), &res)
-			assertion := assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.classification)
+			assertion := assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility)
 			// TODO: Check all fields
 			if assertion != tc.expectedOutcome {
 				t.Fatal("Unexpected result POST chat room. Response: ", res)
@@ -139,7 +139,7 @@ func TestHandlePut(t *testing.T) {
 	cases := []struct {
 		titleOrID       string
 		description     string
-		classification  string
+		visibility  string
 		password        string
 		expectedOutcome bool
 	}{
@@ -155,7 +155,7 @@ func TestHandlePut(t *testing.T) {
 			writer = httptest.NewRecorder()
 			writer.Header().Set("Content-Type", "application/json")
 			// JSON body
-			requestJSON := fmt.Sprintf(`{"title":"%s","description":"%s", "classification":"%s", "password":"%s"}`, tc.titleOrID, tc.description, tc.classification, tc.password)
+			requestJSON := fmt.Sprintf(`{"title":"%s","description":"%s", "visibility":"%s", "password":"%s"}`, tc.titleOrID, tc.description, tc.visibility, tc.password)
 			requestBody := strings.NewReader(requestJSON)
 			// URI and HTTP method
 			request, _ := http.NewRequest("PUT", fmt.Sprintf("/chat/%s", tc.titleOrID), requestBody)

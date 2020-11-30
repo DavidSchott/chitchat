@@ -21,11 +21,11 @@ E.g. a sample chat room body could look as follows:
 ```
 {
    "title":"My chat room",
-   "description":"There are many like it, but this one is mine.",
-   "classification":"public"
+   "description":"There are many like it, but this one is mine",
+   "visibility":"public"
 }
 ```
-The minimum required fields to create a chat room are title and classification.
+The minimum required fields to create a chat room are title and visibility.
 
 ## Chatting ##
 Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedure:

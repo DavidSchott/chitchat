@@ -23,7 +23,7 @@ type Outcome struct {
 type ChatRoom struct {
 	Title       string             `json:"title"`
 	Description string             `json:"description,omitempty"`
-	Type        string             `json:"classification"`
+	Type        string             `json:"visibility"`
 	Password    string             `json:"password,omitempty"` // TODO: Make this json:- once salted
 	CreatedAt   time.Time          `json:"created_at"`
 	ID          int                `json:"id"`
@@ -114,16 +114,6 @@ func (cs ChatServer) Init() {
 		Password:    "",
 		CreatedAt:   time.Now(),
 		ID:          0,
-		Broker:      NewBroker(),
-		Clients:     make(map[string]*Client),
-	})
-	CS.push(&ChatRoom{
-		Title:       "Private Chat",
-		Description: "This is a test private chat, used for testing!",
-		Type:        "private",
-		Password:    "secret123",
-		CreatedAt:   time.Now(),
-		ID:          99,
 		Broker:      NewBroker(),
 		Clients:     make(map[string]*Client),
 	})
