@@ -38,22 +38,20 @@ func warning(args ...interface{}) {
 
 // ReportSuccess is a helper function to return a JSON reponse indicating outcome success/failure
 func ReportSuccess(w http.ResponseWriter, success bool, err *data.APIError) {
+	var res *data.Outcome
 	w.Header().Set("Content-Type", "application/json")
 	if success {
-		res := &data.Outcome{
+		res = &data.Outcome{
 			Success: success,
 		}
-		response, _ := json.Marshal(res)
-		w.Write(response)
 	} else {
-		res := &data.Outcome{
+		res = &data.Outcome{
 			Success: success,
 			Error:   err,
 		}
-		response, _ := json.Marshal(res)
-		w.Write(response)
 	}
-	return
+	response, _ := json.Marshal(res)
+	w.Write(response)
 }
 
 func generateHTML(writer http.ResponseWriter, data interface{}, filenames ...string) {

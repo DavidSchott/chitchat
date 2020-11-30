@@ -15,10 +15,14 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if apierr, ok := err.(*data.APIError); ok {
 			w.Header().Set("Content-Type", "application/json")
 			apierr.SetMsg()
-			//			json, _ := json.Marshal(apierr)
-			//			w.Write(json)
 			warning("API error:", apierr.Error())
-			ReportSuccess(w, false, err.(*data.APIError))
+			if apierr.Code == 101 || apierr.Code == 201 {
+				notFound(w, r)
+			}
+			if apierr.Code == 102 || apierr.Code == 202 || apierr.Code == 303 {
+				badRequest(w, r)
+			}
+			ReportSuccess(w, false, apierr)
 		} else {
 			danger("Server error", err.Error())
 			http.Error(w, err.Error(), 500)
@@ -26,9 +30,14 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func notImplemented(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(501)
-	fmt.Fprintln(w, "No such service, try next door")
+func notFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
+	info("Not found request:", r.RequestURI)
+}
+
+func badRequest(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(400)
+	info("Bad request:", r.RequestURI, r.Body)
 }
 
 func redirect(w http.ResponseWriter, r *http.Request) {

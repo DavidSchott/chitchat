@@ -142,7 +142,7 @@ function setInnerContent(url, id = '', resolve = console.log, reject = console.l
             }
         })
         .fail(function (xhr) {
-            console.log("Error fetching chat room " + id);
+            console.log("Error fetching chat room " + id, xhr);
             reject({ outcome: false, reason: "Error fetching chat room " + id });
         });
 }
@@ -155,12 +155,12 @@ function updateTypeDescription(classification) {
             document.getElementById("input-password").required = false;
             break
         case "private":
-            helpText = "Private rooms require a <i>password</i> and are <i>encrypted</i>."
+            helpText = "Private rooms require a <i>password</i> to enter."
             document.getElementById("password-option").hidden = false;
             document.getElementById("input-password").required = true;
             break
         case "hidden":
-            helpText = "Secret rooms are unlisted private rooms."
+            helpText = "Secret rooms are <i>unlisted</i> private rooms."
             document.getElementById("password-option").hidden = false;
             document.getElementById("input-password").required = true;
             break

@@ -99,39 +99,13 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	title := path.Base(r.URL.Path)
 	cr, err := data.CS.Retrieve(title)
 	if err != nil {
-		return
-	}
-
-	// Populare client slice
-	clientsSlice := make([]data.Client, len(cr.Clients))
-	var i int = 0
-	for _, v := range cr.Clients {
-		//clientsSlice = append(clientsSlice, *v)
-		clientsSlice[i] = *v
-		i++
-	}
-	// Create new JSON struct with clients
-	out, err := json.Marshal(struct {
-		*data.ChatRoom
-		Clients []data.Client `json:"clients"`
-	}{
-		ChatRoom: cr,
-		Clients:  clientsSlice,
-	})
-	if err != nil {
 		info("error getting chat room: " + title)
 		return err
 	}
-
-	//output, err := json.MarshalIndent(&cr, "", "\t\t")
-	//if err != nil {
-	//	info("error getting chat room: " + title)
-	//	return
-	//}
-	// report on success
+	res, err := cr.ToJSON()
 	info("retrieved chat room:", cr.Title)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(out)
+	w.Write(res)
 	return
 }
 
@@ -145,17 +119,26 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 
 	// create ChatRoom obj
 	var cr data.ChatRoom
-	json.Unmarshal(body, &cr)
+	err = json.Unmarshal(body, &cr)
+	if err != nil {
+		warning("error encountered reading POST:", err.Error())
+		return err
+	}
 	err = data.CS.Add(&cr)
 	// report on success/error
 	if err != nil {
-		warning("error encountered creating chat room:", err.Error())
+		warning("error encountered adding chat room:", err.Error())
 		return err
 	}
-	info("created chat room:", cr.Title)
-	ReportSuccess(w, true, nil)
-	//url := []string{"/chat/join/", strconv.Itoa(cr.ID)}
-	//http.Redirect(w, r, strings.Join(url, ""), 302)
+	w.WriteHeader(201)
+	w.Header().Set("Content-Type", "application/json")
+	// Retrieve updated object
+	createdChatRoom, err := data.CS.Retrieve(cr.Title)
+	if err != nil {
+		return err
+	}
+	response, _ := createdChatRoom.ToJSON()
+	w.Write(response)
 	return
 }
 

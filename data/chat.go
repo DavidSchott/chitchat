@@ -1,6 +1,7 @@
 package data
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -17,15 +18,37 @@ type Outcome struct {
 	Error   *APIError `json:"error,omitempty"`
 }
 
+// ChatRoom is a struct representing a chat room
+// TODO:  Add Administrator
 type ChatRoom struct {
 	Title       string             `json:"title"`
 	Description string             `json:"description,omitempty"`
 	Type        string             `json:"classification"`
-	Password    string             `json:"password,omitempty"` // optional
-	CreatedAt   time.Time          `json:"time"`
+	Password    string             `json:"password,omitempty"` // TODO: Make this json:- once salted
+	CreatedAt   time.Time          `json:"created_at"`
 	ID          int                `json:"id"`
 	Broker      *Broker            `json:"-"`
 	Clients     map[string]*Client `json:"-"`
+}
+
+func (cr ChatRoom) ToJSON() (jsonEncoding []byte, err error) {
+	// Populate client slice
+	clientsSlice := make([]Client, len(cr.Clients))
+	var i int = 0
+	for _, v := range cr.Clients {
+		//clientsSlice = append(clientsSlice, *v)
+		clientsSlice[i] = *v
+		i++
+	}
+	// Create new JSON struct with clients
+	jsonEncoding, err = json.Marshal(struct {
+		*ChatRoom
+		Clients []Client `json:"clients"`
+	}{
+		ChatRoom: &cr,
+		Clients:  clientsSlice,
+	})
+	return jsonEncoding, err
 }
 
 func (cr ChatRoom) AddClient(c *Client) (err error) {
@@ -158,7 +181,7 @@ func (cs ChatServer) Retrieve(title string) (cr *ChatRoom, err error) {
 		cr = cs.Rooms[strings.ToLower(title)]
 	}
 	//err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
-	return
+	return cr, nil
 }
 
 // Retrieve returns a single chat room based on ID
@@ -186,10 +209,10 @@ func (cs ChatServer) roomExists(titleorID string) bool {
 	return false
 }
 
-// Create a new chat room
+// Add will create a new chat room and add it to the server
 func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 	//fmt.Println(cs.roomExists(cr.Title))
-	if cs.roomExists(cr.Title) { // TODO: What if the room is hidden?
+	if cs.roomExists(cr.Title) { // TODO: What if the room is hidden? Return unspecified error or inform user?
 		return &APIError{
 			Code:  102,
 			Field: cr.Title,
