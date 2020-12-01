@@ -80,6 +80,7 @@ func chatbox(w http.ResponseWriter, r *http.Request) {
 
 // main handler function
 func handleRoom(w http.ResponseWriter, r *http.Request) (err error) {
+	w.Header().Set("Content-Type", "application/json")
 	switch r.Method {
 	case "GET":
 		err = handleGet(w, r)
@@ -104,7 +105,6 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	}
 	res, err := cr.ToJSON()
 	info("retrieved chat room:", cr.Title)
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
 	return
 }
@@ -116,32 +116,23 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
-
 	// create ChatRoom obj
 	var cr data.ChatRoom
-	err = json.Unmarshal(body, &cr)
-	if err != nil {
+	if err = json.Unmarshal(body, &cr); err != nil {
 		warning("error encountered reading POST:", err.Error())
 		return err
 	}
-	// validate chat room request
-	if apierr, valid := cr.IsValid(); !valid {
-		return apierr
-	}
-	err = data.CS.Add(&cr)
-	// report on success/error
-	if err != nil {
+	if err = data.CS.Add(&cr); err != nil {
 		warning("error encountered adding chat room:", err.Error())
 		return err
 	}
-	w.WriteHeader(201)
-	w.Header().Set("Content-Type", "application/json")
 	// Retrieve updated object
 	createdChatRoom, err := data.CS.Retrieve(cr.Title)
 	if err != nil {
 		return err
 	}
 	response, _ := createdChatRoom.ToJSON()
+	w.WriteHeader(201)
 	w.Write(response)
 	return
 }
@@ -157,16 +148,22 @@ func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
-	json.Unmarshal(body, &cr)
-	err = data.CS.Update(cr)
-	if err != nil {
+	if err = json.Unmarshal(body, &cr); err != nil {
 		warning("error encountered updating chat room:", err.Error())
-		ReportSuccess(w, false, err.(*data.APIError))
 		return
 	}
-	// report on success
+	if err = data.CS.Update(cr); err != nil {
+		warning("error encountered updating chat room:", cr, err.Error())
+		return
+	}
+	// Retrieve updated object
+	createdChatRoom, err := data.CS.Retrieve(cr.Title)
+	if err != nil {
+		return err
+	}
 	info("updated chat room:", cr.Title)
-	ReportSuccess(w, true, nil)
+	response, _ := createdChatRoom.ToJSON()
+	w.Write(response)
 	return
 }
 

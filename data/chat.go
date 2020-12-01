@@ -242,7 +242,10 @@ func (cs ChatServer) roomExists(titleorID string) bool {
 
 // Add will create a new chat room and add it to the server
 func (cs ChatServer) Add(cr *ChatRoom) (err error) {
-	//fmt.Println(cs.roomExists(cr.Title))
+	// validate chat room request
+	if apierr, valid := cr.IsValid(); !valid {
+		return apierr
+	}
 	if cs.roomExists(cr.Title) { // TODO: What if the room is hidden? Return unspecified error or inform user?
 		return &APIError{
 			Code:  102,
@@ -258,6 +261,9 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 
 // Update a chat room
 func (cs ChatServer) Update(cr *ChatRoom) (err error) {
+	if apierr, valid := cr.IsValid(); !valid {
+		return apierr
+	}
 	cs.Rooms[strings.ToLower(cr.Title)] = cr
 	//_, err = Db.Exec("update posts set content = $2, author = $3 where id = $1", post.Id, post.Content, post.Author)
 	return
