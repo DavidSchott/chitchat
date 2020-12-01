@@ -32,7 +32,7 @@ type ChatRoom struct {
 }
 
 func (cr ChatRoom) ToJSON() (jsonEncoding []byte, err error) {
-	// Populate client slice
+	// Populate client slice. TODO: Can this be simplified?
 	clientsSlice := make([]Client, len(cr.Clients))
 	var i int = 0
 	for _, v := range cr.Clients {
@@ -43,7 +43,7 @@ func (cr ChatRoom) ToJSON() (jsonEncoding []byte, err error) {
 	// Create new JSON struct with clients
 	jsonEncoding, err = json.Marshal(struct {
 		*ChatRoom
-		Clients []Client `json:"clients"`
+		Clients []Client `json:"participants"`
 	}{
 		ChatRoom: &cr,
 		Clients:  clientsSlice,

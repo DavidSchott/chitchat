@@ -38,7 +38,7 @@ func TestHandlePost(t *testing.T) {
 	cases := []struct {
 		title                  string
 		description            string
-		visibility         string
+		visibility             string
 		password               string
 		expectedOutcome        bool
 		expectedHTTPStatusCode int
@@ -49,6 +49,8 @@ func TestHandlePost(t *testing.T) {
 		{"Public Chat", "this is a duplicate and should fail", "public", "", false, 400},
 	}
 	var res data.ChatRoom
+	var failedOutcome data.Outcome
+	var matchConditions bool
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
 			// Refresh writer
@@ -65,12 +67,17 @@ func TestHandlePost(t *testing.T) {
 			if writer.Code != tc.expectedHTTPStatusCode {
 				t.Errorf("Response code is %v", writer.Code)
 			}
+			if tc.expectedOutcome {
+				json.Unmarshal(writer.Body.Bytes(), &res)
+				matchConditions = assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID > 1)
+			} else {
+				json.Unmarshal(writer.Body.Bytes(), &failedOutcome)
+				matchConditions = assertTrue(!failedOutcome.Success, failedOutcome.Error.Code == 102)
+			}
 
-			json.Unmarshal(writer.Body.Bytes(), &res)
-			assertion := assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility)
 			// TODO: Check all fields
-			if assertion != tc.expectedOutcome {
-				t.Fatal("Unexpected result POST chat room. Response: ", res)
+			if !matchConditions {
+				t.Fatal("Unexpected result POST chat room. Response: ", writer.Body.String())
 			}
 		})
 	}
