@@ -11,7 +11,8 @@ import (
   -101 = room not found
   -102 = room duplicate
   -103 = invalid json spec
-  -104 = invalid content (e.g. short password)
+  -104 = unauthorized
+  -105 = invalid content (e.g. short password)
 
 -20* = client errors
   -201 = client not found
@@ -41,6 +42,8 @@ func (e *APIError) SetMsg() {
 	case 103:
 		e.Msg = "Room error: Invalid JSON"
 	case 104:
+		e.Msg = "Room error: Unauthorized operation"
+	case 105:
 		e.Msg = "Room error: Invalid content"
 	case 201:
 		e.Msg = "Client error: User not found"
@@ -49,13 +52,13 @@ func (e *APIError) SetMsg() {
 	case 203:
 		e.Msg = "Client error: Invalid JSON"
 	case 204:
-		e.Msg = "Client error: Unauthorized access"
+		e.Msg = "Client error: Access forbidden"
 	case 301:
 		e.Msg = "Event error: Could not establish session"
 	case 303:
 		e.Msg = "Event error: Invalid JSON"
 	case 304:
-		e.Msg = "Event error: Unauthorized access"
+		e.Msg = "Event error: Access forbidden"
 	case 305:
 		e.Msg = "Event error: Unsupported client device"
 	default:

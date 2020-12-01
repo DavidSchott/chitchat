@@ -19,8 +19,11 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if apierr.Code == 101 || apierr.Code == 201 {
 				notFound(w, r)
 			}
-			if apierr.Code == 102 || apierr.Code == 202 || apierr.Code == 303 || apierr.Code == 104 {
+			if apierr.Code == 102 || apierr.Code == 202 || apierr.Code == 303 || apierr.Code == 105 {
 				badRequest(w, r)
+			}
+			if apierr.Code == 104 || apierr.Code == 204 || apierr.Code == 304 {
+				unAuthorized(w, r)
 			}
 			ReportSuccess(w, false, apierr)
 		} else {
@@ -33,6 +36,11 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(404)
 	info("Not found request:", r.RequestURI)
+}
+
+func unAuthorized(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(403)
+	info("Unauthorized:", r.RequestURI, r.Body)
 }
 
 func badRequest(w http.ResponseWriter, r *http.Request) {

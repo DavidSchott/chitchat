@@ -2,7 +2,7 @@
 ChitChat is a simple chat application that helps you connect with other people around the world.
 
 ## Install ##
-All that you need is [Golang](https://golang.org/). Once you run the application, it will expose port 8080 on the host.
+All that you need is [Golang](https://golang.org/). Once you run the application, it will expose [port 8080](./config.json) on the host.
 ```
 20:5:13 app         | ChitChat 0.1 started at 127.0.0.1:8080
 ```
@@ -11,13 +11,13 @@ All that you need is [Golang](https://golang.org/). Once you run the application
 Edit [config.json](./config.json) to configure HTTP server settings.
 
 ## ChatRoom API ##
-Send different HTTP queries to `/chat/`:
+Send different HTTP requests to `/chat/`:
   * `GET /chat/<room_id>`: retrieve a chat room by ID or title
   * `POST /chat/`: create a new chat room
   * `PUT /chat/<room_id>`: update a chat room by ID or title
   * `DEL /chat/<room_id>`: delete a chat room
 
-E.g. a sample chat room body could look as follows:
+E.g. a sample chat room request body could look as follows:
 ```
 {
    "title":"My chat room",
@@ -25,7 +25,7 @@ E.g. a sample chat room body could look as follows:
    "visibility":"public"
 }
 ```
-The minimum required fields to create a chat room are title and visibility.
+The minimum required fields to create a public chat room are title and visibility. "Private" and "hidden" chat rooms also require a password.
 
 ## Chatting ##
 Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedure:
@@ -42,3 +42,11 @@ Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedu
       secret: "password" # (only needed for private or secret rooms)
   }
   ```
+
+  ## TODO ##
+  1. Need to add more unit tests. 
+    * Tests for core chat room API are almost completed
+  2. Passwords must be salted
+  3. Generate proper GUIDs instead of integers as IDs
+  4. Need to move chat server data layer into DB, right now everything is stored in memory to allow for rapid development and testing
+  5. Need to improve reliability and longevity of chatting sessions, on some browsers (Firefox) there are random interruptions

@@ -48,11 +48,11 @@ func TestHandlePost(t *testing.T) {
 		{"private room", "this is a private room", "private", "password123", true, 201, 0},
 		{"secret room", "this is a secret room", "hidden", "!!123abcpassword", true, 201, 0},
 		{"Public Chat", "this is a duplicate of default room and should fail", "public", "", false, 400, 102},
-		{"", "the title shall not be empty", "public", "", false, 400, 104},
-		{"bad room", "the visibility shall not be empty", "", "", false, 400, 104},
-		{"bad private room", "password shall not be too short for private rooms", "private", "", false, 400, 104},
-		{"bad hidden room", "password shall not be too short  for hidden rooms", "hidden", "", false, 400, 104},
-		{"weird public room", "passwords given to a public room shall fail to avoid accidents", "public", "badpwd", false, 400, 104},
+		{"", "the title shall not be empty", "public", "", false, 400, 105},
+		{"bad room", "the visibility shall not be empty", "", "", false, 400, 105},
+		{"bad private room", "password shall not be too short for private rooms", "private", "", false, 400, 105},
+		{"bad hidden room", "password shall not be too short  for hidden rooms", "hidden", "", false, 400, 105},
+		{"weird public room", "passwords given to a public room shall fail to avoid accidents", "public", "badpwd", false, 400, 105},
 	}
 	var res data.ChatRoom
 	var failedOutcome data.Outcome
@@ -134,6 +134,58 @@ func TestHandleGetRooms(t *testing.T) {
 			if !matchConditions {
 				t.Errorf("Unexpected result during GET chat room %s", tc.titleOrID)
 				t.Logf("Response: %s", writer.Body.String())
+			}
+		})
+	}
+}
+
+func TestHandlePut(t *testing.T) {
+	cases := []struct {
+		titleOrID              string
+		title                  string
+		description            string
+		visibility             string
+		password               string
+		expectedOutcome        bool
+		expectedHTTPStatusCode int
+		expectedAPIErrorCode   int
+	}{
+		{"1", "default chat room", "renamed", "public", "", true, 200, 0},
+		{"public room", "public chat renamed", "renamed", "public", "", true, 200, 0},
+		{"3", "private room renamed", "renamed", "private", "password123", true, 200, 0},
+		//		{"3", "private room renamed failure", "bad password", "private", "password123", false, 403, 104},
+		//		{"4", "hidden room renamed", "renamed", "hidden", "!!123abcpassword", true, 200, 0},
+	}
+	var res data.ChatRoom
+	var failedOutcome data.Outcome
+	var matchConditions bool
+	for _, tc := range cases {
+		t.Run(tc.titleOrID, func(t *testing.T) {
+			// Refresh writer
+			writer = httptest.NewRecorder()
+			writer.Header().Set("Content-Type", "application/json")
+			// JSON body
+			requestJSON := fmt.Sprintf(`{"title":"%s","description":"%s", "visibility":"%s", "password":"%s"}`, tc.title, tc.description, tc.visibility, tc.password)
+			requestBody := strings.NewReader(requestJSON)
+			// URI and HTTP method
+			request, _ := http.NewRequest("PUT", fmt.Sprintf("/chat/%s", tc.titleOrID), requestBody)
+			// Send request
+			mux.ServeHTTP(writer, request)
+			// Check assertions
+			if writer.Code != tc.expectedHTTPStatusCode {
+				t.Errorf("Response code is %v", writer.Code)
+			}
+			if tc.expectedOutcome {
+				json.Unmarshal(writer.Body.Bytes(), &res)
+				matchConditions = assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID >= 1)
+			} else {
+				json.Unmarshal(writer.Body.Bytes(), &failedOutcome)
+				matchConditions = assertTrue(!failedOutcome.Success, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
+			}
+
+			// TODO: Check all fields
+			if !matchConditions {
+				t.Fatal("Unexpected result PUT chat room. Response: ", writer.Body.String())
 			}
 		})
 	}

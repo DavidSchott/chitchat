@@ -83,14 +83,14 @@ func (cr ChatRoom) IsValid() (err *APIError, validity bool) {
 	// Title should be at least 2 characters
 	if len(cr.Title) < 2 || len(cr.Title) > 70 {
 		return &APIError{
-			Code:  104,
+			Code:  105,
 			Field: "title",
 		}, false
 	}
 	// Description shall not be too long
 	if len(cr.Description) > 70 {
 		return &APIError{
-			Code:  104,
+			Code:  105,
 			Field: "description",
 		}, false
 	}
@@ -98,21 +98,21 @@ func (cr ChatRoom) IsValid() (err *APIError, validity bool) {
 	// Visibility must be set
 	if visibility != PublicRoom && visibility != PrivateRoom && visibility != HiddenRoom {
 		return &APIError{
-			Code:  104,
+			Code:  105,
 			Field: "visibility",
 		}, false
 	}
 	// Non-public rooms require a valid password
 	if (len(cr.Password) < 8 || len(cr.Password) > 20) && visibility != PublicRoom {
 		return &APIError{
-			Code:  104,
+			Code:  105,
 			Field: "password",
 		}, false
 	}
 	// A public room should not have a password set (to avoid accidents)
 	if len(cr.Password) != 0 && visibility == PublicRoom {
 		return &APIError{
-			Code:  104,
+			Code:  105,
 			Field: "visibility",
 		}, false
 	}
@@ -136,7 +136,7 @@ func (cr ChatRoom) clientExists(name string) bool {
 
 type ChatServer struct {
 	RoomsID map[int]*ChatRoom
-	Rooms   map[string]*ChatRoom
+	Rooms   map[string]*ChatRoom // TODO: Remove this duplication once data layer moves to DB
 	Index   *int
 }
 
@@ -260,11 +260,28 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 }
 
 // Update a chat room
+// TODO: Get input from requested ID. Edit both RoomsID and Rooms.
 func (cs ChatServer) Update(cr *ChatRoom) (err error) {
 	if apierr, valid := cr.IsValid(); !valid {
 		return apierr
 	}
-	cs.Rooms[strings.ToLower(cr.Title)] = cr
+
+	// Check password matches
+	if cr.Type != PublicRoom && !cs.RoomsID[cr.ID].MatchesPassword(cr.Password) {
+		return &APIError{
+			Code:  104,
+			Field: "password",
+		}
+	}
+	// Ensure room type is not trying to be changed
+	if cr.Type != cs.RoomsID[cr.ID].Type {
+		return &APIError{
+			Code:  104,
+			Field: "visibility",
+		}
+	}
+	cs.Rooms[cs.RoomsID[cr.ID].Title] = cr
+	cs.RoomsID[cr.ID] = cr
 	//_, err = Db.Exec("update posts set content = $2, author = $3 where id = $1", post.Id, post.Content, post.Author)
 	return
 }
