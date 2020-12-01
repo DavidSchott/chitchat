@@ -78,6 +78,47 @@ func (cr ChatRoom) Authenticate(c *ChatEvent) bool {
 	return cr.MatchesPassword(c.Password)
 }
 
+// IsValid validates a chat room fields are still valid
+func (cr ChatRoom) IsValid() (err *APIError, validity bool) {
+	// Title should be at least 2 characters
+	if len(cr.Title) < 2 || len(cr.Title) > 70 {
+		return &APIError{
+			Code:  104,
+			Field: "title",
+		}, false
+	}
+	// Description shall not be too long
+	if len(cr.Description) > 70 {
+		return &APIError{
+			Code:  104,
+			Field: "description",
+		}, false
+	}
+	visibility := strings.ToLower(cr.Type)
+	// Visibility must be set
+	if visibility != PublicRoom && visibility != PrivateRoom && visibility != HiddenRoom {
+		return &APIError{
+			Code:  104,
+			Field: "visibility",
+		}, false
+	}
+	// Non-public rooms require a valid password
+	if (len(cr.Password) < 8 || len(cr.Password) > 20) && visibility != PublicRoom {
+		return &APIError{
+			Code:  104,
+			Field: "password",
+		}, false
+	}
+	// A public room should not have a password set (to avoid accidents)
+	if len(cr.Password) != 0 && visibility == PublicRoom {
+		return &APIError{
+			Code:  104,
+			Field: "visibility",
+		}, false
+	}
+	return nil, true
+}
+
 // MatchesPassword takes in a value and compares it with the room's password
 func (cr ChatRoom) MatchesPassword(val string) bool {
 	return cr.Password == val // TODO: Salted passwords
@@ -210,6 +251,7 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 	}
 	cr.CreatedAt = time.Now()
 	cr.Broker = NewBroker()
+	cr.Type = strings.ToLower(cr.Type)
 	cs.push(cr)
 	return
 }

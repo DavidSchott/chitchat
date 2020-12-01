@@ -40,7 +40,7 @@ function validateForm(resolve = console.log, reject = console.log) {
         passwordDOM.setCustomValidity("");
     }
     // Check title
-    if (titleDOM.value.length < 1) {
+    if (titleDOM.value.length < 2 || titleDOM.value.length > 70) {
         valid = false;
         document.getElementById('title-invalid-feedback').innerText = "Please provide a valid title!";
         titleDOM.setCustomValidity("Empty title");

@@ -42,11 +42,17 @@ func TestHandlePost(t *testing.T) {
 		password               string
 		expectedOutcome        bool
 		expectedHTTPStatusCode int
+		expectedAPIErrorCode   int
 	}{
-		{"public room", "this is a public room", "public", "", true, 201},
-		{"private room", "this is a private room", "private", "123", true, 201},
-		{"secret room", "this is a secret room", "hidden", "!!123abc", true, 201},
-		{"Public Chat", "this is a duplicate and should fail", "public", "", false, 400},
+		{"public room", "this is a public room", "public", "", true, 201, 0},
+		{"private room", "this is a private room", "private", "password123", true, 201, 0},
+		{"secret room", "this is a secret room", "hidden", "!!123abcpassword", true, 201, 0},
+		{"Public Chat", "this is a duplicate of default room and should fail", "public", "", false, 400, 102},
+		{"", "the title shall not be empty", "public", "", false, 400, 104},
+		{"bad room", "the visibility shall not be empty", "", "", false, 400, 104},
+		{"bad private room", "password shall not be too short for private rooms", "private", "", false, 400, 104},
+		{"bad hidden room", "password shall not be too short  for hidden rooms", "hidden", "", false, 400, 104},
+		{"weird public room", "passwords given to a public room shall fail to avoid accidents", "public", "badpwd", false, 400, 104},
 	}
 	var res data.ChatRoom
 	var failedOutcome data.Outcome
@@ -72,7 +78,7 @@ func TestHandlePost(t *testing.T) {
 				matchConditions = assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID > 1)
 			} else {
 				json.Unmarshal(writer.Body.Bytes(), &failedOutcome)
-				matchConditions = assertTrue(!failedOutcome.Success, failedOutcome.Error.Code == 102)
+				matchConditions = assertTrue(!failedOutcome.Success, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
 			}
 
 			// TODO: Check all fields
@@ -102,7 +108,7 @@ func TestHandleGetRooms(t *testing.T) {
 	var matchConditions bool
 	for _, tc := range cases {
 		t.Run(tc.titleOrID, func(t *testing.T) {
-			// Refresh writer
+			// Refresh writer TODO: Recycle old one instead.
 			writer = httptest.NewRecorder()
 			// Craft HTTP req
 			writer.Header().Set("Content-Type", "application/json")

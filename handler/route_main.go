@@ -124,6 +124,10 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 		warning("error encountered reading POST:", err.Error())
 		return err
 	}
+	// validate chat room request
+	if apierr, valid := cr.IsValid(); !valid {
+		return apierr
+	}
 	err = data.CS.Add(&cr)
 	// report on success/error
 	if err != nil {

@@ -19,7 +19,7 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if apierr.Code == 101 || apierr.Code == 201 {
 				notFound(w, r)
 			}
-			if apierr.Code == 102 || apierr.Code == 202 || apierr.Code == 303 {
+			if apierr.Code == 102 || apierr.Code == 202 || apierr.Code == 303 || apierr.Code == 104 {
 				badRequest(w, r)
 			}
 			ReportSuccess(w, false, apierr)
