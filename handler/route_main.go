@@ -9,6 +9,10 @@ import (
 	"github.com/DavidSchott/chitchat/data"
 )
 
+const (
+	sessionKey string = "secret_cookie"
+)
+
 // GET /
 // Default page
 func index(w http.ResponseWriter, r *http.Request) {
@@ -42,10 +46,27 @@ func joinRoom(w http.ResponseWriter, r *http.Request) (err error) {
 	return
 }
 
-// GET /chat/join/<id>
+// NOT USED. GET /chat/join/<id>
 // TODO: Implement as a chained handler
-func authorize(w http.ResponseWriter, r *http.Request) (err error) {
-	return
+func authorize(h errHandler) errHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		cookieSecret, err := r.Cookie("secret_cookie")
+		if err != nil {
+			return &data.APIError{
+				Code:  304,
+				Field: "secret",
+			}
+		}
+		// TODO: Actually check this is valid
+		if cookieSecret.Value != "password" {
+			return &data.APIError{
+				Code:  304,
+				Field: "secret",
+			}
+		}
+		return h(w, r)
+	}
+
 }
 
 // GET /chat/list

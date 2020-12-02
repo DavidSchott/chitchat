@@ -24,7 +24,7 @@ type ChatRoom struct {
 	Title       string             `json:"title"`
 	Description string             `json:"description,omitempty"`
 	Type        string             `json:"visibility"`
-	Password    string             `json:"password,omitempty"` // TODO: Make this json:- once salted
+	Password    string             `json:"password,omitempty"` // TODO: Make this json:- and salt it
 	CreatedAt   time.Time          `json:"createdAt"`
 	UpdatedAt   time.Time          `json:"updatedAt"`
 	ID          int                `json:"id"`
@@ -44,7 +44,7 @@ func (cr ChatRoom) ToJSON() (jsonEncoding []byte, err error) {
 	// Create new JSON struct with clients
 	jsonEncoding, err = json.Marshal(struct {
 		*ChatRoom
-		Clients []Client `json:"participants"`
+		Clients []Client `json:"users"`
 	}{
 		ChatRoom: &cr,
 		Clients:  clientsSlice,

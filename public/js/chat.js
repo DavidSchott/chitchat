@@ -279,7 +279,7 @@ function userExists(user, roomID, resolve = console.log, reject = console.log) {
             if (outcome.hasOwnProperty('error')) {
                 reject(outcome);
             } else {
-                outcome.participants.forEach(function (client) {
+                outcome.users.forEach(function (client) {
                     if (client.username == user) {
                         reject(JSON.stringify({ error: "duplicate name" }));
                         duplicate = true;

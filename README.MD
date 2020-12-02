@@ -29,7 +29,7 @@ The minimum required fields to create a public chat room are title and visibilit
 
 ## Chatting ##
 Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedure:
-  1. Send a HTTP POST to `/chat/sse/login` to start a session (only needed for private and secret rooms)
+  1. Send a HTTP POST to `/chat/sse/login` to start a session (only needed for private and hidden rooms)
   2. Subscribe to chat notifications by listening to `/chat/sse` source events
   3. Send a HTTP POST to `/chat/sse/event` to broadcast messages using the following JSON format:
   ```
@@ -44,9 +44,9 @@ Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedu
   ```
 
   ## TODO ##
-  1. Need to add more unit tests. 
-    * Tests for core chat room API are almost completed
-  2. Passwords must be salted
-  3. Generate proper GUIDs instead of integers as IDs
+  1. Need to add more unit tests for chatting. 
+    * Also need to add mocks once DB is setup for decoupled testing
+  2. Passwords must be salted on client
+  3. Generate proper UUIDs instead of integers as IDs
   4. Need to move chat server data layer into DB, right now everything is stored in memory to allow for rapid development and testing
   5. Need to improve reliability and longevity of chatting sessions, on some browsers (Firefox) there are random interruptions
