@@ -23,7 +23,7 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 	if cr, err := data.CS.RetrieveID(c.RoomID); err == nil {
 		if cr.Type == data.PublicRoom {
 			// Ignore public room
-			ReportSuccess(w, true, nil)
+			ReportStatus(w, true, nil)
 		} else if c.Password == cr.Password {
 			// Success! Set Password
 			cookieSecret := http.Cookie{
@@ -32,7 +32,7 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 				HttpOnly: true,
 			}
 			http.SetCookie(w, &cookieSecret)
-			ReportSuccess(w, true, nil)
+			ReportStatus(w, true, nil)
 		} else {
 			return &data.APIError{
 				Code:  304,
@@ -55,7 +55,7 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 	// Set timestamp
 	ce.Timestamp = time.Now()
 
-	// Fetch room & authenticate
+	// Fetch room & authorize
 	if cr, err := data.CS.RetrieveID(ce.RoomID); err == nil {
 		// Check for invalid/random input
 		if ce.User == "" || ce.Password != cr.Password {
@@ -64,12 +64,12 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 				Field: "password",
 			}
 		}
-		// Authenticate
+		// Authorize
 		if cr.Type != data.PublicRoom {
-			// if isn't public room, authenticate
+			// if isn't public room, authorize
 			cookieSecret, err := r.Cookie("secret_cookie")
 			if err != nil {
-				warning("error attempting to authenticate "+strconv.Itoa(cr.ID)+" by:", ce)
+				warning("error attempting to authorize "+strconv.Itoa(cr.ID)+" by:", ce)
 				return &data.APIError{
 					Code:  304,
 					Field: "password",
@@ -118,7 +118,7 @@ func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent) {
 		}
 		if err := cr.AddClient(client); err != nil {
 			warning(err.Error())
-			ReportSuccess(w, false, err.(*data.APIError))
+			ReportStatus(w, false, err.(*data.APIError))
 			return
 		}
 		info("Adding client to Chatroom: ", c.User)
@@ -154,10 +154,10 @@ func sseHandler(w http.ResponseWriter, r *http.Request) (err error) {
 	} else {
 		if cr, err := data.CS.RetrieveID(id); err == nil {
 			if cr.Type != data.PublicRoom {
-				// if isn't public room, authenticate
+				// if isn't public room, authorize
 				cookieSecret, err := r.Cookie("secret_cookie")
 				if err != nil {
-					warning("error attempting to authenticate "+strconv.Itoa(id)+" by:", *r)
+					warning("error attempting to authorize "+strconv.Itoa(id)+" by:", *r)
 					return &data.APIError{
 						Code:  304,
 						Field: "secret",

@@ -297,7 +297,7 @@ function checkPassword(password, resolve = console.log, reject = console.log) {
     $.post('/chat/sse/login', event, "json")
         .done(function (data) {
             if (data.hasOwnProperty('error')) {
-                // Authentication error!
+                // Authorization error!
                 reject(data);
             } else {
                 resolve(data);

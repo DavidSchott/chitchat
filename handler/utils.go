@@ -36,18 +36,18 @@ func warning(args ...interface{}) {
 	logger.Println(args...)
 }
 
-// ReportSuccess is a helper function to return a JSON reponse indicating outcome success/failure
-func ReportSuccess(w http.ResponseWriter, success bool, err *data.APIError) {
+// ReportStatus is a helper function to return a JSON reponse indicating outcome success/failure
+func ReportStatus(w http.ResponseWriter, success bool, err *data.APIError) {
 	var res *data.Outcome
 	w.Header().Set("Content-Type", "application/json")
 	if success {
 		res = &data.Outcome{
-			Success: success,
+			Status: success,
 		}
 	} else {
 		res = &data.Outcome{
-			Success: success,
-			Error:   err,
+			Status: success,
+			Error:  err,
 		}
 	}
 	response, _ := json.Marshal(res)

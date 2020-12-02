@@ -25,7 +25,7 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if apierr.Code == 104 || apierr.Code == 204 || apierr.Code == 304 {
 				unauthorized(w, r)
 			}
-			ReportSuccess(w, false, apierr)
+			ReportStatus(w, false, apierr)
 		} else {
 			danger("Server error", err.Error())
 			http.Error(w, err.Error(), 500)

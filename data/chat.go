@@ -14,8 +14,8 @@ const (
 )
 
 type Outcome struct {
-	Success bool      `json:"success"`
-	Error   *APIError `json:"error,omitempty"`
+	Status bool      `json:"status"`
+	Error  *APIError `json:"error,omitempty"`
 }
 
 // ChatRoom is a struct representing a chat room
@@ -74,8 +74,8 @@ func (cr ChatRoom) RemoveClient(user string) (err error) {
 	return
 }
 
-// Authenticate authenticates a given ChatEvent for the Room
-func (cr ChatRoom) Authenticate(c *ChatEvent) bool {
+// Authorize authorizes a given ChatEvent for the Room
+func (cr ChatRoom) Authorize(c *ChatEvent) bool {
 	return cr.MatchesPassword(c.Password)
 }
 
@@ -260,7 +260,7 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 	return
 }
 
-// Update a chat room. NOTE: Authentication should have been done before calling this
+// Update a chat room. NOTE: Authorization should have been done before calling this
 // TODO: Get input from requested ID. Edit both RoomsID and Rooms.
 func (cs ChatServer) Update(titleOrID string, modifiedChatRoom *ChatRoom) (err error) {
 	currentChatRoom, err := cs.Retrieve(titleOrID)
@@ -273,7 +273,7 @@ func (cs ChatServer) Update(titleOrID string, modifiedChatRoom *ChatRoom) (err e
 		return apierr
 	}
 
-	/* 	This is commented for now since modifying a password or visibility could be a legitimate use-case. Can authenticate using cookie
+	/* 	This is commented for now since modifying a password or visibility could be a legitimate use-case. Can authorize using cookie
 	Check password matches.
 	if cr.Type != PublicRoom && !cs.RoomsID[cr.ID].MatchesPassword(cr.Password) {
 		return &APIError{

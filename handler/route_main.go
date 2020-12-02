@@ -44,7 +44,7 @@ func joinRoom(w http.ResponseWriter, r *http.Request) (err error) {
 
 // GET /chat/join/<id>
 // TODO: Implement as a chained handler
-func authenticate(w http.ResponseWriter, r *http.Request) (err error) {
+func authorize(w http.ResponseWriter, r *http.Request) (err error) {
 	return
 }
 
@@ -153,12 +153,12 @@ func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 		warning("error encountered updating chat room:", err.Error())
 		return
 	}
-	// Authenticate
+	// Authorize
 	if currentChatRoom.Type != data.PublicRoom {
-		// if isn't public room, need to authenticate
+		// if isn't public room, need to authorize
 		cookieSecret, err := r.Cookie("secret_cookie")
 		if err != nil {
-			warning("error attempting to authenticate "+title+" by PUT:", cr)
+			warning("error attempting to authorize "+title+" by PUT:", cr)
 			return &data.APIError{
 				Code:  104,
 				Field: "password",
@@ -197,11 +197,11 @@ func handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	err = data.CS.Delete(cr)
 	if err != nil {
 		warning("error encountered deleting chat room:", err.Error())
-		ReportSuccess(w, false, err.(*data.APIError))
+		ReportStatus(w, false, err.(*data.APIError))
 		return
 	}
-	// report on success
+	// report on status
 	info("deleted chat room:", cr.Title)
-	ReportSuccess(w, true, nil)
+	ReportStatus(w, true, nil)
 	return
 }

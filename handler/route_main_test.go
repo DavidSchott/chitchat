@@ -78,7 +78,7 @@ func TestHandlePost(t *testing.T) {
 				matchConditions = assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID > 1)
 			} else {
 				json.Unmarshal(writer.Body.Bytes(), &failedOutcome)
-				matchConditions = assertTrue(!failedOutcome.Success, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
+				matchConditions = assertTrue(!failedOutcome.Status, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
 			}
 
 			// TODO: Check all fields
@@ -128,7 +128,7 @@ func TestHandleGet(t *testing.T) {
 					matchConditions = false
 				}
 				// Check error return code is as expected
-				matchConditions = assertTrue(failOutcome.Error.Code == 101, !failOutcome.Success)
+				matchConditions = assertTrue(failOutcome.Error.Code == 101, !failOutcome.Status)
 			}
 			// If assumed test checks fail
 			if !matchConditions {
@@ -183,7 +183,7 @@ func TestHandlePut(t *testing.T) {
 				matchConditions = assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID >= 1)
 			} else {
 				json.Unmarshal(writer.Body.Bytes(), &failedOutcome)
-				matchConditions = assertTrue(!failedOutcome.Success, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
+				matchConditions = assertTrue(!failedOutcome.Status, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
 			}
 
 			// TODO: Check all fields
