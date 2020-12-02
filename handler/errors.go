@@ -23,7 +23,7 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				badRequest(w, r)
 			}
 			if apierr.Code == 104 || apierr.Code == 204 || apierr.Code == 304 {
-				unAuthorized(w, r)
+				unauthorized(w, r)
 			}
 			ReportSuccess(w, false, apierr)
 		} else {
@@ -38,9 +38,9 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 	info("Not found request:", r.RequestURI)
 }
 
-func unAuthorized(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(403)
-	info("Unauthorized:", r.RequestURI, r.Body)
+func unauthorized(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(401)
+	info("forbidden:", r.RequestURI, r.Body)
 }
 
 func badRequest(w http.ResponseWriter, r *http.Request) {

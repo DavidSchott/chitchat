@@ -61,12 +61,12 @@ func TestHandlePost(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			// Refresh writer
 			writer = httptest.NewRecorder()
-			writer.Header().Set("Content-Type", "application/json")
 			// JSON body
 			requestJSON := fmt.Sprintf(`{"title":"%s","description":"%s", "visibility":"%s", "password":"%s"}`, tc.title, tc.description, tc.visibility, tc.password)
 			requestBody := strings.NewReader(requestJSON)
 			// URI and HTTP method
 			request, _ := http.NewRequest("POST", "/chat/", requestBody)
+			request.Header.Set("Content-Type", "application/json")
 			// Send request
 			mux.ServeHTTP(writer, request)
 			// Check assertions
@@ -89,7 +89,7 @@ func TestHandlePost(t *testing.T) {
 	}
 }
 
-func TestHandleGetRooms(t *testing.T) {
+func TestHandleGet(t *testing.T) {
 	cases := []struct {
 		titleOrID              string
 		expectedDescription    string
@@ -111,8 +111,8 @@ func TestHandleGetRooms(t *testing.T) {
 			// Refresh writer TODO: Recycle old one instead.
 			writer = httptest.NewRecorder()
 			// Craft HTTP req
-			writer.Header().Set("Content-Type", "application/json")
 			request, _ := http.NewRequest("GET", fmt.Sprintf("/chat/%s", tc.titleOrID), nil)
+			request.Header.Set("Content-Type", "application/json")
 			mux.ServeHTTP(writer, request)
 			// Check assertions
 			if writer.Code != tc.expectedHTTPStatusCode {
@@ -153,8 +153,8 @@ func TestHandlePut(t *testing.T) {
 		{"1", "default chat room", "renamed", "public", "", true, 200, 0},
 		{"public room", "public chat renamed", "renamed", "public", "", true, 200, 0},
 		{"3", "private room renamed", "renamed", "private", "password123", true, 200, 0},
-		//		{"3", "private room renamed failure", "bad password", "private", "password123", false, 403, 104},
-		//		{"4", "hidden room renamed", "renamed", "hidden", "!!123abcpassword", true, 200, 0},
+		{"3", "private room renamed failure", "bad password", "private", "incorrectpassword", false, 401, 104},
+		{"4", "hidden room renamed", "renamed", "hidden", "!!123abcpassword", true, 200, 0},
 	}
 	var res data.ChatRoom
 	var failedOutcome data.Outcome
@@ -163,17 +163,20 @@ func TestHandlePut(t *testing.T) {
 		t.Run(tc.titleOrID, func(t *testing.T) {
 			// Refresh writer
 			writer = httptest.NewRecorder()
-			writer.Header().Set("Content-Type", "application/json")
 			// JSON body
-			requestJSON := fmt.Sprintf(`{"title":"%s","description":"%s", "visibility":"%s", "password":"%s"}`, tc.title, tc.description, tc.visibility, tc.password)
+			requestJSON := fmt.Sprintf(`{"title":"%s","description":"%s", "visibility":"%s"}`, tc.title, tc.description, tc.visibility)
 			requestBody := strings.NewReader(requestJSON)
 			// URI and HTTP method
 			request, _ := http.NewRequest("PUT", fmt.Sprintf("/chat/%s", tc.titleOrID), requestBody)
+			request.Header.Set("Content-Type", "application/json")
+			if len(tc.password) > 1 {
+				request.Header.Set("Cookie", fmt.Sprintf("secret_cookie=%s", tc.password))
+			}
 			// Send request
 			mux.ServeHTTP(writer, request)
 			// Check assertions
 			if writer.Code != tc.expectedHTTPStatusCode {
-				t.Errorf("Response code is %v", writer.Code)
+				t.Errorf("Unexpected response code is %v", writer.Code)
 			}
 			if tc.expectedOutcome {
 				json.Unmarshal(writer.Body.Bytes(), &res)
@@ -185,7 +188,7 @@ func TestHandlePut(t *testing.T) {
 
 			// TODO: Check all fields
 			if !matchConditions {
-				t.Fatal("Unexpected result PUT chat room. Response: ", writer.Body.String())
+				t.Fatal("Unexpected result PUT chat room: ", writer.Body.String())
 			}
 		})
 	}
@@ -198,44 +201,3 @@ func assertTrue(vals ...bool) bool {
 	}
 	return allTrue
 }
-
-/*
-func TestHandlePut(t *testing.T) {
-	cases := []struct {
-		titleOrID       string
-		description     string
-		visibility  string
-		password        string
-		expectedOutcome bool
-	}{
-		{"public room", "this is a public room", "public", "", true},
-		{"private room", "this is a private room", "private", "123", true},
-		{"secret room", "this is a secret room", "hidden", "!!123abc", true},
-		{"Public Chat", "this is a duplicate and should fail", "public", "", false},
-	}
-	var res data.Outcome
-	for _, tc := range cases {
-		t.Run(tc.titleOrID, func(t *testing.T) {
-			// Refresh writer
-			writer = httptest.NewRecorder()
-			writer.Header().Set("Content-Type", "application/json")
-			// JSON body
-			requestJSON := fmt.Sprintf(`{"title":"%s","description":"%s", "visibility":"%s", "password":"%s"}`, tc.titleOrID, tc.description, tc.visibility, tc.password)
-			requestBody := strings.NewReader(requestJSON)
-			// URI and HTTP method
-			request, _ := http.NewRequest("PUT", fmt.Sprintf("/chat/%s", tc.titleOrID), requestBody)
-			// Send request
-			mux.ServeHTTP(writer, request)
-			// Check assertions
-			if writer.Code != 200 {
-				t.Errorf("Response code is %v", writer.Code)
-			}
-
-			json.Unmarshal(writer.Body.Bytes(), &res)
-			if res.Success != tc.expectedOutcome {
-				t.Fatalf("Unexpected outcome POST chat room \"%s\". Reason: %s", tc.title, res.Error.Msg)
-			}
-		})
-	}
-}
-*/

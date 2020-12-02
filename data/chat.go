@@ -25,7 +25,8 @@ type ChatRoom struct {
 	Description string             `json:"description,omitempty"`
 	Type        string             `json:"visibility"`
 	Password    string             `json:"password,omitempty"` // TODO: Make this json:- once salted
-	CreatedAt   time.Time          `json:"created_at"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	UpdatedAt   time.Time          `json:"updatedAt"`
 	ID          int                `json:"id"`
 	Broker      *Broker            `json:"-"`
 	Clients     map[string]*Client `json:"-"`
@@ -198,7 +199,7 @@ func (cr ChatRoom) Participants() int {
 	return len(cr.Clients)
 }
 
-// Retrieve returns a single chat room based on title
+// Retrieve returns a single chat room based on title or ID
 func (cs ChatServer) Retrieve(title string) (cr *ChatRoom, err error) {
 	if !cs.roomExists(title) {
 		return cr, &APIError{
@@ -215,7 +216,7 @@ func (cs ChatServer) Retrieve(title string) (cr *ChatRoom, err error) {
 	return cr, nil
 }
 
-// Retrieve returns a single chat room based on ID
+// RetrieveID returns a single chat room based on ID. NOTE: This has no error handling unlike cs.Retrieve()
 func (cs ChatServer) RetrieveID(ID int) (cr *ChatRoom, err error) {
 	cr = cs.RoomsID[ID]
 	//err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
@@ -259,29 +260,40 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 	return
 }
 
-// Update a chat room
+// Update a chat room. NOTE: Authentication should have been done before calling this
 // TODO: Get input from requested ID. Edit both RoomsID and Rooms.
-func (cs ChatServer) Update(cr *ChatRoom) (err error) {
-	if apierr, valid := cr.IsValid(); !valid {
+func (cs ChatServer) Update(titleOrID string, modifiedChatRoom *ChatRoom) (err error) {
+	currentChatRoom, err := cs.Retrieve(titleOrID)
+	if err != nil {
+		return
+	}
+	// Update password for validation
+	modifiedChatRoom.Password = currentChatRoom.Password
+	if apierr, valid := modifiedChatRoom.IsValid(); !valid {
 		return apierr
 	}
 
-	// Check password matches
+	/* 	This is commented for now since modifying a password or visibility could be a legitimate use-case. Can authenticate using cookie
+	Check password matches.
 	if cr.Type != PublicRoom && !cs.RoomsID[cr.ID].MatchesPassword(cr.Password) {
 		return &APIError{
 			Code:  104,
 			Field: "password",
 		}
 	}
-	// Ensure room type is not trying to be changed
+	// Ensure room type is not trying to be changed.
 	if cr.Type != cs.RoomsID[cr.ID].Type {
 		return &APIError{
 			Code:  104,
 			Field: "visibility",
 		}
 	}
-	cs.Rooms[cs.RoomsID[cr.ID].Title] = cr
-	cs.RoomsID[cr.ID] = cr
+	*/
+	// Update chat room
+	// TODO: Ensure ID is not modified, update time
+	modifiedChatRoom.ID = currentChatRoom.ID
+	modifiedChatRoom.UpdatedAt = time.Now()
+	*currentChatRoom = *modifiedChatRoom
 	//_, err = Db.Exec("update posts set content = $2, author = $3 where id = $1", post.Id, post.Content, post.Author)
 	return
 }

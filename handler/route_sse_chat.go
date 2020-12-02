@@ -34,10 +34,9 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 			http.SetCookie(w, &cookieSecret)
 			ReportSuccess(w, true, nil)
 		} else {
-			// send unauthorized error. TODO: send ReportSuccess false?
 			return &data.APIError{
 				Code:  304,
-				Field: "secret",
+				Field: "password",
 			}
 		}
 	}
@@ -62,7 +61,7 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 		if ce.User == "" || ce.Password != cr.Password {
 			return &data.APIError{
 				Code:  304,
-				Field: "secret",
+				Field: "password",
 			}
 		}
 		// Authenticate
@@ -73,13 +72,13 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 				warning("error attempting to authenticate "+strconv.Itoa(cr.ID)+" by:", ce)
 				return &data.APIError{
 					Code:  304,
-					Field: "secret",
+					Field: "password",
 				}
 			}
 			if cookieSecret.Value != cr.Password {
 				return &data.APIError{
 					Code:  304,
-					Field: "secret",
+					Field: "password",
 				}
 			}
 		}

@@ -141,7 +141,8 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 // PUT /chat/<id>
 func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	title := path.Base(r.URL.Path)
-	cr, err := data.CS.Retrieve(title)
+	var cr data.ChatRoom
+	currentChatRoom, err := data.CS.Retrieve(title)
 	if err != nil {
 		return
 	}
@@ -152,17 +153,35 @@ func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 		warning("error encountered updating chat room:", err.Error())
 		return
 	}
-	if err = data.CS.Update(cr); err != nil {
+	// Authenticate
+	if currentChatRoom.Type != data.PublicRoom {
+		// if isn't public room, need to authenticate
+		cookieSecret, err := r.Cookie("secret_cookie")
+		if err != nil {
+			warning("error attempting to authenticate "+title+" by PUT:", cr)
+			return &data.APIError{
+				Code:  104,
+				Field: "password",
+			}
+		}
+		if cookieSecret.Value != currentChatRoom.Password {
+			return &data.APIError{
+				Code:  104,
+				Field: "password",
+			}
+		}
+	}
+	if err = data.CS.Update(title, &cr); err != nil {
 		warning("error encountered updating chat room:", cr, err.Error())
 		return
 	}
 	// Retrieve updated object
-	createdChatRoom, err := data.CS.Retrieve(cr.Title)
+	modifiedChatRoom, err := data.CS.RetrieveID(currentChatRoom.ID)
 	if err != nil {
 		return err
 	}
-	info("updated chat room:", cr.Title)
-	response, _ := createdChatRoom.ToJSON()
+	info("updated chat room:", title)
+	response, _ := modifiedChatRoom.ToJSON()
 	w.Write(response)
 	return
 }

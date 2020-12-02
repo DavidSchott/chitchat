@@ -52,13 +52,13 @@ func (e *APIError) SetMsg() {
 	case 203:
 		e.Msg = "Client error: Invalid JSON"
 	case 204:
-		e.Msg = "Client error: Access forbidden"
+		e.Msg = "Client error: Unauthorized operation"
 	case 301:
 		e.Msg = "Event error: Could not establish session"
 	case 303:
 		e.Msg = "Event error: Invalid JSON"
 	case 304:
-		e.Msg = "Event error: Access forbidden"
+		e.Msg = "Event error: Unauthorized operation"
 	case 305:
 		e.Msg = "Event error: Unsupported client device"
 	default:
