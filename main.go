@@ -20,9 +20,10 @@ func main() {
 func main() {
 	// handle static assets
 	//mux := handler.SetUp()
-	files := http.FileServer(http.Dir(handler.Config.Static))
-	handler.Mux.Handle("/static/", http.StripPrefix("/static/", files))
-
+	handler.Init()
+	// Route requests to /static/ => "public" directory
+	staticDir := "/static/"
+	handler.Mux.PathPrefix(staticDir).Handler(http.StripPrefix(staticDir, http.FileServer(http.Dir(handler.Config.Static))))
 	// starting up the server
 	server := &http.Server{
 		Addr:           handler.Config.Address,

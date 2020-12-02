@@ -105,7 +105,7 @@ function newRoom() {
                         // Success! created & retrieved room object
                         console.log("fetched room", room);
                         // redirect to chat room
-                        window.location.href = "/chat/join/" + room.id
+                        window.location.href = "/chats/" + room.id + "/entrance"
                     }).catch(
                         function (reason) {
                             console.log(reason);

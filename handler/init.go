@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/DavidSchott/chitchat/data"
+	"github.com/gorilla/mux"
 )
 
 // Configuration stores config info of server
@@ -21,54 +22,59 @@ type Configuration struct {
 var Config Configuration
 
 // Mux contains all the HTTP handlers
-var Mux *http.ServeMux
+var Mux *mux.Router
 
 // registerHandlers will register all HTTP handlers
-func registerHandlers() *http.ServeMux {
-	mux := http.NewServeMux()
+func registerHandlers() *mux.Router {
+	api := mux.NewRouter()
+	// TODO: Uncomment again in prod
+	//api := router.Host(Config.Address).Subrouter()
 	// index
-	mux.HandleFunc("/", logConsole(index))
+	api.HandleFunc("/", logConsole(index))
 	//"about" page
-	mux.Handle("/about", logConsole(about))
+	api.Handle("/about", logConsole(about))
 
 	// Random junk for experimentation
-	//mux.Handle("/test", errHandler(test))
+	//api.Handle("/test", errHandler(test))
 	// test error
-	//mux.HandleFunc("/err", logConsole(err))
+	//api.HandleFunc("/err", logConsole(err))
 
-	//REST-API for chat room
-	mux.Handle("/chat/", errHandler(handleRoom))
+	//REST-API for chat room [JSON]
+	//mux.Handle("/chats", errHandler(handleRoom))
+	api.Handle("/chats", errHandler(handlePost)).Methods(http.MethodPost)
+	api.Handle("/chats/{titleOrID}", errHandler(handleRoom)).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
 
-	// List all rooms / "Join a chat room"
-	mux.HandleFunc("/chat/list", logConsole(listChats))
+	// List all rooms in [HTML]
+	api.HandleFunc("/chats", logConsole(listChats)).Methods(http.MethodGet)
 
-	// Join action
-	mux.Handle("/chat/join/", errHandler(joinRoom))
+	// Entrance [HTML]
+	api.Handle("/chats/{titleOrID}/entrance", errHandler(joinRoom)).Methods(http.MethodGet)
 
 	// Load chat box
-	mux.HandleFunc("/chat/box/", logConsole(chatbox))
+	api.HandleFunc("/chats/{titleOrID}/chatbox", logConsole(chatbox)).Methods(http.MethodGet)
 
 	// Send action
 	//	mux.HandleFunc("/chat/send/", logConsole(chatHandler))
 
 	// Chat Sessions (init)
-	mux.HandleFunc("/chat/sse/", checkStreamingSupport(errHandler(sseHandler)))
+	api.HandleFunc("/chats/sse/", checkStreamingSupport(errHandler(sseHandler))).Methods(http.MethodPost)
 
 	// Check password matches room
-	mux.Handle("/chat/sse/login", errHandler(login))
+	api.Handle("/chats/sse/login", errHandler(login)).Methods(http.MethodPost)
 
 	// Chat Sessions (Client sent events)
-	mux.HandleFunc("/chat/sse/event", checkStreamingSupport(errHandler(sseActionHandler)))
+	api.HandleFunc("/chats/sse/event", checkStreamingSupport(errHandler(sseActionHandler))).Methods(http.MethodPost)
 
-	return mux
+	return api
 }
 
-func init() {
+func Init() *mux.Router {
 	loadConfig()
 	loadLog()
 	Mux = registerHandlers()
 	// initialize chat server
 	data.CS.Init()
+	return Mux
 }
 
 func loadLog() {

@@ -1,8 +1,8 @@
 // REST API calls
-// POST /chat/
+// POST /chats
 function createRoom(title, description, visibility, password, resolve=console.log, reject=console.log) {
     console.log("creating room " + title);
-   $.post('/chat/', JSON.stringify({ title: title, description: description, visibility: visibility, password: password }), "json")
+   $.post('/chats', JSON.stringify({ title: title, description: description, visibility: visibility, password: password }), "json")
        .done(function (data) {
            if (!data.hasOwnProperty('error')) {
                console.log("successfully created room!")
@@ -17,9 +17,9 @@ function createRoom(title, description, visibility, password, resolve=console.lo
        });
 }
 
-// GET /chat/<id>
+// GET /chats/<id>
 function retrieveRoom(title,resolve=console.log,reject=console.log) {
-   $.get('/chat/' + title)
+   $.get('/chats/' + title)
        .done(function (data) {
            if (!data.hasOwnProperty('error')) {
                resolve(data);
@@ -33,9 +33,9 @@ function retrieveRoom(title,resolve=console.log,reject=console.log) {
        });
 }
 
-// GET /chat/<id>
+// GET /chats/<id>
 function retrieveRoomID(ID) {
-   $.get('/chat/' + ID)
+   $.get('/chats/' + ID)
        .done(function (data) {
            console.log(data)
            if (!data.hasOwnProperty('error')) {
@@ -51,10 +51,10 @@ function retrieveRoomID(ID) {
            console.log(xhr);
        });
 }
-// PUT /chat/<id>
+// PUT /chats/<id>
 function putRoom(title, description, visibility, password) {
    $.ajax({
-       url: "/chat/" + title,
+       url: "/chats/" + title,
        method: 'PUT',
        data: JSON.stringify({ title: title, description: description, visibility: visibility, password: password })
    })
@@ -77,7 +77,7 @@ function putRoom(title, description, visibility, password) {
 // DELETE room by title
 function deleteRoom(title) {
    $.ajax({
-       url: "/chat/" + title,
+       url: "/chats/" + title,
        method: 'DELETE'
    })
        .done(function (data) {
@@ -99,7 +99,7 @@ function deleteRoom(title) {
 // DELETE room by ID
 function deleteRoomID(ID) {
    $.ajax({
-       url: "/chat/" + ID,
+       url: "/chats/" + ID,
        method: 'DELETE'
    })
        .done(function (data) {

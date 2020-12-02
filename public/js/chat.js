@@ -7,7 +7,7 @@ var ID;
 var validNavigation = false;
 
 $(document).ready(function () {
-    ID = window.location.pathname.split("/").pop();
+    ID =  window.location.pathname.split("/chats/").pop().slice(0,-9) // Slice off "entrance from" /chats/<id>/entrance
     msg = document.getElementById("msg");
     log = document.getElementById("chat-box");
 });
@@ -20,7 +20,7 @@ var chat = function () {
         var item = document.createElement("div");
         item.innerHTML = "<b>Sorry, your browser does not support Server-Sent Events!" + "</b>";
         appendLog(item);
-        // TODO: Use WebSockets or PolyFill instead.
+        // TODO: Use WebSockets or PolyFill instead?
     }
     else {
         // Start EventSource
@@ -253,7 +253,7 @@ function loadChat() {
 
     new Promise(
         function (resolve, reject) {
-            setInnerContent("/chat/box/", ID, resolve, reject);
+            setInnerContent("/chats/"+ ID + "/chatbox",'', resolve, reject);
         })
         .then(function (result) {
             if (result.outcome) {

@@ -3,10 +3,10 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"path"
 	"strings"
 
 	"github.com/DavidSchott/chitchat/data"
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -32,17 +32,18 @@ func test(w http.ResponseWriter, r *http.Request) (err error) {
 	return
 }
 
-// GET /chat/join/<id>
+// GET /chats/<id>/entrance
 // Default page
 func joinRoom(w http.ResponseWriter, r *http.Request) (err error) {
-	//ID, err := strconv.Atoi(path.Base(r.URL.Path))
-	var ID string = path.Base(r.URL.Path)
-	info("joining room", ID)
-	cr, err := data.CS.Retrieve(ID)
-	if err != nil {
-		return err
+	queries := mux.Vars(r)
+	if titleOrID, ok := queries["titleOrID"]; ok {
+		cr, err := data.CS.Retrieve(titleOrID)
+		if err != nil {
+			info("erroneous chats API request", r, err)
+			return err
+		}
+		generateHTML(w, (strings.ToLower(cr.Type) == data.PrivateRoom || cr.Type == data.HiddenRoom), "layout", "sidebar", "public.header", "entrance")
 	}
-	generateHTML(w, (strings.ToLower(cr.Type) == data.PrivateRoom || cr.Type == data.HiddenRoom), "layout", "sidebar", "public.header", "entrance")
 	return
 }
 
@@ -69,7 +70,7 @@ func authorize(h errHandler) errHandler {
 
 }
 
-// GET /chat/list
+// GET /chats
 func listChats(w http.ResponseWriter, r *http.Request) {
 	rooms, err := data.CS.Chats()
 	if err != nil {
@@ -82,56 +83,63 @@ func listChats(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GET /chat/box/<id>
+// GET /chat/<id>/chatbox
 // Default page
 func chatbox(w http.ResponseWriter, r *http.Request) {
-	//ID, err := strconv.Atoi(path.Base(r.URL.Path))
-	var ID string = path.Base(r.URL.Path)
-	info("joining room", ID)
-	cr, err := data.CS.Retrieve(ID)
-	if err != nil {
-		//w.Write([]byte(err.Error()))
-		//return
-		p(err.Error())
-	} else {
+	queries := mux.Vars(r)
+	if titleOrID, ok := queries["titleOrID"]; ok {
+		cr, err := data.CS.Retrieve(titleOrID)
+		if err != nil {
+			info("erroneous chats API request", r, err)
+		}
 		generateHTMLContent(w, &cr, "chat")
-		return
 	}
 }
 
 // main handler function
 func handleRoom(w http.ResponseWriter, r *http.Request) (err error) {
+	queries := mux.Vars(r)
 	w.Header().Set("Content-Type", "application/json")
-	switch r.Method {
-	case "GET":
-		err = handleGet(w, r)
-	case "POST":
-		err = handlePost(w, r)
-	case "PUT":
-		err = handlePut(w, r)
-	case "DELETE":
-		err = handleDelete(w, r)
+	if titleOrID, ok := queries["titleOrID"]; ok {
+		cr, err := data.CS.Retrieve(titleOrID)
+		if err != nil {
+			info("erroneous chats API request", r, err)
+			return err
+		}
+		switch r.Method {
+		case "GET":
+			err = handleGet(w, r, cr)
+			return err
+		case "PUT":
+			err = handlePut(w, r, cr, titleOrID)
+			return err
+		case "DELETE":
+			err = handleDelete(w, r, cr)
+			return err
+		}
+	} else {
+		err = &data.APIError{
+			Code: 103,
+		}
 	}
+
 	return err
 }
 
 // Retrieve a chat room
 // GET /chat/1
-func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
-	title := path.Base(r.URL.Path)
-	cr, err := data.CS.Retrieve(title)
-	if err != nil {
-		info("error getting chat room: " + title)
-		return err
-	}
+func handleGet(w http.ResponseWriter, r *http.Request, cr *data.ChatRoom) (err error) {
 	res, err := cr.ToJSON()
+	if err != nil {
+		return
+	}
 	info("retrieved chat room:", cr.Title)
 	w.Write(res)
 	return
 }
 
 // Create a ChatRoom
-// POST /chat/
+// POST /chats
 func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	// read in request
 	len := r.ContentLength
@@ -160,13 +168,8 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 
 // Update a room
 // PUT /chat/<id>
-func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
-	title := path.Base(r.URL.Path)
+func handlePut(w http.ResponseWriter, r *http.Request, currentChatRoom *data.ChatRoom, title string) (err error) {
 	var cr data.ChatRoom
-	currentChatRoom, err := data.CS.Retrieve(title)
-	if err != nil {
-		return
-	}
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
@@ -179,7 +182,7 @@ func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 		// if isn't public room, need to authorize
 		cookieSecret, err := r.Cookie("secret_cookie")
 		if err != nil {
-			warning("error attempting to authorize "+title+" by PUT:", cr)
+			warning("error attempting to authorize ", r, " PUT:", r)
 			return &data.APIError{
 				Code:  104,
 				Field: "password",
@@ -209,12 +212,8 @@ func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 
 // Delete a room
 // DELETE /chat/<id>
-func handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
-	title := path.Base(r.URL.Path)
-	cr, err := data.CS.Retrieve(title)
-	if err != nil {
-		return
-	}
+func handleDelete(w http.ResponseWriter, r *http.Request, cr *data.ChatRoom) (err error) {
+	// TODO: authorize
 	err = data.CS.Delete(cr)
 	if err != nil {
 		warning("error encountered deleting chat room:", err.Error())

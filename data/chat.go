@@ -155,6 +155,7 @@ func (cs ChatServer) Init() {
 		Type:        "public",
 		Password:    "",
 		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 		ID:          0,
 		Broker:      NewBroker(),
 		Clients:     make(map[string]*Client),
@@ -254,6 +255,7 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 		}
 	}
 	cr.CreatedAt = time.Now()
+	cr.UpdatedAt = time.Now()
 	cr.Broker = NewBroker()
 	cr.Type = strings.ToLower(cr.Type)
 	cs.push(cr)
@@ -290,7 +292,7 @@ func (cs ChatServer) Update(titleOrID string, modifiedChatRoom *ChatRoom) (err e
 	}
 	*/
 	// Update chat room
-	// TODO: Ensure ID is not modified, update time
+	// TODO: Allow updating Password?
 	modifiedChatRoom.ID = currentChatRoom.ID
 	modifiedChatRoom.UpdatedAt = time.Now()
 	*currentChatRoom = *modifiedChatRoom

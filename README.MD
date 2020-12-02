@@ -50,3 +50,49 @@ Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedu
   3. Generate proper UUIDs instead of integers as IDs
   4. Need to move chat server data layer into DB, right now everything is stored in memory to allow for rapid development and testing
   5. Need to improve reliability and longevity of chatting sessions, on some browsers (Firefox) there are random interruptions
+
+  ## Auth:
+  ### Session-based:
+  Client-side:
+  * hash password before sending it (optional)
+  * Loop to refresh once per minute in chat
+  Server-side:
+  * Refactor to create auth handler
+  * Add session ID to client
+  * Add session refresh handler
+  * Hide password, session ID from any public-facing API response
+
+  ## Old API ##
+  HTML:
+  GET /chat/join/<id> => joinRoom
+  GET /chat/list => listChats
+  GET /chat/box/<id> => chatbox
+
+  Rooms (json): => handleRoom
+  GET /chat/<id>
+  POST /chat/
+  PUT /chat/<id>
+  DEL /chat/<id>  
+
+  Events (json):
+  POST /chat/sse/login => login
+  POST? /chat/sse/event => sseActionHandler
+  POST? /chat/sse/<id> => sseHandler
+
+  ## New API (events still old) ##
+  HTML:
+  GET /chats/<id>/entrance => joinRoom
+  GET /chats => listChats
+  GET /chats/<id>/chatbox => chatbox
+
+  Rooms (json): => handleRoom
+  GET /chats/<id>
+  POST /chats
+  PUT /chats/<id>
+  DEL /chats/<id>
+
+  Events (json):
+  POST /chats/<id>/token => login
+  POST /chats/<id>/broadcast => sseActionHandler
+  POST /chats/<id>/subscribe => sseHandler
+  POST /chats/<id>/token/renew => *TODO*
