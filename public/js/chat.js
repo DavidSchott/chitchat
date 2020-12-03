@@ -67,7 +67,7 @@ var chat = function () {
         // Functions for Event sources
         // Start event source for current Room ID
         function startSession(id) {
-            stream = new EventSource("/chat/sse/" + id);
+            stream = new EventSource("/chats/"+ id +"/sse/subscribe");
             sendClientEvent("join", username, ID, "", color);
             return stream;
         }
@@ -130,15 +130,15 @@ var chat = function () {
         }
         // Send notification to server
         function sendClientEvent(action, user, room, message = "", col = "") {
-            event = JSON.stringify({ type: action, name: user, id: parseInt(room), color: col, msg: message, secret: password })
-            $.post('/chat/sse/event', event, "json")
+            broadcast = JSON.stringify({ event_type: action, name: user, room_id: parseInt(room), color: col, msg: message, secret: password })
+            $.post('/chats/'+room+'/sse/broadcast', broadcast, "json")
                 .done(function (data) {
                     if (data.hasOwnProperty('error')) {
-                        console.log("error sending client event", event, data)
+                        console.log("error sending client event", broadcast, data)
                     }
                 })
                 .fail(function (xhr) {
-                    console.log("Failed sending client event:", event);
+                    console.log("Failed sending client event:", broadcast);
                 });
         }
 
@@ -293,14 +293,14 @@ function userExists(user, roomID, resolve = console.log, reject = console.log) {
 }
 
 function checkPassword(password, resolve = console.log, reject = console.log) {
-    event = JSON.stringify({ id: parseInt(ID), secret: password })
-    $.post('/chat/sse/login', event, "json")
+    request_token = JSON.stringify({ room_id: parseInt(ID), secret: password })
+    $.post('/chats/'+ ID + '/token', request_token, "json")
         .done(function (data) {
             if (data.hasOwnProperty('error')) {
                 // Authorization error!
                 reject(data);
             } else {
-                resolve(data);
+                resolve(JSON.stringify({ outcome: "success" }));
             }
         })
         .catch(
@@ -309,7 +309,7 @@ function checkPassword(password, resolve = console.log, reject = console.log) {
             }
         )
         .fail(function (xhr) {
-            console.log("Failed sending client event:", event);
+            console.log("Failed sending client event:", request_token);
             reject(outcome);
         });
 }

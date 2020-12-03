@@ -74,7 +74,7 @@ function putRoom(title, description, visibility, password) {
        });
 }
 
-// DELETE room by title
+// DELETE /chats/title
 function deleteRoom(title) {
    $.ajax({
        url: "/chats/" + title,
@@ -96,7 +96,7 @@ function deleteRoom(title) {
        });
 }
 
-// DELETE room by ID
+// DELETE /chats/ID
 function deleteRoomID(ID) {
    $.ajax({
        url: "/chats/" + ID,

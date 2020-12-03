@@ -93,6 +93,6 @@ Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedu
 
   Events (json):
   POST /chats/<id>/token => login
-  POST /chats/<id>/broadcast => sseActionHandler
-  POST /chats/<id>/subscribe => sseHandler
+  POST /chats/<id>/sse/broadcast => sseActionHandler
+  POST /chats/<id>/sse/subscribe => sseHandler
   POST /chats/<id>/token/renew => *TODO*

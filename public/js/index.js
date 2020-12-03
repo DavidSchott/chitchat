@@ -65,7 +65,7 @@ function validateForm(resolve = console.log, reject = console.log) {
                 form.classList.add('was-validated');
                 reject(duplicate);
             });
-    }else{
+    } else {
         form.classList.add('was-validated');
         reject(valid);
     }

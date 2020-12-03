@@ -1,4 +1,4 @@
-/*Package test contains random sanity checks to aid in development and supplement actual testing */
+/*Package test contains very basic sanity checks to aid in development and is not a substitute for actual tests */
 package test
 
 import (
