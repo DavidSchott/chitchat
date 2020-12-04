@@ -11,9 +11,9 @@ const (
 )
 
 type ChatEvent struct {
-	EventType string    `json:"type,omitempty"`
+	EventType string    `json:"event_type,omitempty"`
 	User      string    `json:"name,omitempty"`
-	RoomID    int       `json:"id,omitempty"`
+	RoomID    int       `json:"room_id,omitempty"`
 	Color     string    `json:"color,omitempty"`
 	Msg       string    `json:"msg,omitempty"`
 	Password  string    `json:"secret,omitempty"`

@@ -12,7 +12,7 @@
     <tbody>
             {{range . }}
         <tr>
-            <th scope="row" ><button type="button" class="btn btn-primary" onclick="window.location.href = '/chat/join/{{.ID}}';">
+            <th scope="row" ><button type="button" class="btn btn-primary" onclick="window.location.href='/chats/{{.ID}}/entrance';">
                     {{ .Title }} <span class="badge badge-light">{{.Participants}}</span> 
                   </button></th>
             <td>{{ .Description }}</td>

@@ -7,7 +7,7 @@ var ID;
 var validNavigation = false;
 
 $(document).ready(function () {
-    ID = window.location.pathname.split("/").pop();
+    ID =  window.location.pathname.split("/chats/").pop().slice(0,-9) // Slice off "entrance from" /chats/<id>/entrance
     msg = document.getElementById("msg");
     log = document.getElementById("chat-box");
 });
@@ -15,12 +15,13 @@ $(document).ready(function () {
 var chat = function () {
     msg = document.getElementById("msg");
     log = document.getElementById("chat-box");
+    var delay = 500;
     // Check if SSE isn't supported
     if (typeof (EventSource) == "undefined") {
         var item = document.createElement("div");
         item.innerHTML = "<b>Sorry, your browser does not support Server-Sent Events!" + "</b>";
         appendLog(item);
-        // TODO: Use WebSockets or PolyFill instead.
+        // TODO: Use WebSockets or PolyFill instead?
     }
     else {
         // Start EventSource
@@ -67,14 +68,14 @@ var chat = function () {
         // Functions for Event sources
         // Start event source for current Room ID
         function startSession(id) {
-            stream = new EventSource("/chat/sse/" + id);
-            sendClientEvent("join", username, ID, "", color);
+            stream = new EventSource("/chats/"+ id +"/sse/subscribe");
+            sendClientEvent("join", username, id, "", color);
             return stream;
         }
         // Stop event source
         function endSession() {
             stream.close();
-            sendClientEvent("leave", username, ID, "", color);
+            sendClientEvent("leave", username, id, "", color);
         }
         // Start session and notify onopen
         function register(id) {
@@ -121,8 +122,10 @@ var chat = function () {
                         break;
 
                     case EventSource.CLOSED:
-                        console.log('Connection failed, will try to re-register');
-                        register(ID);
+                        console.log('Connection failed, will try to re-register in ' +(delay/1000.0) + "seconds");
+                        delay += 500;
+                        setTimeout(function() {register(ID)},delay);
+                        //register(ID);
                         break;
                 }
 
@@ -130,15 +133,15 @@ var chat = function () {
         }
         // Send notification to server
         function sendClientEvent(action, user, room, message = "", col = "") {
-            event = JSON.stringify({ type: action, name: user, id: parseInt(room), color: col, msg: message, secret: password })
-            $.post('/chat/sse/event', event, "json")
+            broadcast = JSON.stringify({ event_type: action, name: user, room_id: parseInt(room), color: col, msg: message, secret: password })
+            $.post('/chats/'+room+'/sse/broadcast', broadcast, "json")
                 .done(function (data) {
                     if (data.hasOwnProperty('error')) {
-                        console.log("error sending client event", event, data)
+                        console.log("error sending client event", broadcast, data)
                     }
                 })
                 .fail(function (xhr) {
-                    console.log("Failed sending client event:", event);
+                    console.log("Failed sending client event:", broadcast);
                 });
         }
 
@@ -253,7 +256,7 @@ function loadChat() {
 
     new Promise(
         function (resolve, reject) {
-            setInnerContent("/chat/box/", ID, resolve, reject);
+            setInnerContent("/chats/"+ ID + "/chatbox",'', resolve, reject);
         })
         .then(function (result) {
             if (result.outcome) {
@@ -293,14 +296,14 @@ function userExists(user, roomID, resolve = console.log, reject = console.log) {
 }
 
 function checkPassword(password, resolve = console.log, reject = console.log) {
-    event = JSON.stringify({ id: parseInt(ID), secret: password })
-    $.post('/chat/sse/login', event, "json")
+    request_token = JSON.stringify({ room_id: parseInt(ID), secret: password })
+    $.post('/chats/'+ ID + '/token', request_token, "json")
         .done(function (data) {
             if (data.hasOwnProperty('error')) {
                 // Authorization error!
                 reject(data);
             } else {
-                resolve(data);
+                resolve(JSON.stringify({ outcome: "success" }));
             }
         })
         .catch(
@@ -309,7 +312,7 @@ function checkPassword(password, resolve = console.log, reject = console.log) {
             }
         )
         .fail(function (xhr) {
-            console.log("Failed sending client event:", event);
+            console.log("Failed sending client event:", request_token);
             reject(outcome);
         });
 }
