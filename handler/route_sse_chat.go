@@ -52,7 +52,6 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 
 // /chats/{titleOrID}/sse/broadcast
 func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
-	w.Header().Set("Content-Type", "application/json")
 	queries := mux.Vars(r)
 	if titleOrID, ok := queries["titleOrID"]; ok {
 		// Fetch room & authorize
@@ -67,7 +66,10 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 		r.Body.Read(body)
 		// create ChatEvent obj
 		var ce data.ChatEvent
-		json.Unmarshal(body, &ce)
+		if err := json.Unmarshal(body, &ce); err != nil {
+			warning("error parsing JSON chatevent", r.Body, err)
+			return err
+		}
 		// Set timestamp
 		ce.Timestamp = time.Now()
 		// Check for invalid/random input
@@ -103,7 +105,6 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 			cr.Clients[ce.User].LastActivity = ce.Timestamp
 			unsubscribe(w, r, &ce, cr)
 		case data.Subscribe:
-			cr.Clients[ce.User].LastActivity = ce.Timestamp
 			subscribe(w, r, &ce, cr)
 		default:
 			// Populate activity
@@ -129,7 +130,7 @@ func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent, cr *da
 		LastActivity: time.Now(),
 	}
 	if err := cr.AddClient(client); err != nil {
-		warning(err.Error())
+		warning("error adding client:", err.Error())
 		ReportStatus(w, false, err.(*data.APIError))
 		return
 	}
@@ -156,9 +157,8 @@ func unsubscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent, cr *
 
 // Upgrade to a sse connection
 // Add to active chat session
-// /chats/{titleOrID}/sse/subscribe
+// GET /chats/{titleOrID}/sse/subscribe
 func sseHandler(w http.ResponseWriter, r *http.Request) (err error) {
-	w.Header().Set("Content-Type", "application/json")
 	queries := mux.Vars(r)
 	if titleOrID, ok := queries["titleOrID"]; ok {
 		// Fetch room & authorize

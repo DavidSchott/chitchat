@@ -15,6 +15,7 @@ $(document).ready(function () {
 var chat = function () {
     msg = document.getElementById("msg");
     log = document.getElementById("chat-box");
+    var delay = 500;
     // Check if SSE isn't supported
     if (typeof (EventSource) == "undefined") {
         var item = document.createElement("div");
@@ -68,13 +69,13 @@ var chat = function () {
         // Start event source for current Room ID
         function startSession(id) {
             stream = new EventSource("/chats/"+ id +"/sse/subscribe");
-            sendClientEvent("join", username, ID, "", color);
+            sendClientEvent("join", username, id, "", color);
             return stream;
         }
         // Stop event source
         function endSession() {
             stream.close();
-            sendClientEvent("leave", username, ID, "", color);
+            sendClientEvent("leave", username, id, "", color);
         }
         // Start session and notify onopen
         function register(id) {
@@ -121,8 +122,10 @@ var chat = function () {
                         break;
 
                     case EventSource.CLOSED:
-                        console.log('Connection failed, will try to re-register');
-                        register(ID);
+                        console.log('Connection failed, will try to re-register in ' +(delay/1000.0) + "seconds");
+                        delay += 500;
+                        setTimeout(function() {register(ID)},delay);
+                        //register(ID);
                         break;
                 }
 
