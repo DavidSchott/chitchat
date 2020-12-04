@@ -11,24 +11,6 @@ All that you need is [Golang](https://golang.org/). Once you run the application
 Edit [config.json](./config.json) to configure HTTP server settings.
 
 ## ChatRoom API ##
-  ## New API (events still old) ##
-  HTML:
-  GET /chats/<id>/entrance => joinRoom
-  GET /chats => listChats
-  GET /chats/<id>/chatbox => chatbox
-
-  Rooms (json): => handleRoom
-  GET /chats/<id>
-  POST /chats
-  PUT /chats/<id>
-  DEL /chats/<id>
-
-  Events (json):
-  POST /chats/<id>/token => login
-  POST /chats/<id>/sse/broadcast => sseActionHandler
-  GET /chats/<id>/sse/subscribe => sseHandler
-  POST /chats/<id>/token/renew => *TODO*
-
 Send different HTTP requests to `/chat/`:
   * `GET /chats/<room_id>`: retrieve a chat room by ID or title
   * `POST /chats`: create a new chat room
@@ -105,21 +87,3 @@ Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedu
   * Add session ID to client
   * Add session refresh handler
   * Hide password, session ID from any public-facing API response
-
-  ## New API (events still old) ##
-  HTML:
-  GET /chats/<id>/entrance => joinRoom
-  GET /chats => listChats
-  GET /chats/<id>/chatbox => chatbox
-
-  Rooms (json): => handleRoom
-  GET /chats/<id>
-  POST /chats
-  PUT /chats/<id>
-  DEL /chats/<id>
-
-  Events (json):
-  POST /chats/<id>/token => login
-  POST /chats/<id>/sse/broadcast => sseActionHandler
-  GET /chats/<id>/sse/subscribe => sseHandler
-  POST /chats/<id>/token/renew => *TODO*
