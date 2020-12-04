@@ -70,8 +70,9 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 			warning("error parsing JSON chatevent", r.Body, err)
 			return err
 		}
-		// Set timestamp
+		// Set timestamp and room ID
 		ce.Timestamp = time.Now()
+		ce.RoomID = cr.ID
 		// Check for invalid/random input
 		if ce.User == "" {
 			return &data.APIError{

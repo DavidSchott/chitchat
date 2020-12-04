@@ -141,6 +141,7 @@ func handleGet(w http.ResponseWriter, r *http.Request, cr *data.ChatRoom) (err e
 // Create a ChatRoom
 // POST /chats
 func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
+	w.Header().Set("Content-Type", "application/json")
 	// read in request
 	len := r.ContentLength
 	body := make([]byte, len)

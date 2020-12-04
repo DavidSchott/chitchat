@@ -53,11 +53,8 @@ func registerHandlers() *mux.Router {
 	// Load chat box
 	api.HandleFunc("/chats/{titleOrID}/chatbox", logConsole(chatbox)).Methods(http.MethodGet)
 
-	// Send action
-	//	mux.HandleFunc("/chat/send/", logConsole(chatHandler))
-
 	// Chat Sessions (init)
-	api.HandleFunc("/chats/{titleOrID}/sse/subscribe", checkStreamingSupport(errHandler(sseHandler)))
+	api.HandleFunc("/chats/{titleOrID}/sse/subscribe", checkStreamingSupport(errHandler(sseHandler))).Methods(http.MethodGet)
 
 	// Check password matches room
 	api.Handle("/chats/{titleOrID}/token", errHandler(login)).Methods(http.MethodPost)
