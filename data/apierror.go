@@ -26,10 +26,16 @@ import (
   - 304 = unauthorized
   - 305 = unsupported client device
 */
+
 type APIError struct {
 	Code  int    `json:"code,omitempty"`
 	Msg   string `json:"error,omitempty"`
 	Field string `json:"field,omitempty"`
+}
+
+type Outcome struct {
+	Status bool      `json:"status"`
+	Error  *APIError `json:"error,omitempty"`
 }
 
 // SetMsg will set the Msg based on the provided code

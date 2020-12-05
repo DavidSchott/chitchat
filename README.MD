@@ -49,14 +49,14 @@ If unsuccessful, the server will return an error, e.g. if the room already exist
     }
 }
 ```
-The minimum required fields to create a public chat room are title and visibility. "Private" and "hidden" chat rooms also require a password.
+The minimum required fields to create a public chat room are `"title"` and `"visibility"`. "Private" and "hidden" chat rooms also require a password.
 
 ## Chatting ##
 Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedure. Any endpoints that mandates `text/event-stream` content type as opposed to JSON are behind the `chats/<room_id>/sse/` subpath. The steps are:
   1. Send a HTTP POST with room password to `/chats/<room_id>/token` to obtain authorization (only required for private and hidden rooms)
   2. Subscribe to chat event stream via HTTP GET request to `/chats/<room_id>/sse/subscribe`
   3. Send a HTTP POST to `/chats/<room_id>/sse/broadcast` to broadcast messages using the following format:
-  ```json
+  ```
   {
       "event_type": "join/leave/send",
       "name": "my-username",
