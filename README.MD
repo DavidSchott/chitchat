@@ -52,7 +52,7 @@ If unsuccessful, the server will return an error, e.g. if the room already exist
 The minimum required fields to create a public chat room are `"title"` and `"visibility"`. "Private" and "hidden" chat rooms also require a password.
 
 ## Chatting ##
-Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedure. Any endpoints that mandates `text/event-stream` content type as opposed to JSON are behind the `chats/<room_id>/sse/` subpath. The steps are:
+Chatting is implemented using server-sent events (SSE) as a step-by-step procedure. Any endpoints that mandates `text/event-stream` content type as opposed to JSON are behind the `chats/<room_id>/sse/` subpath. The steps are:
   1. Send a HTTP POST with room password to `/chats/<room_id>/token` to obtain authorization (only required for private and hidden rooms)
   2. Subscribe to chat event stream via HTTP GET request to `/chats/<room_id>/sse/subscribe`
   3. Send a HTTP POST to `/chats/<room_id>/sse/broadcast` to broadcast messages using the following format:
@@ -75,7 +75,7 @@ Chatting is implemented using Server-Sent-Events (SSE) as a step-by-step procedu
     * I also plan to use JWT instead of session-based cookie approach
   3. Generate proper UUIDs instead of integers as IDs
   4. Need to move chat server data layer into DB, right now everything is stored in memory to allow for rapid development and testing
-  5. Need to improve reliability and longevity of chatting sessions, on some browsers (Firefox) there are intermittent connection retries.
+  5. Need to improve reliability and longevity of chatting sessions by adding random pings as keep-alives. On some browsers (Firefox) there are intermittent discos.
 
   ## Auth:
   ### Session-based:

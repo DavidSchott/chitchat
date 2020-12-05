@@ -18,7 +18,7 @@ func main() {
 */
 
 func main() {
-	handler.Init()
+	//handler.Init()
 	// handle static assets by routing requests from /static/ => "public" directory
 	staticDir := "/static/"
 	handler.Mux.PathPrefix(staticDir).Handler(http.StripPrefix(staticDir, http.FileServer(http.Dir(handler.Config.Static))))

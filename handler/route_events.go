@@ -4,51 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/DavidSchott/chitchat/data"
 	"github.com/gorilla/mux"
 )
-
-// POST /chats/{titleOrID}/token
-func login(w http.ResponseWriter, r *http.Request) (err error) {
-	// read in request
-	len := r.ContentLength
-	body := make([]byte, len)
-	r.Body.Read(body)
-	var c data.ChatEvent
-	json.Unmarshal(body, &c)
-
-	queries := mux.Vars(r)
-	w.Header().Set("Content-Type", "application/json")
-	if titleOrID, ok := queries["titleOrID"]; ok {
-		cr, err := data.CS.Retrieve(titleOrID)
-		if err != nil {
-			info("erroneous chats API request", r, err)
-			return err
-		}
-		if cr.Type == data.PublicRoom {
-			// Ignore public room
-			ReportStatus(w, true, nil)
-		} else if c.Password == cr.Password {
-			// Success! Set Password
-			cookieSecret := http.Cookie{
-				Name:     "secret_cookie",
-				Value:    c.Password,
-				HttpOnly: true,
-			}
-			http.SetCookie(w, &cookieSecret)
-			ReportStatus(w, true, nil)
-		} else {
-			return &data.APIError{
-				Code:  304,
-				Field: "password",
-			}
-		}
-	}
-	return
-}
 
 // /chats/{titleOrID}/sse/broadcast
 func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
@@ -80,7 +40,7 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 				Field: "username",
 			}
 		}
-		// Authorize
+		/* Authorize
 		if cr.Type != data.PublicRoom {
 			// if isn't public room, authorize
 			cookieSecret, err := r.Cookie("secret_cookie")
@@ -97,7 +57,7 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 					Field: "password",
 				}
 			}
-		}
+		}*/
 
 		// Perform requested action
 		switch ce.EventType {
@@ -168,7 +128,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request) (err error) {
 			info("erroneous chats API request", r, err)
 			return err
 		}
-		if cr.Type != data.PublicRoom {
+		/*if cr.Type != data.PublicRoom {
 			// if isn't public room, authorize
 			cookieSecret, err := r.Cookie("secret_cookie")
 			if err != nil {
@@ -184,7 +144,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request) (err error) {
 					Field: "secret",
 				}
 			}
-		}
+		}*/
 		// Do stuff here
 		// Make sure that the writer supports flushing.
 		//

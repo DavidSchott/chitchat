@@ -110,8 +110,9 @@ var chat = function () {
             // Server connection closed
             stream.onclose = function (code, reason) {
                 var item = document.createElement("div");
-                item.innerHTML = "<b>Connection closed. Reason: " + "reason" + "</b>";
+                item.innerHTML = "<b>Connection closed.</b>";
                 appendLog(item);
+                console.log("connection closed:", code,reason)
             };
 
             stream.addEventListener('error', function (event) {
@@ -133,7 +134,7 @@ var chat = function () {
         }
         // Send notification to server
         function sendClientEvent(action, user, room, message = "", col = "") {
-            broadcast = JSON.stringify({ event_type: action, name: user, room_id: parseInt(room), color: col, msg: message, secret: password })
+            broadcast = JSON.stringify({ event_type: action, name: user, room_id: parseInt(room), color: col, msg: message })
             $.post('/chats/'+room+'/sse/broadcast', broadcast, "json")
                 .done(function (data) {
                     if (data.hasOwnProperty('error')) {

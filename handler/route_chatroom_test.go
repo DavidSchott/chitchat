@@ -29,7 +29,7 @@ func setUp() {
 	//router = http.NewServerouter()
 	//router.Handle("/chats", errHandler(handleRoom))
 	// If all handlers are desired:
-	Init()
+	//	Init()
 	router = Mux
 	//router = router
 }
@@ -104,7 +104,6 @@ func TestHandleGet(t *testing.T) {
 		{"private room", "this is a private room", 200, true},
 		{"secret room", "this is a secret room", 200, true},
 		{"this room does not exist", "this is a problem", 404, false},
-		//TODO		{"", "Empty GET request to /chats/ is not implemented yet", 404, false},
 	}
 	var cr data.ChatRoom
 	var failOutcome data.Outcome
@@ -119,7 +118,7 @@ func TestHandleGet(t *testing.T) {
 			router.ServeHTTP(writer, request)
 			// Check assertions
 			if writer.Code != tc.expectedHTTPStatusCode {
-				t.Errorf("Response code is %v", writer.Code)
+				t.Errorf("Unexpected response code is %v", writer.Code)
 			}
 			if tc.expectedOutcome {
 				json.Unmarshal(writer.Body.Bytes(), &cr)

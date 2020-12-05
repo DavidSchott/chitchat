@@ -8,33 +8,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-	sessionKey string = "secret_cookie"
-)
-
-// NOT USED. GET /chat/join/<id>
-// TODO: Implement as a chained handler
-func authorize(h errHandler) errHandler {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		cookieSecret, err := r.Cookie("secret_cookie")
-		if err != nil {
-			return &data.APIError{
-				Code:  304,
-				Field: "secret",
-			}
-		}
-		// TODO: Actually check this is valid
-		if cookieSecret.Value != "password" {
-			return &data.APIError{
-				Code:  304,
-				Field: "secret",
-			}
-		}
-		return h(w, r)
-	}
-
-}
-
 // main handler function
 func handleRoom(w http.ResponseWriter, r *http.Request) (err error) {
 	queries := mux.Vars(r)
@@ -50,7 +23,7 @@ func handleRoom(w http.ResponseWriter, r *http.Request) (err error) {
 			err = handleGet(w, r, cr)
 			return err
 		case "PUT":
-			err = handlePut(w, r, cr, titleOrID)
+			err = (handlePut(w, r, cr, titleOrID))
 			return err
 		case "DELETE":
 			err = handleDelete(w, r, cr)
@@ -107,7 +80,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 }
 
 // Update a room
-// PUT /chat/<id>
+// PUT /chats/<id>
 func handlePut(w http.ResponseWriter, r *http.Request, currentChatRoom *data.ChatRoom, title string) (err error) {
 	var cr data.ChatRoom
 	len := r.ContentLength
@@ -117,7 +90,7 @@ func handlePut(w http.ResponseWriter, r *http.Request, currentChatRoom *data.Cha
 		warning("error encountered updating chat room:", err.Error())
 		return
 	}
-	// Authorize
+	/* Authorize
 	if currentChatRoom.Type != data.PublicRoom {
 		// if isn't public room, need to authorize
 		cookieSecret, err := r.Cookie("secret_cookie")
@@ -134,7 +107,7 @@ func handlePut(w http.ResponseWriter, r *http.Request, currentChatRoom *data.Cha
 				Field: "password",
 			}
 		}
-	}
+	}*/
 	if err = data.CS.Update(title, &cr); err != nil {
 		warning("error encountered updating chat room:", cr, err.Error())
 		return
