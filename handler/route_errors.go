@@ -18,12 +18,14 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			warning("API error:", apierr.Error())
 			if apierr.Code == 101 || apierr.Code == 201 {
 				notFound(w, r)
-			}
-			if apierr.Code == 102 || apierr.Code == 202 || apierr.Code == 303 || apierr.Code == 105 {
+			} else if apierr.Code == 102 || apierr.Code == 202 || apierr.Code == 303 || apierr.Code == 105 {
 				badRequest(w, r)
-			}
-			if apierr.Code == 104 || apierr.Code == 204 || apierr.Code == 304 {
+			} else if apierr.Code == 104 || apierr.Code == 204 || apierr.Code == 304 || apierr.Code == 401 || apierr.Code == 402 {
 				unauthorized(w, r)
+			} else if apierr.Code == 403 {
+				forbidden(w, r)
+			} else {
+				badRequest(w, r)
 			}
 			ReportStatus(w, false, apierr)
 		} else {
@@ -41,6 +43,11 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 func unauthorized(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(401)
 	info("forbidden:", r.RequestURI, r.Body)
+}
+
+func forbidden(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusForbidden)
+	warning("forbidden:", r.RequestURI, r.Body)
 }
 
 func badRequest(w http.ResponseWriter, r *http.Request) {

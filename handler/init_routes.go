@@ -52,6 +52,9 @@ func registerHandlers() *mux.Router {
 	// Check password matches room
 	api.Handle("/chats/{titleOrID}/token", errHandler(login)).Methods(http.MethodPost)
 
+	// Check password matches room
+	api.Handle("/chats/{titleOrID}/token/renew", errHandler(renewToken)).Methods(http.MethodGet)
+
 	// Load chat box
 	api.HandleFunc("/chats/{titleOrID}/chatbox", logConsole(chatbox)).Methods(http.MethodGet)
 
