@@ -47,19 +47,7 @@ func ParseJWT(tokenString string, c *Claims, secretKey string) (err error) {
 	tkn, err := jwt.ParseWithClaims(tokenString, c, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
 	})
-	// Don't forget to validate the alg is what you expect:
-	if _, ok := tkn.Method.(*jwt.SigningMethodHMAC); !ok {
-		return &APIError{
-			Code:  402,
-			Field: "signing method",
-		}
-	}
-	if !tkn.Valid {
-		return &APIError{
-			Code:  403,
-			Field: "token",
-		}
-	}
+
 	switch err {
 	// TODO: What are some other useful cases?
 	case jwt.ErrSignatureInvalid:
@@ -68,6 +56,19 @@ func ParseJWT(tokenString string, c *Claims, secretKey string) (err error) {
 			Field: "signature",
 		}
 	case nil:
+		// Check signing algorithm is as expected:
+		if _, ok := tkn.Method.(*jwt.SigningMethodHMAC); !ok {
+			return &APIError{
+				Code:  402,
+				Field: "signing method",
+			}
+		}
+		if !tkn.Valid {
+			return &APIError{
+				Code:  403,
+				Field: "token",
+			}
+		}
 	default:
 		err = &APIError{
 			Code:  403,

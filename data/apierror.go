@@ -97,5 +97,3 @@ func isInt(titleorID string) int {
 	}
 	return -1
 }
-
-// (w http.ResponseWriter, r *http.Request) (err error)

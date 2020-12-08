@@ -28,7 +28,6 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 	var c data.ChatEvent
 	if err := json.Unmarshal(body, &c); err != nil {
 		danger("Error parsing token request", r)
-		// Do not stop here, since this could be a chatroom API authentication
 	}
 	queries := mux.Vars(r)
 	if titleOrID, ok := queries["titleOrID"]; ok {
@@ -41,6 +40,12 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 			// Ignore public room
 			ReportStatus(w, true, nil)
 		} else if cr.MatchesPassword(c.Password) {
+			if c.User == "" {
+				return &data.APIError{
+					Code:  303,
+					Field: "user",
+				}
+			}
 			// Success! Generate token using secret key concatenated with room's password (length > 32)
 			tokenString, err := data.EncodeJWT(&c, cr, generateUniqueKey(cr))
 			if err != nil {
