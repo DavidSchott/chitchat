@@ -63,6 +63,8 @@ func TestHandlePost(t *testing.T) {
 	var failedOutcome data.Outcome
 	var matchConditions bool
 	for _, tc := range cases {
+		failedOutcome = data.Outcome{}
+		res = data.ChatRoom{}
 		t.Run(tc.title, func(t *testing.T) {
 			// Refresh writer
 			writer = httptest.NewRecorder()
@@ -111,6 +113,8 @@ func TestHandleGet(t *testing.T) {
 	var failOutcome data.Outcome
 	var matchConditions bool
 	for _, tc := range cases {
+		failOutcome = data.Outcome{}
+		cr = data.ChatRoom{}
 		t.Run(tc.titleOrID, func(t *testing.T) {
 			// Refresh writer TODO: Recycle old one instead.
 			writer = httptest.NewRecorder()
@@ -164,6 +168,8 @@ func TestHandlePut(t *testing.T) {
 	var failedOutcome data.Outcome
 	var matchConditions bool
 	for _, tc := range cases {
+		failedOutcome = data.Outcome{}
+		res = data.ChatRoom{}
 		t.Run(tc.titleOrID, func(t *testing.T) {
 			// Refresh writer
 			writer = httptest.NewRecorder()
@@ -216,6 +222,7 @@ func TestHandleDelete(t *testing.T) {
 	var result data.Outcome
 	var matchConditions bool
 	for _, tc := range cases {
+		result = data.Outcome{}
 		t.Run(tc.titleOrID, func(t *testing.T) {
 			// Refresh writer TODO: Recycle old one instead.
 			writer = httptest.NewRecorder()

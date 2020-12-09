@@ -25,6 +25,7 @@ func TestLogin(t *testing.T) {
 
 	var result map[string]interface{}
 	for _, tc := range cases {
+		result = nil
 		t.Run(tc.roomID, func(t *testing.T) {
 			// Refresh writer
 			writer = httptest.NewRecorder()
@@ -54,6 +55,8 @@ func TestLogin(t *testing.T) {
 				if len(result["token"].(string)) != 152 {
 					t.Fatal("Unexpected error generating token", result["token"].(string))
 				}
+			} else if !tc.expectedOutcome && result["token"] != nil {
+				t.Fatal("SECURITY ISSUE: TOKEN UNEXPECTEDLY SET", result)
 			}
 		})
 	}
@@ -74,6 +77,7 @@ func TestRenewToken(t *testing.T) {
 	}
 	var result map[string]interface{}
 	for _, tc := range cases {
+		result = nil
 		t.Run(tc.roomID, func(t *testing.T) {
 			// Refresh writer
 			writer = httptest.NewRecorder()
@@ -101,6 +105,8 @@ func TestRenewToken(t *testing.T) {
 				if len(result["token"].(string)) != 152 {
 					t.Fatal("Unexpected error generating token", result["token"].(string))
 				}
+			} else if !tc.expectedOutcome && result["token"] != nil {
+				t.Fatal("SECURITY ISSUE: TOKEN UNEXPECTEDLY SET", result)
 			}
 		})
 	}
