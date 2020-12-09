@@ -31,8 +31,6 @@ func registerHandlers() *mux.Router {
 	//api := router.Host(Config.Address).Subrouter()
 	// index
 	api.HandleFunc("/", logConsole(index))
-	//"about" page
-	api.Handle("/about", logConsole(about))
 
 	// Random junk for experimentation
 	//api.Handle("/test", errHandler(test))

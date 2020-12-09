@@ -31,18 +31,18 @@ func (cs ChatServer) Init() {
 		Broker:      NewBroker(),
 		Clients:     make(map[string]*Client),
 	})
-
-	CS.push(&ChatRoom{
-		Title:       "Private Chat",
-		Description: "This is the private chat!",
-		Type:        "private",
-		Password:    "123abc123abc",
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-		ID:          2,
-		Broker:      NewBroker(),
-		Clients:     make(map[string]*Client),
-	})
+	/*
+		CS.push(&ChatRoom{
+			Title:       "Private Chat",
+			Description: "This is the private chat!",
+			Type:        "private",
+			Password:    "123abc123abc",
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			ID:          2,
+			Broker:      NewBroker(),
+			Clients:     make(map[string]*Client),
+		})*/
 }
 
 func (cs ChatServer) push(cr *ChatRoom) {

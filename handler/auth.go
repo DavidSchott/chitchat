@@ -143,20 +143,23 @@ func authorize(h errHandler) errHandler {
 				info("erroneous chats API request", r, err)
 				return err
 			}
-			// Check authorization header
-			// Get the JWT string from the cookie
-			tknStr, err := extractJwtToken(r)
-			if err != nil {
-				return &data.APIError{
-					Code:  403,
-					Field: "token",
+			if cr.Type != data.PublicRoom {
+				// Check authorization header
+				// Get the JWT string from the cookie
+				tknStr, err := extractJwtToken(r)
+				if err != nil {
+					return &data.APIError{
+						Code:  403,
+						Field: "token",
+					}
+				}
+				claim := &data.Claims{}
+				err = data.ParseJWT(tknStr, claim, generateUniqueKey(cr))
+				if err != nil {
+					return err
 				}
 			}
-			claim := &data.Claims{}
-			err = data.ParseJWT(tknStr, claim, generateUniqueKey(cr))
-			if cr.Type != data.PublicRoom && err != nil {
-				return err
-			}
+
 			// Success, call h(w,r)
 			return h(w, r)
 		}

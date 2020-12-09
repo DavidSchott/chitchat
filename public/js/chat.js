@@ -69,11 +69,15 @@ var chat = function () {
         // Functions for Event sources
         // Start event source for current Room ID
         function startSession(id,token) {
+            if (token.length > 1){
             var stream = new EventSourcePolyfill("/chats/"+ id +"/sse/subscribe", {
                 headers: {
                   'Authorization': "Bearer " + token
                 }
               });
+            } else{
+                var stream = new EventSource("/chats/"+ id +"/sse/subscribe");
+            }
             //stream = new EventSource("/chats/"+ id +"/sse/subscribe");
             sendClientEvent("join", username, id, "", color);
             return stream;
@@ -327,6 +331,7 @@ function checkPassword(password, user, resolve = console.log, reject = console.l
 }
 
 function storeToken(token) {
+    if (token.length > 1){
     Token = token
     $.ajaxSetup({
         headers: {
@@ -334,6 +339,7 @@ function storeToken(token) {
            }
        });
        // TODO: Store token in session storage or as a cookie?
+    }
 }
 
 function validateChatEntrance() {

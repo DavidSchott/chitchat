@@ -108,11 +108,9 @@ func handlePut(w http.ResponseWriter, r *http.Request, currentChatRoom *data.Cha
 // Delete a room
 // DELETE /chat/<id>
 func handleDelete(w http.ResponseWriter, r *http.Request, cr *data.ChatRoom) (err error) {
-	// TODO: authorize
 	err = data.CS.Delete(cr)
 	if err != nil {
 		warning("error encountered deleting chat room:", err.Error())
-		ReportStatus(w, false, err.(*data.APIError))
 		return
 	}
 	// report on status
