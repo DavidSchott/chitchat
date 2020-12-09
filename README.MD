@@ -70,12 +70,16 @@ Chatting is implemented using server-sent events (SSE) as a step-by-step procedu
 
   ## TODO ##
   1. Need to add more unit tests for chatting. 
-    * Also need to add mocks once DB is setup for decoupled testing
-  2. Passwords must be salted and authorization improved wit expiration and retries
-    * I also plan to use JWT instead of session-based cookie approach
+    * Also need to add mocks once DB is setup for decoupled testing from model/data layer
+  2. Passwords must be salted and authorization improved with expiration and retries
+    * Hash password on client before sending it over the wire, or TLS is sufficient?
+    * Add requests to refresh token before expiration (e.g. every 10 min?)
+    * Hide password, session ID from any public-facing API response
   3. Generate proper UUIDs instead of integers as IDs
   4. Need to move chat server data layer into DB, right now everything is stored in memory to allow for rapid development and testing
-  5. Need to improve reliability and longevity of chatting sessions by adding random pings as keep-alives. On some browsers (Firefox) there are intermittent discos.
+  5. Need to improve reliability of chatting sessions
+    * Adding heartbeat pings as keep-alive
+    * Can also move to WebSockets instead of SSE
 
   ## Auth:
   ### Session-based:

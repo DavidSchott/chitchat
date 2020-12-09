@@ -1,10 +1,10 @@
-var username = ""
-var password = ""
-var msg
-var log
-var stream
+var username = "";
+var password = "";
+var msg;
+var log;
+var stream;
 var ID;
-var Token
+var Token = "";
 var validNavigation = false;
 
 $(document).ready(function () {
@@ -315,7 +315,9 @@ function checkPassword(password, user, resolve = console.log, reject = console.l
             } else {
                 // Success! Store token
                 console.log("Logged in successfully", data);
-                storeToken(data.token);
+                if (data.token){
+                    storeToken(data.token);
+                }
                 resolve(JSON.stringify({ outcome: "success", token: data.token}));
             }
         })

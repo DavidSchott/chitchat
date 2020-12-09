@@ -18,7 +18,7 @@ type ChatRoom struct {
 	Title       string             `json:"title"`
 	Description string             `json:"description,omitempty"`
 	Type        string             `json:"visibility"`
-	Password    string             `json:"password,omitempty"` // TODO: Make this json:- and salt it
+	Password    string             `json:"password,-"` // TODO: Make this json:- and salt it
 	CreatedAt   time.Time          `json:"createdAt"`
 	UpdatedAt   time.Time          `json:"updatedAt"`
 	ID          int                `json:"id"`
