@@ -25,16 +25,18 @@ func TestMain(m *testing.M) {
 }
 
 func setUp() {
-	// TODO: Only add chat API
-	//router = http.NewServerouter()
-	//router.Handle("/chats", errHandler(handleRoom))
-	// If all handlers are desired:
-	//	Init()
 	router = Mux
-	//router = router
+	data.CS.Add(&data.ChatRoom{
+		Title:       "Hidden Chat",
+		Description: "This is the hidden chat!",
+		Type:        "hidden",
+		Password:    "123abc123abc",
+	})
 }
 
 func tearDown() {
+	cr, _ := data.CS.Retrieve("2")
+	data.CS.Delete(cr)
 }
 
 func TestHandlePost(t *testing.T) {
@@ -154,9 +156,9 @@ func TestHandlePut(t *testing.T) {
 	}{
 		{"1", "default chat room", "renamed", "public", "", true, 200, 0},
 		{"public room", "public chat renamed", "renamed", "public", "", true, 200, 0},
-		{"3", "private room renamed", "renamed", "private", "password123", true, 200, 0},
-		{"3", "private room renamed failure", "bad password", "private", "incorrectpassword", false, 403, 403},
-		{"4", "hidden room renamed", "renamed", "hidden", "!!123abcpassword", true, 200, 0},
+		{"4", "private room renamed", "renamed", "private", "password123", true, 200, 0},
+		{"4", "private room renamed failure", "bad password", "private", "incorrectpassword", false, 403, 403},
+		{"5", "hidden room renamed", "renamed", "hidden", "!!123abcpassword", true, 200, 0},
 	}
 	var res data.ChatRoom
 	var failedOutcome data.Outcome
@@ -206,7 +208,7 @@ func TestHandleDelete(t *testing.T) {
 		{"1", "", 200, true},
 		{"public room", "", 200, true},
 		{"private room", "incorrectPassword", 403, false},
-		{"private room", "", 403, false},
+		{"4", "", 403, false},
 		{"private room", "password123", 200, true},
 		{"secret room", "!!123abcpassword", 200, true},
 		{"this room does not exist", "", 404, false},
