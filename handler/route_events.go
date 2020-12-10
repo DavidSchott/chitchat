@@ -40,24 +40,6 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 				Field: "username",
 			}
 		}
-		/* Authorize
-		if cr.Type != data.PublicRoom {
-			// if isn't public room, authorize
-			cookieSecret, err := r.Cookie("secret_cookie")
-			if err != nil {
-				warning("error attempting to authorize "+strconv.Itoa(cr.ID)+" by:", ce)
-				return &data.APIError{
-					Code:  304,
-					Field: "password",
-				}
-			}
-			if cookieSecret.Value != cr.Password {
-				return &data.APIError{
-					Code:  304,
-					Field: "password",
-				}
-			}
-		}*/
 
 		// Perform requested action
 		switch ce.EventType {
@@ -128,23 +110,6 @@ func sseHandler(w http.ResponseWriter, r *http.Request) (err error) {
 			info("erroneous chats API request", r, err)
 			return err
 		}
-		/*if cr.Type != data.PublicRoom {
-			// if isn't public room, authorize
-			cookieSecret, err := r.Cookie("secret_cookie")
-			if err != nil {
-				warning("error attempting to authorize "+titleOrID+" by:", *r)
-				return &data.APIError{
-					Code:  304,
-					Field: "secret",
-				}
-			}
-			if cookieSecret.Value != cr.Password {
-				return &data.APIError{
-					Code:  304,
-					Field: "secret",
-				}
-			}
-		}*/
 		// Do stuff here
 		// Make sure that the writer supports flushing.
 		//

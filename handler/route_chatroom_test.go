@@ -25,16 +25,18 @@ func TestMain(m *testing.M) {
 }
 
 func setUp() {
-	// TODO: Only add chat API
-	//router = http.NewServerouter()
-	//router.Handle("/chats", errHandler(handleRoom))
-	// If all handlers are desired:
-	//	Init()
 	router = Mux
-	//router = router
+	data.CS.Add(&data.ChatRoom{
+		Title:       "Hidden Chat",
+		Description: "This is the hidden chat!",
+		Type:        "hidden",
+		Password:    "123abc123abc",
+	})
 }
 
 func tearDown() {
+	cr, _ := data.CS.Retrieve("2")
+	data.CS.Delete(cr)
 }
 
 func TestHandlePost(t *testing.T) {
@@ -61,6 +63,8 @@ func TestHandlePost(t *testing.T) {
 	var failedOutcome data.Outcome
 	var matchConditions bool
 	for _, tc := range cases {
+		failedOutcome = data.Outcome{}
+		res = data.ChatRoom{}
 		t.Run(tc.title, func(t *testing.T) {
 			// Refresh writer
 			writer = httptest.NewRecorder()
@@ -109,6 +113,8 @@ func TestHandleGet(t *testing.T) {
 	var failOutcome data.Outcome
 	var matchConditions bool
 	for _, tc := range cases {
+		failOutcome = data.Outcome{}
+		cr = data.ChatRoom{}
 		t.Run(tc.titleOrID, func(t *testing.T) {
 			// Refresh writer TODO: Recycle old one instead.
 			writer = httptest.NewRecorder()
@@ -147,22 +153,24 @@ func TestHandlePut(t *testing.T) {
 		title                  string
 		description            string
 		visibility             string
-		password               string
 		expectedOutcome        bool
 		expectedHTTPStatusCode int
 		expectedAPIErrorCode   int
 	}{
-		{"1", "default chat room", "renamed", "public", "", true, 200, 0},
-		{"public room", "public chat renamed", "renamed", "public", "", true, 200, 0},
-		{"3", "private room renamed", "renamed", "private", "password123", true, 200, 0},
-		{"3", "private room renamed failure", "bad password", "private", "incorrectpassword", false, 401, 104},
-		{"4", "hidden room renamed", "renamed", "hidden", "!!123abcpassword", true, 200, 0},
+		{"1", "default chat room", "renamed", "public", true, 200, 0},
+		{"public room", "public chat renamed", "renamed", "public", true, 200, 0},
+		{"4", "private room renamed", "renamed", "private", true, 200, 0},
+		{"4", "private room renamed failure", "bad password", "private", false, 403, 403},
+		{"5", "hidden room renamed", "renamed", "hidden", true, 200, 0},
 	}
 	var res data.ChatRoom
 	var failedOutcome data.Outcome
 	var matchConditions bool
 	for _, tc := range cases {
+		failedOutcome = data.Outcome{}
+		res = data.ChatRoom{}
 		t.Run(tc.titleOrID, func(t *testing.T) {
+			cr, _ := data.CS.Retrieve(tc.titleOrID)
 			// Refresh writer
 			writer = httptest.NewRecorder()
 			// JSON body
@@ -171,8 +179,8 @@ func TestHandlePut(t *testing.T) {
 			// URI and HTTP method
 			request, _ := http.NewRequest("PUT", fmt.Sprintf("/chats/%s", tc.titleOrID), requestBody)
 			request.Header.Set("Content-Type", "application/json")
-			if len(tc.password) > 1 {
-				request.Header.Set("Cookie", fmt.Sprintf("secret_cookie=%s", tc.password))
+			if cr.Type != data.PublicRoom {
+				setJWTHeaders(request, tc.titleOrID, tc.expectedOutcome)
 			}
 			// Send request
 			router.ServeHTTP(writer, request)
@@ -191,6 +199,52 @@ func TestHandlePut(t *testing.T) {
 			// TODO: Check all fields
 			if !matchConditions {
 				t.Fatal("Unexpected result PUT chat room: ", writer.Body.String())
+			}
+		})
+	}
+}
+
+func TestHandleDelete(t *testing.T) {
+	cases := []struct {
+		titleOrID              string
+		expectedHTTPStatusCode int
+		expectedOutcome        bool
+	}{
+		{"1", 200, true},
+		{"public room", 200, true},
+		{"private room", 403, false},
+		{"4", 403, false},
+		{"private room", 200, true},
+		{"secret room", 200, true},
+		{"does not exist", 404, false},
+	}
+	var result data.Outcome
+	var matchConditions bool
+	for _, tc := range cases {
+		result = data.Outcome{}
+		t.Run(tc.titleOrID, func(t *testing.T) {
+			// Refresh writer TODO: Recycle old one instead.
+			writer = httptest.NewRecorder()
+			// Craft HTTP req
+			request, _ := http.NewRequest("DELETE", fmt.Sprintf("/chats/%s", tc.titleOrID), nil)
+			request.Header.Set("Content-Type", "application/json")
+			if tc.titleOrID != "does not exist" {
+				setJWTHeaders(request, tc.titleOrID, tc.expectedOutcome)
+			}
+			router.ServeHTTP(writer, request)
+			// Check assertions
+			if writer.Code != tc.expectedHTTPStatusCode {
+				t.Errorf("Unexpected response code is %v", writer.Code)
+			}
+			err := json.Unmarshal(writer.Body.Bytes(), &result)
+			if err != nil {
+				t.Fatal(err.Error())
+			}
+			matchConditions = tc.expectedOutcome == result.Status
+			// If test checks fail
+			if !matchConditions {
+				t.Errorf("Unexpected result during DEL chat room %s", tc.titleOrID)
+				t.Logf("Response: %s", writer.Body.String())
 			}
 		})
 	}

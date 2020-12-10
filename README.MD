@@ -1,10 +1,13 @@
 # ChitChat
+[![Go Report Card](https://goreportcard.com/badge/github.com/DavidSchott/chitchat)](https://goreportcard.com/report/github.com/DavidSchott/chitchat)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/openservicemesh/osm/blob/main/LICENSE)
+
 ChitChat is a simple chat application that helps you connect with other people around the world.
 
 ## Install ##
 All that you need is [Golang](https://golang.org/). Once you run the application, it will expose [port 8080](./config.json) on the host.
 ```
-20:5:13 app         | ChitChat 0.1 started at 127.0.0.1:8080
+20:5:13 app         | ChitChat 0.3 started at 127.0.0.1:8080
 ```
 
 ## Configuration ##
@@ -38,7 +41,7 @@ If successful, server should respond with code 201 and the newly created resourc
 }
 ```
 
-If unsuccessful, the server will return an error, e.g. if the room already exists: 
+If unsuccessful, the server will return an error with a [custom code](./data/apierror.go), e.g. if the room already exists: 
 ```json
 {
     "status": false,
@@ -51,8 +54,41 @@ If unsuccessful, the server will return an error, e.g. if the room already exist
 ```
 The minimum required fields to create a public chat room are `"title"` and `"visibility"`. "Private" and "hidden" chat rooms also require a password.
 
+  ## Authorization
+  Authorization is implemented using [JSON Web Tokens](https://jwt.io/introduction/) in an attempt to achieve statelessness and scalability. In order to authorize chatting access to a password-protected chat room, users will need to pass in a token in the `Authorization` HTTP header using the Bearer scheme. 
+  
+  The token can be requested by sending a JSON body containing the password to the `/chats/<room_id>/token` endpoint. For example:
+  ```json
+  {
+   "room_id":2,
+   "secret":"123abc123abc",
+   "name":"david"
+}
+  ```
+  If successful, the server will respond with the token in the response body.
+```json
+{
+    "status": true,
+    "user": "david",
+    "room_id": 2,
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImRhdmlkIiwicm9vbV9pZCI6MiwiZXhwIjoxNjA3NTg1MjQ5fQ.b6XnNqrFnFmuUMhTBKfyR3PAyCQkxbUaPupBXgknl8w"
+}
+```  
+Otherwise an error will be returned if the supplied password is invalid or missing.
+```json
+{
+    "status": false,
+    "error": {
+        "code": 304,
+        "error": "Unauthorized operation",
+        "field": "secret"
+    }
+}
+```
+For added convenience, it is also possible to request a new token before the current one expires by sending an authorized request to `/chats/<room_id>/token/renew`.
+
 ## Chatting ##
-Chatting is implemented using server-sent events (SSE) as a step-by-step procedure. Any endpoints that mandates `text/event-stream` content type as opposed to JSON are behind the `chats/<room_id>/sse/` subpath. The steps are:
+Chatting is implemented using server-sent events (SSE) as a step-by-step procedure. Any endpoints that mandate `text/event-stream` content type as opposed to JSON are behind the `chats/<room_id>/sse/` subpath. The steps are:
   1. Send a HTTP POST with room password to `/chats/<room_id>/token` to obtain authorization (only required for private and hidden rooms)
   2. Subscribe to chat event stream via HTTP GET request to `/chats/<room_id>/sse/subscribe`
   3. Send a HTTP POST to `/chats/<room_id>/sse/broadcast` to broadcast messages using the following format:
@@ -68,22 +104,17 @@ Chatting is implemented using server-sent events (SSE) as a step-by-step procedu
   It is recommended to send a `join` and `leave` event broadcast when joining/leaving chat rooms so everyone else is notified.
   4. Send a HTTP GET to `/chats/<room_id>/token/renew` to renew the authorization token before expiration.
 
+
   ## TODO ##
   1. Need to add more unit tests for chatting. 
-    * Also need to add mocks once DB is setup for decoupled testing
-  2. Passwords must be salted and authorization improved wit expiration and retries
-    * I also plan to use JWT instead of session-based cookie approach
-  3. Generate proper UUIDs instead of integers as IDs
+      * Also need to add mocks once DB is setup for decoupled testing from model/data layer. Will likely inject dependencies in top-down fashion.
+  2. Passwords must be salted and authorization improved with expiration and retries
+      * Hash password on client before sending it over the wire, or TLS is sufficient?
+      * Add requests to refresh token before expiration (e.g. every 10 min?)
+      * Hide password, session ID from any public-facing API response
+  3. Generate proper UUIDs instead of integers as IDs?
   4. Need to move chat server data layer into DB, right now everything is stored in memory to allow for rapid development and testing
-  5. Need to improve reliability and longevity of chatting sessions by adding random pings as keep-alives. On some browsers (Firefox) there are intermittent discos.
-
-  ## Auth:
-  ### Session-based:
-  Client-side:
-  * hash password before sending it (optional)
-  * Loop to refresh once per minute in chat
-  Server-side:
-  * Refactor to create auth handler
-  * Add session ID to client
-  * Add session refresh handler
-  * Hide password, session ID from any public-facing API response
+  5. Need to improve reliability of chatting sessions
+      * Adding heartbeat pings as keep-alive
+      * Can also move to WebSockets instead of SSE
+  6. Setup CI/CD pipeline

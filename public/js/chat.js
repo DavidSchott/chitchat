@@ -1,9 +1,10 @@
-var username = ""
-var password = ""
-var msg
-var log
-var stream
+var username = "";
+var password = "";
+var msg;
+var log;
+var stream;
 var ID;
+var Token = "";
 var validNavigation = false;
 
 $(document).ready(function () {
@@ -25,7 +26,7 @@ var chat = function () {
     }
     else {
         // Start EventSource
-        register(ID);
+        register(ID, Token);
         window.onbeforeunload = function () {
             if (!validNavigation) {
                 endSession();
@@ -67,8 +68,17 @@ var chat = function () {
 
         // Functions for Event sources
         // Start event source for current Room ID
-        function startSession(id) {
-            stream = new EventSource("/chats/"+ id +"/sse/subscribe");
+        function startSession(id,token) {
+            if (token.length > 1){
+            var stream = new EventSourcePolyfill("/chats/"+ id +"/sse/subscribe", {
+                headers: {
+                  'Authorization': "Bearer " + token
+                }
+              });
+            } else{
+                var stream = new EventSource("/chats/"+ id +"/sse/subscribe");
+            }
+            //stream = new EventSource("/chats/"+ id +"/sse/subscribe");
             sendClientEvent("join", username, id, "", color);
             return stream;
         }
@@ -78,8 +88,8 @@ var chat = function () {
             sendClientEvent("leave", username, id, "", color);
         }
         // Start session and notify onopen
-        function register(id) {
-            stream = startSession(id)
+        function register(id, token) {
+            stream = startSession(id, token)
             // Event Source is opened
             stream.onopen = function () {
                 console.log('Entered session');
@@ -125,7 +135,7 @@ var chat = function () {
                     case EventSource.CLOSED:
                         console.log('Connection failed, will try to re-register in ' +(delay/1000.0) + "seconds");
                         delay += 500;
-                        setTimeout(function() {register(ID)},delay);
+                        setTimeout(function() {register(ID, Token)},delay);
                         //register(ID);
                         break;
                 }
@@ -273,7 +283,6 @@ function loadChat() {
 }
 
 function userExists(user, roomID, resolve = console.log, reject = console.log) {
-    // reject("TODO: look for user " + user + " in room " + roomID);
     duplicate = false;
     new Promise(
         function (resolve, reject) {
@@ -296,15 +305,20 @@ function userExists(user, roomID, resolve = console.log, reject = console.log) {
         });
 }
 
-function checkPassword(password, resolve = console.log, reject = console.log) {
-    request_token = JSON.stringify({ room_id: parseInt(ID), secret: password })
+function checkPassword(password, user, resolve = console.log, reject = console.log) {
+    request_token = JSON.stringify({ room_id: parseInt(ID), secret: password, name:user })
     $.post('/chats/'+ ID + '/token', request_token, "json")
         .done(function (data) {
             if (data.hasOwnProperty('error')) {
                 // Authorization error!
                 reject(data);
             } else {
-                resolve(JSON.stringify({ outcome: "success" }));
+                // Success! Store token
+                console.log("Logged in successfully", data);
+                if (data.token){
+                    storeToken(data.token);
+                }
+                resolve(JSON.stringify({ outcome: "success", token: data.token}));
             }
         })
         .catch(
@@ -318,6 +332,18 @@ function checkPassword(password, resolve = console.log, reject = console.log) {
         });
 }
 
+function storeToken(token) {
+    if (token.length > 1){
+    Token = token
+    $.ajaxSetup({
+        headers: {
+            "Authorization": "Bearer " + token
+           }
+       });
+       // TODO: Store token in session storage or as a cookie?
+    }
+}
+
 function validateChatEntrance() {
     // Read in form
     var form = document.getElementsByClassName("form-signin")[0];
@@ -326,7 +352,6 @@ function validateChatEntrance() {
     var colorDOM = document.getElementById("color-select");
     valid = true;
     // validate fields look OK
-
     // check color is selected
     if (colorDOM.value.length < 1) {
         valid = false;
@@ -353,7 +378,7 @@ function validateChatEntrance() {
             // Define new promise to retrieve room
             new Promise(
                 function (resolve, reject) {
-                    checkPassword(passwordDOM.value, resolve, reject);
+                    checkPassword(passwordDOM.value,userDOM.value, resolve, reject);
                 })
                 .then(function (pwd) {
                     // Success! All conditions passed
@@ -377,7 +402,7 @@ function validateChatEntrance() {
             // Define new promise to retrieve room
             new Promise(
                 function (resolve, reject) {
-                    checkPassword(passwordDOM.value, resolve, reject);
+                    checkPassword(passwordDOM.value,userDOM.value, resolve, reject);
                 }).then(function (data) {
                     // Success! Password ok
                     passwordDOM.setCustomValidity("");
@@ -387,6 +412,5 @@ function validateChatEntrance() {
                     form.classList.add('was-validated');
                 });
         });
-    //   }
     form.classList.add('was-validated');
 }

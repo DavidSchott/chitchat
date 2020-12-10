@@ -31,8 +31,6 @@ func registerHandlers() *mux.Router {
 	//api := router.Host(Config.Address).Subrouter()
 	// index
 	api.HandleFunc("/", logConsole(index))
-	//"about" page
-	api.Handle("/about", logConsole(about))
 
 	// Random junk for experimentation
 	//api.Handle("/test", errHandler(test))
@@ -51,6 +49,9 @@ func registerHandlers() *mux.Router {
 
 	// Check password matches room
 	api.Handle("/chats/{titleOrID}/token", errHandler(login)).Methods(http.MethodPost)
+
+	// Check password matches room
+	api.Handle("/chats/{titleOrID}/token/renew", errHandler(renewToken)).Methods(http.MethodGet)
 
 	// Load chat box
 	api.HandleFunc("/chats/{titleOrID}/chatbox", logConsole(chatbox)).Methods(http.MethodGet)

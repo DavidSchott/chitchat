@@ -90,24 +90,6 @@ func handlePut(w http.ResponseWriter, r *http.Request, currentChatRoom *data.Cha
 		warning("error encountered updating chat room:", err.Error())
 		return
 	}
-	/* Authorize
-	if currentChatRoom.Type != data.PublicRoom {
-		// if isn't public room, need to authorize
-		cookieSecret, err := r.Cookie("secret_cookie")
-		if err != nil {
-			warning("error attempting to authorize ", r, " PUT:", r)
-			return &data.APIError{
-				Code:  104,
-				Field: "password",
-			}
-		}
-		if cookieSecret.Value != currentChatRoom.Password {
-			return &data.APIError{
-				Code:  104,
-				Field: "password",
-			}
-		}
-	}*/
 	if err = data.CS.Update(title, &cr); err != nil {
 		warning("error encountered updating chat room:", cr, err.Error())
 		return
@@ -126,11 +108,9 @@ func handlePut(w http.ResponseWriter, r *http.Request, currentChatRoom *data.Cha
 // Delete a room
 // DELETE /chat/<id>
 func handleDelete(w http.ResponseWriter, r *http.Request, cr *data.ChatRoom) (err error) {
-	// TODO: authorize
 	err = data.CS.Delete(cr)
 	if err != nil {
 		warning("error encountered deleting chat room:", err.Error())
-		ReportStatus(w, false, err.(*data.APIError))
 		return
 	}
 	// report on status

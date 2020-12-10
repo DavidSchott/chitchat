@@ -4,12 +4,17 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	PublicRoom  = "public"
+	// PublicRoom is a room open for anyone to join without authentication
+	PublicRoom = "public"
+	// PrivateRoom is password protected and requires an authentication token in order to process requests
 	PrivateRoom = "private"
-	HiddenRoom  = "hidden"
+	// HiddenRoom is a private room that is not listed on public-facing APIs. TODO: Hide this from GET /chats/<id> as well?
+	HiddenRoom = "hidden"
 )
 
 // ChatRoom is a struct representing a chat room
@@ -18,7 +23,7 @@ type ChatRoom struct {
 	Title       string             `json:"title"`
 	Description string             `json:"description,omitempty"`
 	Type        string             `json:"visibility"`
-	Password    string             `json:"password,omitempty"` // TODO: Make this json:- and salt it
+	Password    string             `json:"password,-"` // TODO: Make this json:- and salt it
 	CreatedAt   time.Time          `json:"createdAt"`
 	UpdatedAt   time.Time          `json:"updatedAt"`
 	ID          int                `json:"id"`
@@ -26,6 +31,7 @@ type ChatRoom struct {
 	Clients     map[string]*Client `json:"-"`
 }
 
+// ToJSON marshals a ChatRoom object in a JSON encoding that can be returned to users
 func (cr ChatRoom) ToJSON() (jsonEncoding []byte, err error) {
 	// Populate client slice. TODO: Can this be simplified?
 	clientsSlice := make([]Client, len(cr.Clients))
@@ -46,6 +52,7 @@ func (cr ChatRoom) ToJSON() (jsonEncoding []byte, err error) {
 	return jsonEncoding, err
 }
 
+//AddClient will add a user to a ChatRoom
 func (cr ChatRoom) AddClient(c *Client) (err error) {
 	if cr.clientExists(c.Username) {
 		return &APIError{
@@ -57,6 +64,7 @@ func (cr ChatRoom) AddClient(c *Client) (err error) {
 	return
 }
 
+// RemoveClient will remove a user from a ChatRoom
 func (cr ChatRoom) RemoveClient(user string) (err error) {
 	if !cr.clientExists(user) {
 		return &APIError{
@@ -98,7 +106,7 @@ func (cr ChatRoom) IsValid() (err *APIError, validity bool) {
 		}, false
 	}
 	// Non-public rooms require a valid password
-	if (len(cr.Password) < 8 || len(cr.Password) > 20) && visibility != PublicRoom {
+	if (len(cr.Password) < 8) && visibility != PublicRoom {
 		return &APIError{
 			Code:  105,
 			Field: "password",
@@ -116,12 +124,17 @@ func (cr ChatRoom) IsValid() (err *APIError, validity bool) {
 
 // MatchesPassword takes in a value and compares it with the room's password
 func (cr ChatRoom) MatchesPassword(val string) bool {
-	return cr.Password == val // TODO: Salted passwords
+	err := bcrypt.CompareHashAndPassword([]byte(cr.Password), []byte(val))
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 func (cr ChatRoom) clientExists(name string) bool {
 	name = strings.ToLower(name)
-	for k, _ := range cr.Clients {
+	for k := range cr.Clients {
 		if k == name {
 			return true
 		}

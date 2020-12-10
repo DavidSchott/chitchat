@@ -8,15 +8,6 @@ import (
 	"github.com/DavidSchott/chitchat/handler"
 )
 
-/* Random sanity checks to aid in development
-func main() {
-	// initialize chat server
-	data.CS.Init()
-	test.TestCreate()
-	test.TestRetrieve()
-}
-*/
-
 func main() {
 	//handler.Init()
 	// handle static assets by routing requests from /static/ => "public" directory
@@ -38,5 +29,5 @@ func main() {
 
 // version
 func version() string {
-	return "0.2"
+	return "0.3"
 }

@@ -9,6 +9,7 @@ import (
 // a slow client or a client that closed after `range Clients` started.
 const patience time.Duration = time.Second * 1
 
+// Broker maintains the client connections and handles events using a notification goroutine
 type Broker struct {
 
 	// Events are pushed to this channel by the main events-gathering routine
@@ -24,6 +25,7 @@ type Broker struct {
 	Clients map[chan []byte]bool
 }
 
+// NewBroker will initialize a new Broker that is listening/broadcasting events
 func NewBroker() (broker *Broker) {
 	// Instantiate a broker
 	broker = &Broker{
@@ -59,7 +61,7 @@ func (broker *Broker) listen() {
 
 			// We got a new event from the outside!
 			// Send event to all connected Clients
-			for clientMessageChan, _ := range broker.Clients {
+			for clientMessageChan := range broker.Clients {
 				select {
 				case clientMessageChan <- event:
 				case <-time.After(patience):

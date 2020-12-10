@@ -4,8 +4,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
+// ChatServer maintains all ChatRooms. TODO: This will be replaced by a database soon
 type ChatServer struct {
 	RoomsID map[int]*ChatRoom
 	Rooms   map[string]*ChatRoom // TODO: Remove this duplication once data layer moves to DB
@@ -13,12 +16,15 @@ type ChatServer struct {
 }
 
 var index int
+
+// CS is the global ChatServer referencing all chat room objects
 var CS ChatServer = ChatServer{
 	RoomsID: make(map[int]*ChatRoom),
 	Rooms:   make(map[string]*ChatRoom),
 	Index:   &index,
 }
 
+// Init will initialize the ChatServer with the default public room.
 func (cs ChatServer) Init() {
 	CS.push(&ChatRoom{
 		Title:       "Public Chat",
@@ -50,6 +56,7 @@ func (cs ChatServer) pop(title string, ID int) {
 	*cs.Index--
 }
 
+// Chats will return all non-hidden ChatRooms
 func (cs ChatServer) Chats() (rooms []ChatRoom, err error) {
 	rooms = make([]ChatRoom, 0)
 	for _, v := range CS.Rooms {
@@ -86,14 +93,14 @@ func (cs ChatServer) RetrieveID(ID int) (cr *ChatRoom, err error) {
 
 func (cs ChatServer) roomExists(titleorID string) bool {
 	if id, err := strconv.Atoi(titleorID); err == nil {
-		for k, _ := range CS.RoomsID {
+		for k := range CS.RoomsID {
 			if k == id {
 				return true
 			}
 		}
 	} else {
 		titleorID = strings.ToLower(titleorID)
-		for k, _ := range CS.Rooms {
+		for k := range CS.Rooms {
 			if strings.ToLower(k) == titleorID {
 				return true
 			}
@@ -111,13 +118,26 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 	if cs.roomExists(cr.Title) { // TODO: What if the room is hidden? Return unspecified error or inform user?
 		return &APIError{
 			Code:  102,
-			Field: cr.Title,
+			Field: "title",
 		}
 	}
+	cr.Type = strings.ToLower(cr.Type)
+	if cr.Type != PublicRoom {
+		pass, err := bcrypt.GenerateFromPassword([]byte(cr.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return &APIError{
+				Code:  104,
+				Field: "secret",
+			}
+		}
+		cr.Password = string(pass)
+	} else if cr.Type == PublicRoom {
+		cr.Password = ""
+	}
+
 	cr.CreatedAt = time.Now()
 	cr.UpdatedAt = time.Now()
 	cr.Broker = NewBroker()
-	cr.Type = strings.ToLower(cr.Type)
 	cs.push(cr)
 	return
 }
@@ -134,23 +154,6 @@ func (cs ChatServer) Update(titleOrID string, modifiedChatRoom *ChatRoom) (err e
 	if apierr, valid := modifiedChatRoom.IsValid(); !valid {
 		return apierr
 	}
-
-	/* 	This is commented for now since modifying a password or visibility could be a legitimate use-case. Can authorize using cookie
-	Check password matches.
-	if cr.Type != PublicRoom && !cs.RoomsID[cr.ID].MatchesPassword(cr.Password) {
-		return &APIError{
-			Code:  104,
-			Field: "password",
-		}
-	}
-	// Ensure room type is not trying to be changed.
-	if cr.Type != cs.RoomsID[cr.ID].Type {
-		return &APIError{
-			Code:  104,
-			Field: "visibility",
-		}
-	}
-	*/
 	// Update chat room
 	// TODO: Allow updating Password?
 	modifiedChatRoom.ID = currentChatRoom.ID
