@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	// TODO: Set this as env variable for better security :)
+	// TODO: Set this as env variable for better security, although the salted password hash used in generateUniqueKey is already unique :)
 	secretKey string = "my_secret_random_key_>_than_24_characters"
 )
 
@@ -44,7 +44,7 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 			if c.User == "" {
 				return &data.APIError{
 					Code:  303,
-					Field: "user",
+					Field: "name",
 				}
 			}
 			// Success! Generate token using secret key concatenated with room's password (length > 32)
@@ -55,7 +55,7 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 			// Success, respond with token in JSON body
 			jsonEncoding, _ := json.Marshal(struct {
 				Outcome  bool   `json:"status"`
-				Username string `json:"user"`
+				Username string `json:"name"`
 				RoomID   int    `json:"room_id"`
 				Token    string `json:"token"`
 			}{
@@ -93,7 +93,7 @@ func renewToken(w http.ResponseWriter, r *http.Request) (err error) {
 			ReportStatus(w, true, nil)
 		} else {
 			// Check authorization header
-			// Get the JWT string from the cookie
+			// Get the JWT string from the header
 			tknStr, err := extractJwtToken(r)
 			if err != nil {
 				return &data.APIError{
@@ -113,7 +113,7 @@ func renewToken(w http.ResponseWriter, r *http.Request) (err error) {
 			// Success, respond with token in JSON body
 			jsonEncoding, _ := json.Marshal(struct {
 				Outcome  bool   `json:"status"`
-				Username string `json:"user"`
+				Username string `json:"name"`
 				RoomID   int    `json:"room_id"`
 				Token    string `json:"token"`
 			}{
