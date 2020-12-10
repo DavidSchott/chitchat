@@ -153,16 +153,15 @@ func TestHandlePut(t *testing.T) {
 		title                  string
 		description            string
 		visibility             string
-		password               string
 		expectedOutcome        bool
 		expectedHTTPStatusCode int
 		expectedAPIErrorCode   int
 	}{
-		{"1", "default chat room", "renamed", "public", "", true, 200, 0},
-		{"public room", "public chat renamed", "renamed", "public", "", true, 200, 0},
-		{"4", "private room renamed", "renamed", "private", "password123", true, 200, 0},
-		{"4", "private room renamed failure", "bad password", "private", "incorrectpassword", false, 403, 403},
-		{"5", "hidden room renamed", "renamed", "hidden", "!!123abcpassword", true, 200, 0},
+		{"1", "default chat room", "renamed", "public", true, 200, 0},
+		{"public room", "public chat renamed", "renamed", "public", true, 200, 0},
+		{"4", "private room renamed", "renamed", "private", true, 200, 0},
+		{"4", "private room renamed failure", "bad password", "private", false, 403, 403},
+		{"5", "hidden room renamed", "renamed", "hidden", true, 200, 0},
 	}
 	var res data.ChatRoom
 	var failedOutcome data.Outcome
@@ -171,6 +170,7 @@ func TestHandlePut(t *testing.T) {
 		failedOutcome = data.Outcome{}
 		res = data.ChatRoom{}
 		t.Run(tc.titleOrID, func(t *testing.T) {
+			cr, _ := data.CS.Retrieve(tc.titleOrID)
 			// Refresh writer
 			writer = httptest.NewRecorder()
 			// JSON body
@@ -179,8 +179,8 @@ func TestHandlePut(t *testing.T) {
 			// URI and HTTP method
 			request, _ := http.NewRequest("PUT", fmt.Sprintf("/chats/%s", tc.titleOrID), requestBody)
 			request.Header.Set("Content-Type", "application/json")
-			if len(tc.password) > 1 {
-				setJWTHeaders(request, tc.password, tc.titleOrID)
+			if cr.Type != data.PublicRoom {
+				setJWTHeaders(request, tc.titleOrID, tc.expectedOutcome)
 			}
 			// Send request
 			router.ServeHTTP(writer, request)
@@ -207,17 +207,16 @@ func TestHandlePut(t *testing.T) {
 func TestHandleDelete(t *testing.T) {
 	cases := []struct {
 		titleOrID              string
-		password               string
 		expectedHTTPStatusCode int
 		expectedOutcome        bool
 	}{
-		{"1", "", 200, true},
-		{"public room", "", 200, true},
-		{"private room", "incorrectPassword", 403, false},
-		{"4", "", 403, false},
-		{"private room", "password123", 200, true},
-		{"secret room", "!!123abcpassword", 200, true},
-		{"this room does not exist", "", 404, false},
+		{"1", 200, true},
+		{"public room", 200, true},
+		{"private room", 403, false},
+		{"4", 403, false},
+		{"private room", 200, true},
+		{"secret room", 200, true},
+		{"does not exist", 404, false},
 	}
 	var result data.Outcome
 	var matchConditions bool
@@ -229,8 +228,8 @@ func TestHandleDelete(t *testing.T) {
 			// Craft HTTP req
 			request, _ := http.NewRequest("DELETE", fmt.Sprintf("/chats/%s", tc.titleOrID), nil)
 			request.Header.Set("Content-Type", "application/json")
-			if len(tc.password) > 1 {
-				setJWTHeaders(request, tc.password, tc.titleOrID)
+			if tc.titleOrID != "does not exist" {
+				setJWTHeaders(request, tc.titleOrID, tc.expectedOutcome)
 			}
 			router.ServeHTTP(writer, request)
 			// Check assertions
@@ -249,13 +248,6 @@ func TestHandleDelete(t *testing.T) {
 			}
 		})
 	}
-}
-
-func setJWTHeaders(r *http.Request, pwd string, id string) {
-	cr, _ := data.CS.Retrieve(id)
-	var myCr *data.ChatRoom = &data.ChatRoom{Password: pwd, ID: cr.ID}
-	tkn, _ := data.EncodeJWT(&data.ChatEvent{User: "test_user"}, cr, generateUniqueKey(myCr))
-	r.Header.Set("Authorization", "Bearer "+tkn)
 }
 
 func assertTrue(vals ...bool) bool {

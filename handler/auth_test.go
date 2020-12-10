@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/DavidSchott/chitchat/data"
 )
 
 func TestLogin(t *testing.T) {
@@ -52,7 +54,7 @@ func TestLogin(t *testing.T) {
 			}
 			// Check that token is set
 			if tc.expectedOutcome && tc.password != "" {
-				if len(result["token"].(string)) != 152 {
+				if len(result["token"].(string)) < 100 {
 					t.Fatal("Unexpected error generating token", result["token"].(string))
 				}
 			} else if !tc.expectedOutcome && result["token"] != nil {
@@ -65,29 +67,28 @@ func TestLogin(t *testing.T) {
 func TestRenewToken(t *testing.T) {
 	cases := []struct {
 		roomID                 string
-		password               string
 		expectedOutcome        bool
 		expectedHTTPStatusCode int
 	}{
-		{"1", "", true, 200},
-		{"2", "incorrect_pwd", false, 403},
-		{"2", "123abc123abc", true, 201},
-		{"hidden chat", "123abc123abc", true, 201},
-		{"does not exist", "123abc123abc", false, 404},
+		{"1", true, 200},
+		{"2", false, 403},
+		{"2", true, 201},
+		{"hidden chat", true, 201},
+		{"does not exist", false, 404},
 	}
 	var result map[string]interface{}
 	for _, tc := range cases {
 		result = nil
 		t.Run(tc.roomID, func(t *testing.T) {
+			cr, _ := data.CS.Retrieve(tc.roomID)
 			// Refresh writer
 			writer = httptest.NewRecorder()
 			// URI and HTTP method
 			request, _ := http.NewRequest("GET", fmt.Sprintf("/chats/%s/token/renew", tc.roomID), nil)
 			request.Header.Set("Content-Type", "application/json")
-			if tc.roomID != "does not exist" {
-				setJWTHeaders(request, tc.password, tc.roomID)
+			if tc.roomID != "does not exist" && cr.Type != data.PublicRoom {
+				setJWTHeaders(request, tc.roomID, tc.expectedOutcome)
 			}
-
 			// Send request
 			router.ServeHTTP(writer, request)
 			// Check assertions
@@ -101,8 +102,8 @@ func TestRenewToken(t *testing.T) {
 				t.Error("Unexpected result authorizing. Response: ", writer.Body.String())
 			}
 			// Check that token is set
-			if tc.expectedOutcome && tc.password != "" {
-				if len(result["token"].(string)) != 152 {
+			if tc.expectedOutcome && cr.Type != data.PublicRoom {
+				if len(result["token"].(string)) < 100 {
 					t.Fatal("Unexpected error generating token", result["token"].(string))
 				}
 			} else if !tc.expectedOutcome && result["token"] != nil {
@@ -110,4 +111,17 @@ func TestRenewToken(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Generates a token and sets it in the request Authorization HTTP header under Bearer scheme
+// If intendedValidity is set to false, this will set a faulty token
+// This should only be used as a band-aid to keep tests simple and independent for now
+func setJWTHeaders(r *http.Request, id string, intendedValidity bool) {
+	cr, _ := data.CS.Retrieve(id)
+	var myCr *data.ChatRoom = &data.ChatRoom{Password: cr.Password, ID: cr.ID, Title: cr.Title}
+	if !intendedValidity {
+		myCr.Password = "bogus_incorrect_password"
+	}
+	tkn, _ := data.EncodeJWT(&data.ChatEvent{User: "test_user", RoomID: cr.ID}, cr, generateUniqueKey(myCr))
+	r.Header.Set("Authorization", "Bearer "+tkn)
 }

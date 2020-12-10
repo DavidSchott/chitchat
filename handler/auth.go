@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	// TODO: Set this as env variable for better security :)
 	secretKey string = "my_secret_random_key_>_than_24_characters"
 )
 
@@ -191,7 +192,7 @@ func extractJwtToken(req *http.Request) (string, error) {
 }
 
 // Generate unique key should ensure that the generated key is unique for a given room
-// TODO: Generate UUID for room instead of integer based
+// TODO: Enforce providing user ID to make this unique per user in room?
 func generateUniqueKey(cr *data.ChatRoom) string {
 	return secretKey + cr.Password + strconv.Itoa(cr.ID)
 }

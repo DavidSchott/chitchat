@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -98,7 +100,7 @@ func (cr ChatRoom) IsValid() (err *APIError, validity bool) {
 		}, false
 	}
 	// Non-public rooms require a valid password
-	if (len(cr.Password) < 8 || len(cr.Password) > 20) && visibility != PublicRoom {
+	if (len(cr.Password) < 8) && visibility != PublicRoom {
 		return &APIError{
 			Code:  105,
 			Field: "password",
@@ -116,7 +118,12 @@ func (cr ChatRoom) IsValid() (err *APIError, validity bool) {
 
 // MatchesPassword takes in a value and compares it with the room's password
 func (cr ChatRoom) MatchesPassword(val string) bool {
-	return cr.Password == val // TODO: Salted passwords
+	err := bcrypt.CompareHashAndPassword([]byte(cr.Password), []byte(val))
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 func (cr ChatRoom) clientExists(name string) bool {
