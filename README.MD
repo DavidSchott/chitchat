@@ -64,10 +64,14 @@ The minimum required fields to create a public chat room are `"title"` and `"vis
    "secret":"my_secret",
    "name":"david"
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
 =======
   }
 >>>>>>> da4bc1b61bad9699e0e6c2e68b9bf8b629c220ef
+=======
+  }
+>>>>>>> f1668c8a1e41e204f04baa8b1e92248b86b86452
   ```
   If successful, the server will respond with the token in the response body.
 ```json
