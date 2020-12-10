@@ -32,12 +32,14 @@ import (
   - 403 = Invalid token
 */
 
+// APIError represents an error that was thrown at some point with some relevant information for users to correct their input
 type APIError struct {
 	Code  int    `json:"code,omitempty"`
 	Msg   string `json:"error,omitempty"`
 	Field string `json:"field,omitempty"`
 }
 
+// Outcome represents status indicating success/failure of an operation
 type Outcome struct {
 	Status bool      `json:"status"`
 	Error  *APIError `json:"error,omitempty"`

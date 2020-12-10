@@ -11,6 +11,7 @@ const (
 	minimumRefreshDurationAllowedMinutes int = 300 // TODO: Change to 5 minutes
 )
 
+// Claims is a model that represents JSON web tokens used for authentication by users
 type Claims struct {
 	Username string `json:"username"`
 	RoomID   int    `json:"room_id,omitempty"`
@@ -79,6 +80,7 @@ func ParseJWT(tokenString string, c *Claims, secretKey string) (err error) {
 	return
 }
 
+//RefreshJWT will refresh return a signed token with new expiration time
 func (c Claims) RefreshJWT(secretKey string) (tokenString string, err error) {
 	// Ensure enough time has elapsed since last token was generated
 	if time.Unix(c.ExpiresAt, 0).Sub(time.Now()) > time.Duration(minimumRefreshDurationAllowedMinutes)*time.Minute {

@@ -9,9 +9,12 @@ import (
 )
 
 const (
-	PublicRoom  = "public"
+	// PublicRoom is a room open for anyone to join without authentication
+	PublicRoom = "public"
+	// PrivateRoom is password protected and requires an authentication token in order to process requests
 	PrivateRoom = "private"
-	HiddenRoom  = "hidden"
+	// HiddenRoom is a private room that is not listed on public-facing APIs. TODO: Hide this from GET /chats/<id> as well?
+	HiddenRoom = "hidden"
 )
 
 // ChatRoom is a struct representing a chat room
@@ -28,6 +31,7 @@ type ChatRoom struct {
 	Clients     map[string]*Client `json:"-"`
 }
 
+// ToJSON marshals a ChatRoom object in a JSON encoding that can be returned to users
 func (cr ChatRoom) ToJSON() (jsonEncoding []byte, err error) {
 	// Populate client slice. TODO: Can this be simplified?
 	clientsSlice := make([]Client, len(cr.Clients))
@@ -48,6 +52,7 @@ func (cr ChatRoom) ToJSON() (jsonEncoding []byte, err error) {
 	return jsonEncoding, err
 }
 
+//AddClient will add a user to a ChatRoom
 func (cr ChatRoom) AddClient(c *Client) (err error) {
 	if cr.clientExists(c.Username) {
 		return &APIError{
@@ -59,6 +64,7 @@ func (cr ChatRoom) AddClient(c *Client) (err error) {
 	return
 }
 
+// RemoveClient will remove a user from a ChatRoom
 func (cr ChatRoom) RemoveClient(user string) (err error) {
 	if !cr.clientExists(user) {
 		return &APIError{
@@ -128,7 +134,7 @@ func (cr ChatRoom) MatchesPassword(val string) bool {
 
 func (cr ChatRoom) clientExists(name string) bool {
 	name = strings.ToLower(name)
-	for k, _ := range cr.Clients {
+	for k := range cr.Clients {
 		if k == name {
 			return true
 		}

@@ -5,11 +5,15 @@ import (
 )
 
 const (
-	Subscribe   = "join"
-	Broadcast   = "send"
+	// Subscribe is used to broadcast a message indicating user has join room
+	Subscribe = "join"
+	// Broadcast is used to broadcast messages to all subscribed users
+	Broadcast = "send"
+	// Unsubscribe is used to broadcast a message indicating user has left room
 	Unsubscribe = "leave"
 )
 
+// ChatEvent represents a message event in an associated chat room
 type ChatEvent struct {
 	EventType string    `json:"event_type,omitempty"`
 	User      string    `json:"name,omitempty"`
