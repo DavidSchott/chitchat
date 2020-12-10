@@ -1,7 +1,7 @@
 # ChitChat
 ![Go](https://github.com/DavidSchott/chitchat/workflows/Go/badge.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/DavidSchott/chitchat)](https://goreportcard.com/report/github.com/DavidSchott/chitchat)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/DavidSchott/chitchat/blob/master/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/DavidSchott/chitchat/blob/master/LICENSE)
 
 ChitChat is a simple chat application that helps you connect with other people around the world.
 
@@ -63,7 +63,11 @@ The minimum required fields to create a public chat room are `"title"` and `"vis
   {
    "secret":"my_secret",
    "name":"david"
+<<<<<<< HEAD
 }
+=======
+  }
+>>>>>>> da4bc1b61bad9699e0e6c2e68b9bf8b629c220ef
   ```
   If successful, the server will respond with the token in the response body.
 ```json
