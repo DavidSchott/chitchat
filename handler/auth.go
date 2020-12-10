@@ -25,7 +25,9 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 	// read in request
 	len := r.ContentLength
 	body := make([]byte, len)
-	r.Body.Read(body)
+	if _, err := r.Body.Read(body); err != nil {
+		danger("Error reading request", r)
+	}
 	var c data.ChatEvent
 	if err := json.Unmarshal(body, &c); err != nil {
 		danger("Error parsing token request", r)
@@ -65,7 +67,9 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 				Token:    tokenString,
 			})
 			w.WriteHeader(http.StatusCreated)
-			w.Write(jsonEncoding)
+			if _, err := w.Write(jsonEncoding); err != nil {
+				danger("Error writing", jsonEncoding)
+			}
 
 		} else {
 			return &data.APIError{
@@ -123,7 +127,9 @@ func renewToken(w http.ResponseWriter, r *http.Request) (err error) {
 				Token:    tokenStringNew,
 			})
 			w.WriteHeader(http.StatusCreated)
-			w.Write(jsonEncoding)
+			if _, err := w.Write(jsonEncoding); err != nil {
+				danger("Error writing", jsonEncoding)
+			}
 		}
 	}
 	return

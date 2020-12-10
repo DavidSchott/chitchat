@@ -26,17 +26,21 @@ func TestMain(m *testing.M) {
 
 func setUp() {
 	router = Mux
-	data.CS.Add(&data.ChatRoom{
+	if err := data.CS.Add(&data.ChatRoom{
 		Title:       "Hidden Chat",
 		Description: "This is the hidden chat!",
 		Type:        "hidden",
 		Password:    "123abc123abc",
-	})
+	}); err != nil {
+		danger("Error setting up tests", err.Error())
+	}
 }
 
 func tearDown() {
 	cr, _ := data.CS.Retrieve("2")
-	data.CS.Delete(cr)
+	if err := data.CS.Delete(cr); err != nil {
+		danger("Error tearing down tests", err.Error())
+	}
 }
 
 func TestHandlePost(t *testing.T) {
@@ -81,10 +85,14 @@ func TestHandlePost(t *testing.T) {
 				t.Errorf("Response code is %v", writer.Code)
 			}
 			if tc.expectedOutcome {
-				json.Unmarshal(writer.Body.Bytes(), &res)
+				if err := json.Unmarshal(writer.Body.Bytes(), &res); err != nil {
+					t.Fatal("Error parsing", writer.Body.String(), err.Error())
+				}
 				matchConditions = assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID > 1)
 			} else {
-				json.Unmarshal(writer.Body.Bytes(), &failedOutcome)
+				if err := json.Unmarshal(writer.Body.Bytes(), &failedOutcome); err != nil {
+					t.Fatal("Error parsing", writer.Body.String(), err.Error())
+				}
 				matchConditions = assertTrue(!failedOutcome.Status, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
 			}
 
@@ -127,7 +135,9 @@ func TestHandleGet(t *testing.T) {
 				t.Errorf("Unexpected response code is %v", writer.Code)
 			}
 			if tc.expectedOutcome {
-				json.Unmarshal(writer.Body.Bytes(), &cr)
+				if err := json.Unmarshal(writer.Body.Bytes(), &cr); err != nil {
+					t.Fatal("Error parsing", writer.Body.String(), err.Error())
+				}
 				matchConditions = strings.ToLower(cr.Title) == tc.titleOrID || strconv.Itoa(cr.ID) == tc.titleOrID
 			} else {
 				err := json.Unmarshal(writer.Body.Bytes(), &failOutcome)
@@ -189,10 +199,14 @@ func TestHandlePut(t *testing.T) {
 				t.Errorf("Unexpected response code is %v", writer.Code)
 			}
 			if tc.expectedOutcome {
-				json.Unmarshal(writer.Body.Bytes(), &res)
+				if err := json.Unmarshal(writer.Body.Bytes(), &res); err != nil {
+					t.Fatal("Error parsing", writer.Body.String(), err.Error())
+				}
 				matchConditions = assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID >= 1)
 			} else {
-				json.Unmarshal(writer.Body.Bytes(), &failedOutcome)
+				if err := json.Unmarshal(writer.Body.Bytes(), &failedOutcome); err != nil {
+					t.Fatal("Error parsing", writer.Body.String(), err.Error())
+				}
 				matchConditions = assertTrue(!failedOutcome.Status, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
 			}
 

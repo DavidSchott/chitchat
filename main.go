@@ -24,7 +24,9 @@ func main() {
 	}
 	fmt.Println("ChitChat", version(), "started at", handler.Config.Address)
 	//server.ListenAndServe()
-	server.ListenAndServeTLS("gencert/cert.pem", "gencert/key.pem")
+	if err := server.ListenAndServeTLS("gencert/cert.pem", "gencert/key.pem"); err != nil {
+		fmt.Println("Error starting server", err.Error())
+	}
 }
 
 // version

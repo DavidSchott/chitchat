@@ -23,7 +23,7 @@ type ChatRoom struct {
 	Title       string             `json:"title"`
 	Description string             `json:"description,omitempty"`
 	Type        string             `json:"visibility"`
-	Password    string             `json:"password,-"` // TODO: Make this json:- and salt it
+	Password    string             `json:"password,omitempty"`
 	CreatedAt   time.Time          `json:"createdAt"`
 	UpdatedAt   time.Time          `json:"updatedAt"`
 	ID          int                `json:"id"`
@@ -125,11 +125,7 @@ func (cr ChatRoom) IsValid() (err *APIError, validity bool) {
 // MatchesPassword takes in a value and compares it with the room's password
 func (cr ChatRoom) MatchesPassword(val string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(cr.Password), []byte(val))
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
 func (cr ChatRoom) clientExists(name string) bool {

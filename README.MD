@@ -2,13 +2,14 @@
 ![Go](https://github.com/DavidSchott/chitchat/workflows/Go/badge.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/DavidSchott/chitchat)](https://goreportcard.com/report/github.com/DavidSchott/chitchat)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/DavidSchott/chitchat/blob/master/LICENSE)
+[![codecov](https://codecov.io/gh/DavidSchott/chitchat/branch/master/graph/badge.svg?token=G6AOS5QVHR)](https://codecov.io/gh/DavidSchott/chitchat)
 
-ChitChat is a simple chat application that helps you connect with other people around the world.
+ChitChat is a simple chat app with basic features such as password protection and real-time communication.
 
 ## Install ##
-All that you need is [Golang](https://golang.org/). Once you run the application, it will expose [port 8080](./config.json) on the host.
+All that you need is [Golang](https://golang.org/). Once you run the application, it will expose a [target port](./config.json) on the host.
 ```
-20:5:13 app         | ChitChat 0.3 started at 127.0.0.1:8080
+20:5:13 app         | ChitChat 0.3 started at 127.0.0.1:443
 ```
 
 ## Configuration ##
@@ -63,11 +64,7 @@ The minimum required fields to create a public chat room are `"title"` and `"vis
   {
    "secret":"my_secret",
    "name":"david"
-<<<<<<< HEAD
 }
-=======
-  }
->>>>>>> da4bc1b61bad9699e0e6c2e68b9bf8b629c220ef
   ```
   If successful, the server will respond with the token in the response body.
 ```json

@@ -62,6 +62,8 @@ func registerHandlers() *mux.Router {
 	// Chat Sessions (Client sent events)
 	api.HandleFunc("/chats/{titleOrID}/sse/broadcast", checkStreamingSupport(errHandler(authorize(sseActionHandler)))).Methods(http.MethodPost)
 
+	// Error page
+	api.HandleFunc("/err", logConsole(handleError)).Methods(http.MethodGet)
 	return api
 }
 

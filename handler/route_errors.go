@@ -55,11 +55,6 @@ func badRequest(w http.ResponseWriter, r *http.Request) {
 	info("Bad request:", r.RequestURI, r.Body)
 }
 
-func redirect(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Location", "/index.html")
-	w.WriteHeader(302)
-}
-
 // Convenience function to redirect to the error message page
 func errorMessage(writer http.ResponseWriter, request *http.Request, msg string) {
 	url := []string{"/err?msg=", msg}
