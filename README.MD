@@ -1,7 +1,7 @@
 # ChitChat
 ![Go](https://github.com/DavidSchott/chitchat/workflows/Go/badge.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/DavidSchott/chitchat)](https://goreportcard.com/report/github.com/DavidSchott/chitchat)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/openservicemesh/osm/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/DavidSchott/chitchat/blob/master/LICENSE)
 
 ChitChat is a simple chat application that helps you connect with other people around the world.
 
