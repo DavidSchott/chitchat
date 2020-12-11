@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	expirationConstantMinutes            int = 60
-	minimumRefreshDurationAllowedMinutes int = 300 // TODO: Change to 5 minutes
+	expirationConstantMinutes            int = 60  // TODO: Change to 10 minutes?
+	minimumRefreshDurationAllowedMinutes int = 300 // TODO: Change to 5 minutes?
 )
 
 // Claims is a model that represents JSON web tokens used for authentication by users
