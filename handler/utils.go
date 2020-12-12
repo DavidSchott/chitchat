@@ -21,22 +21,22 @@ func p(a ...interface{}) {
 }*/
 
 // for logging
-func info(args ...interface{}) {
+func Info(args ...interface{}) {
 	logger.SetPrefix("INFO ")
 	logger.Println(args...)
 }
 
-func danger(args ...interface{}) {
+func Danger(args ...interface{}) {
 	logger.SetPrefix("ERROR ")
 	logger.Println(args...)
 }
 
-func warning(args ...interface{}) {
+func Warning(args ...interface{}) {
 	logger.SetPrefix("WARNING ")
 	logger.Println(args...)
 }
 
-// ReportStatus is a helper function to return a JSON reponse indicating outcome success/failure
+// ReportStatus is a helper function to return a JSON response indicating outcome success/failure
 func ReportStatus(w http.ResponseWriter, success bool, err *data.APIError) {
 	var res *data.Outcome
 	w.Header().Set("Content-Type", "application/json")
@@ -52,7 +52,7 @@ func ReportStatus(w http.ResponseWriter, success bool, err *data.APIError) {
 	}
 	response, _ := json.Marshal(res)
 	if _, err := w.Write(response); err != nil {
-		danger("Error writing", response)
+		Danger("Error writing", response)
 	}
 }
 
@@ -63,7 +63,7 @@ func generateHTML(writer http.ResponseWriter, data interface{}, filenames ...str
 	}
 	templates := template.Must(template.ParseFiles(files...))
 	if err := templates.ExecuteTemplate(writer, "layout", data); err != nil {
-		danger("Error generating HTML template", data, err.Error())
+		Danger("Error generating HTML template", data, err.Error())
 	}
 }
 
@@ -71,7 +71,7 @@ func generateHTMLContent(writer http.ResponseWriter, data interface{}, file stri
 	writer.Header().Set("Content-Type", "text/html")
 	t, _ := template.ParseFiles(fmt.Sprintf("templates/content/%s.html", file))
 	if err := t.Execute(writer, data); err != nil {
-		danger("Error executing HTML template", data, err.Error())
+		Danger("Error executing HTML template", data, err.Error())
 	}
 }
 
@@ -87,7 +87,7 @@ func logConsole(h http.HandlerFunc) http.HandlerFunc {
 
 // convenience function to be chained with another HandlerFunc
 // Checks if streaming via Server-Side Events is supported by the device
-func checkStreamingSupport(h errHandler) http.HandlerFunc {
+func checkWebSocketSupport(h errHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, ok := w.(http.Flusher)
 
@@ -101,7 +101,7 @@ func checkStreamingSupport(h errHandler) http.HandlerFunc {
 		w.Header().Set("Connection", "keep-alive")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		if err := h(w, r); err != nil {
-			warning("Error calling:", runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name())
+			Warning("Error calling:", runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name())
 		}
 	}
 }

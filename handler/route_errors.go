@@ -15,7 +15,7 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if apierr, ok := err.(*data.APIError); ok {
 			w.Header().Set("Content-Type", "application/json")
 			apierr.SetMsg()
-			warning("API error:", apierr.Error())
+			Warning("API error:", apierr.Error())
 			if apierr.Code == 101 || apierr.Code == 201 {
 				notFound(w, r)
 			} else if apierr.Code == 102 || apierr.Code == 202 || apierr.Code == 303 || apierr.Code == 105 {
@@ -29,7 +29,7 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			ReportStatus(w, false, apierr)
 		} else {
-			danger("Server error", err.Error())
+			Danger("Server error", err.Error())
 			http.Error(w, err.Error(), 500)
 		}
 	}
@@ -37,22 +37,22 @@ func (fn errHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(404)
-	info("Not found request:", r.RequestURI)
+	Info("Not found request:", r.RequestURI)
 }
 
 func unauthorized(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(401)
-	info("forbidden:", r.RequestURI, r.Body)
+	Info("forbidden:", r.RequestURI, r.Body)
 }
 
 func forbidden(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusForbidden)
-	warning("forbidden:", r.RequestURI, r.Body)
+	Warning("forbidden:", r.RequestURI, r.Body)
 }
 
 func badRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(400)
-	info("Bad request:", r.RequestURI, r.Body)
+	Info("Bad request:", r.RequestURI, r.Body)
 }
 
 // Convenience function to redirect to the error message page
@@ -66,5 +66,5 @@ func errorMessage(writer http.ResponseWriter, request *http.Request, msg string)
 func handleError(writer http.ResponseWriter, request *http.Request) {
 	vals := request.URL.Query()
 	fmt.Fprintf(writer, "Error: %s!", vals.Get("msg"))
-	warning(fmt.Sprintf("Error: %s!", vals.Get("msg")))
+	Warning(fmt.Sprintf("Error: %s!", vals.Get("msg")))
 }

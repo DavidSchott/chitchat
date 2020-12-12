@@ -34,7 +34,7 @@ func chatbox(w http.ResponseWriter, r *http.Request) {
 	if titleOrID, ok := queries["titleOrID"]; ok {
 		cr, err := data.CS.Retrieve(titleOrID)
 		if err != nil {
-			info("erroneous chats API request", r, err)
+			Info("erroneous chats API request", r, err)
 		}
 		generateHTMLContent(w, &cr, "chat")
 	}
@@ -47,7 +47,7 @@ func joinRoom(w http.ResponseWriter, r *http.Request) (err error) {
 	if titleOrID, ok := queries["titleOrID"]; ok {
 		cr, err := data.CS.Retrieve(titleOrID)
 		if err != nil {
-			info("erroneous chats API request", r, err)
+			Info("erroneous chats API request", r, err)
 			return err
 		}
 		generateHTML(w, (strings.ToLower(cr.Type) == data.PrivateRoom || cr.Type == data.HiddenRoom), "layout", "sidebar", "public.header", "entrance")

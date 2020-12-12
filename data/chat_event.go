@@ -1,6 +1,7 @@
 package data
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -22,4 +23,19 @@ type ChatEvent struct {
 	Msg       string    `json:"msg,omitempty"`
 	Password  string    `json:"secret,omitempty"`
 	Timestamp time.Time `json:"time,omitempty"`
+}
+
+// validateEvent so that we know it's a valid JSON representation of Chat event
+func validateEvent(data []byte) (ChatEvent, error) {
+	var evt ChatEvent
+
+	if err := json.Unmarshal(data, &evt); err != nil {
+		return evt, &APIError{Code: 303}
+	}
+
+	if evt.User == "" || evt.Msg == "" {
+		return evt, &APIError{Code: 303, Field: "name|msg"}
+	}
+
+	return evt, nil
 }

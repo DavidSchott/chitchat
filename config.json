@@ -1,5 +1,6 @@
 {
     "Address"        : "127.0.0.1:80",
+    "RedisURL"       : "127.0.0.1:6379",
     "ReadTimeout"    : 10,
     "WriteTimeout"   : 600,
     "Static"         : "public"

@@ -5,14 +5,17 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/DavidSchott/chitchat/data"
 	"github.com/gorilla/mux"
+	"github.com/heroku/x/hredis/redigo"
 )
 
 // Configuration stores config info of server
 type Configuration struct {
 	Address      string
+	RedisURL     string
 	ReadTimeout  int64
 	WriteTimeout int64
 	Static       string
@@ -22,20 +25,18 @@ type Configuration struct {
 var Config Configuration
 
 // Mux contains all the HTTP handlers
-var Mux *mux.Router
+var (
+	Mux         *mux.Router
+	waitTimeout = time.Duration(Config.ReadTimeout * int64(time.Minute))
+	rr          data.RedisReceiver
+	rw          data.RedisWriter
+)
 
 // registerHandlers will register all HTTP handlers
 func registerHandlers() *mux.Router {
 	api := mux.NewRouter()
-	// TODO: Uncomment again in prod
-	//api := router.Host(Config.Address).Subrouter()
 	// index
 	api.HandleFunc("/", logConsole(index))
-
-	// Random junk for experimentation
-	//api.Handle("/test", errHandler(test))
-	// test error
-	//api.HandleFunc("/err", logConsole(err))
 
 	//REST-API for chat room [JSON]
 	api.Handle("/chats", errHandler(handlePost)).Methods(http.MethodPost)
@@ -53,14 +54,14 @@ func registerHandlers() *mux.Router {
 	// Check password matches room
 	api.Handle("/chats/{titleOrID}/token/renew", errHandler(renewToken)).Methods(http.MethodGet)
 
-	// Load chat box
+	// Load chat box [HTML]
 	api.HandleFunc("/chats/{titleOrID}/chatbox", logConsole(chatbox)).Methods(http.MethodGet)
 
-	// Chat Sessions (init)
-	api.HandleFunc("/chats/{titleOrID}/sse/subscribe", checkStreamingSupport(errHandler(authorize(sseHandler)))).Methods(http.MethodGet)
+	// Chat Sessions (initialize WebSocket)
+	api.HandleFunc("/chats/{titleOrID}/ws/subscribe", checkWebSocketSupport(errHandler((wsHandler)))).Methods(http.MethodGet)
 
-	// Chat Sessions (Client sent events)
-	api.HandleFunc("/chats/{titleOrID}/sse/broadcast", checkStreamingSupport(errHandler(authorize(sseActionHandler)))).Methods(http.MethodPost)
+	// Chat Sessions (WebSocket events)
+	api.HandleFunc("/chats/{titleOrID}/ws/broadcast", checkWebSocketSupport(errHandler(authorize(wsEventHandler)))).Methods(http.MethodPost)
 
 	// Error page
 	api.HandleFunc("/err", logConsole(handleError)).Methods(http.MethodGet)
@@ -69,11 +70,12 @@ func registerHandlers() *mux.Router {
 
 func init() {
 	loadConfig()
-	loadLog()
 	loadEnvs()
-	Mux = registerHandlers()
+	loadLog()
+	loadRedis()
 	// initialize chat server
 	data.CS.Init()
+	Mux = registerHandlers()
 }
 
 func loadLog() {
@@ -108,4 +110,47 @@ func loadEnvs() {
 	if key, ok := os.LookupEnv("SECRET_KEY"); ok {
 		secretKey = key
 	}
+}
+
+func loadRedis() {
+	redisURL := Config.RedisURL
+	if _, ok := os.LookupEnv("REDIS_URL"); ok {
+		redisURL = os.Getenv("REDIS_URL")
+	}
+	redisPool, err := redigo.NewRedisPoolFromURL(redisURL)
+	if err != nil {
+		Danger("Unable to create Redis pool", "url:", redisURL)
+	}
+
+	rr = data.NewRedisReceiver(redisPool)
+	rw = data.NewRedisWriter(redisPool)
+
+	go func() {
+		for {
+			waited, err := redigo.WaitForAvailability(redisURL, waitTimeout, rr.Wait)
+			if !waited || err != nil {
+				Danger("Redis not available by timeout", "waitTimeout", waitTimeout, "err:", err.Error())
+			}
+			rr.Broadcast(data.AvailableMessage)
+			err = rr.Run()
+			if err == nil {
+				break
+			}
+			Warning(err.Error())
+		}
+	}()
+
+	go func() {
+		for {
+			waited, err := redigo.WaitForAvailability(redisURL, waitTimeout, nil)
+			if !waited || err != nil {
+				Danger("Redis not available by timeout!", "waitTimeout", waitTimeout, "err", err.Error())
+			}
+			err = rw.Run()
+			if err == nil {
+				break
+			}
+			Warning(err.Error())
+		}
+	}()
 }

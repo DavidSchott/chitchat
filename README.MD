@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/DavidSchott/chitchat/blob/master/LICENSE)
 [![codecov](https://codecov.io/gh/DavidSchott/chitchat/branch/master/graph/badge.svg?token=G6AOS5QVHR)](https://codecov.io/gh/DavidSchott/chitchat)
 
-ChitChat is a simple chat app with basic features such as password protection and real-time communication.
+ChitChat is a simple chat app with basic features such as private rooms, notifications, and real-time communication.
 
 ## Install ##
 All that you need is [Golang](https://golang.org/). Once you run the application, it will expose a [target port](./config.json) on the host.
@@ -30,7 +30,7 @@ E.g. A basic chat room POST request could look as follows:
    "visibility":"public"
 }
 ```
-If successful, server should respond with code 201 and the newly created resource:
+If successful, the server will respond with HTTP code 201 and the newly created chat room resource:
 ```json
 {
     "title": "My chat room",
@@ -43,7 +43,7 @@ If successful, server should respond with code 201 and the newly created resourc
 }
 ```
 
-If unsuccessful, the server will return an error with a [custom code](./data/apierror.go), e.g. if a room with the same title already exists: 
+If unsuccessful, the server will return [an error](./data/apierror.go) in its response body, e.g. if a room with the same title already exists HTTP code 400 will be sent along with the following body content: 
 ```json
 {
     "status": false,
@@ -54,10 +54,10 @@ If unsuccessful, the server will return an error with a [custom code](./data/api
     }
 }
 ```
-The minimum required fields to create a public chat room are `"title"` and `"visibility"`. "Private" and "hidden" chat rooms also require a password.
+The required fields to create a public chat room are `"title"` and `"visibility"`. "Private" and "hidden" chat rooms also require a password.
 
   ## Authorization
-  Authorization is implemented using [JSON Web Tokens](https://jwt.io/introduction/) in an attempt to achieve statelessness and scalability. In order to authorize chatting access to a password-protected chat room, users will need to pass in a token in the `Authorization` HTTP header using the Bearer scheme. 
+  Authorization is implemented using [JSON Web Tokens](https://jwt.io/introduction/) in an attempt to achieve statelessness and scalability. In order to authorize access or modification of a password-protected chat room, users will need to pass in a token in the `Authorization` HTTP header using the Bearer scheme.
   
   The token can be requested by sending a JSON body containing the password to the `/chats/<room_id>/token` endpoint. For example:
   ```json
@@ -75,7 +75,7 @@ The minimum required fields to create a public chat room are `"title"` and `"vis
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImRhdmlkIiwicm9vbV9pZCI6MiwiZXhwIjoxNjA3NTg1MjQ5fQ.b6XnNqrFnFmuUMhTBKfyR3PAyCQkxbUaPupBXgknl8w"
 }
 ```  
-Otherwise an error will be returned if the supplied password is invalid or missing.
+Otherwise an error will be returned if the secret is missing, does not match the password hash, or is invalid.
 ```json
 {
     "status": false,
@@ -99,7 +99,7 @@ Chatting is implemented using server-sent events (SSE) as a step-by-step procedu
       "name": "my-username",
       "color": "color of chat message",
       "msg": "message to send",
-      "secret": "password" # (only needed for private or secret rooms token request)
+      "secret": "password" # (only needed for private or secret rooms token request to /chats/<room_id>/token)
   }
   ```
   It is recommended to send a `join` and `leave` event broadcast when joining/leaving chat rooms so everyone else is notified.
@@ -118,3 +118,14 @@ Chatting is implemented using server-sent events (SSE) as a step-by-step procedu
       * Adding heartbeat pings as keep-alives
       * Can also move to WebSockets instead of SSE
   6. Switch to a proper logging library such as logrus
+
+
+  ### Helpful links
+  https://github.com/gomodule/redigo
+  https://github.com/gorilla/websocket/blob/master/examples/chat/client.go
+https://devcenter.heroku.com/articles/go-websockets 
+  https://github.com/joewalnes/reconnecting-websocket
+https://scotch.io/bar-talk/build-a-realtime-chat-server-with-go-and-websockets
+
+  Security: https://stackoverflow.com/questions/4361173/http-headers-in-websockets-client-api
+  https://devcenter.heroku.com/articles/websocket-security

@@ -32,14 +32,14 @@ func setUp() {
 		Type:        "hidden",
 		Password:    "123abc123abc",
 	}); err != nil {
-		danger("Error setting up tests", err.Error())
+		Danger("Error setting up tests", err.Error())
 	}
 }
 
 func tearDown() {
 	cr, _ := data.CS.Retrieve("2")
 	if err := data.CS.Delete(cr); err != nil {
-		danger("Error tearing down tests", err.Error())
+		Danger("Error tearing down tests", err.Error())
 	}
 }
 

@@ -23,17 +23,17 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 	len := r.ContentLength
 	body := make([]byte, len)
 	if _, err := r.Body.Read(body); err != nil {
-		danger("Error reading request", r)
+		Danger("Error reading request", r)
 	}
 	var c data.ChatEvent
 	if err := json.Unmarshal(body, &c); err != nil {
-		danger("Error parsing token request", r)
+		Danger("Error parsing token request", r)
 	}
 	queries := mux.Vars(r)
 	if titleOrID, ok := queries["titleOrID"]; ok {
 		cr, err := data.CS.Retrieve(titleOrID)
 		if err != nil {
-			info("erroneous chats API request", r, err)
+			Info("erroneous chats API request", r, err)
 			return err
 		}
 		if cr.Type == data.PublicRoom {
@@ -65,7 +65,7 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 			})
 			w.WriteHeader(http.StatusCreated)
 			if _, err := w.Write(jsonEncoding); err != nil {
-				danger("Error writing", jsonEncoding)
+				Danger("Error writing", jsonEncoding)
 			}
 
 		} else {
@@ -86,7 +86,7 @@ func renewToken(w http.ResponseWriter, r *http.Request) (err error) {
 	if titleOrID, ok := queries["titleOrID"]; ok {
 		cr, err := data.CS.Retrieve(titleOrID)
 		if err != nil {
-			info("erroneous chats API request", r, err)
+			Info("erroneous chats API request", r, err)
 			return err
 		}
 		if cr.Type == data.PublicRoom {
@@ -125,7 +125,7 @@ func renewToken(w http.ResponseWriter, r *http.Request) (err error) {
 			})
 			w.WriteHeader(http.StatusCreated)
 			if _, err := w.Write(jsonEncoding); err != nil {
-				danger("Error writing", jsonEncoding)
+				Danger("Error writing", jsonEncoding)
 			}
 		}
 	}
@@ -144,7 +144,7 @@ func authorize(h errHandler) errHandler {
 		if titleOrID, ok := queries["titleOrID"]; ok {
 			cr, err := data.CS.Retrieve(titleOrID)
 			if err != nil {
-				info("erroneous chats API request", r, err)
+				Info("erroneous chats API request", r, err)
 				return err
 			}
 			if cr.Type != data.PublicRoom {
