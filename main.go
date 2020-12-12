@@ -15,15 +15,9 @@ func main() {
 	staticDir := "/static/"
 	handler.Mux.PathPrefix(staticDir).Handler(http.StripPrefix(staticDir, http.FileServer(http.Dir(handler.Config.Static))))
 
-	// Determine address to listen on
-	var address string
-	port := os.Getenv("PORT")
-	// If port is not set, Heroku is not being used
-	if port == "" {
-		port = "80"
-		address = handler.Config.Address
-	} else {
-		// If port is set, Heroku is being used
+	address := handler.Config.Address
+	// If port env var is not set, Heroku is not being used
+	if port, ok := os.LookupEnv("PORT"); ok {
 		address = "0.0.0.0:" + port
 	}
 

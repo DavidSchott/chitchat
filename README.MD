@@ -90,7 +90,7 @@ For added convenience, it is also possible to request a new token before the cur
 
 ## Chatting ##
 Chatting is implemented using server-sent events (SSE) as a step-by-step procedure. Any endpoints that mandate `text/event-stream` content type as opposed to JSON are behind the `chats/<room_id>/sse/` subpath. The steps are:
-  1. Send a HTTP POST with room password to `/chats/<room_id>/token` to obtain authorization (only required for private and hidden rooms)
+  1. Send a HTTP POST to `/chats/<room_id>/token` to obtain [authorization](#authorization) (only required for private and hidden rooms)
   2. Subscribe to chat event stream via HTTP GET request to `/chats/<room_id>/sse/subscribe`
   3. Send a HTTP POST to `/chats/<room_id>/sse/broadcast` to broadcast messages in the following format:
   ```
@@ -117,4 +117,4 @@ Chatting is implemented using server-sent events (SSE) as a step-by-step procedu
   5. Need to improve reliability of chatting sessions
       * Adding heartbeat pings as keep-alives
       * Can also move to WebSockets instead of SSE
-  6. Setup CI/CD pipeline
+  6. Switch to a proper logging library such as logrus

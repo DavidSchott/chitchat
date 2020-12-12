@@ -70,6 +70,7 @@ func registerHandlers() *mux.Router {
 func init() {
 	loadConfig()
 	loadLog()
+	loadEnvs()
 	Mux = registerHandlers()
 	// initialize chat server
 	data.CS.Init()
@@ -100,5 +101,11 @@ func loadConfig() {
 	err = decoder.Decode(&Config)
 	if err != nil {
 		log.Fatalln("Cannot get configuration from file", err)
+	}
+}
+
+func loadEnvs() {
+	if key, ok := os.LookupEnv("SECRET_KEY"); ok {
+		secretKey = key
 	}
 }

@@ -13,10 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-	// TODO: Set this as env variable for better security, although the salted password hash used in generateUniqueKey is already unique :)
-	secretKey string = "my_secret_random_key_>_than_24_characters"
-)
+var secretKey string = "my_secret_random_key_>_than_24_characters"
 
 // Add authorization
 // POST /chats/{titleOrID}/token
