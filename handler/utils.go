@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
-	"strings"
 
 	"github.com/DavidSchott/chitchat/data"
 )
@@ -83,37 +82,4 @@ func logConsole(h http.HandlerFunc) http.HandlerFunc {
 		fmt.Println("Handler function called - " + name)
 		h(w, r)
 	}
-}
-
-// convenience function to be chained with another HandlerFunc
-// Checks if streaming via Server-Side Events is supported by the device
-func checkWebSocketSupport(h errHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		_, ok := w.(http.Flusher)
-
-		// Check if streaming is supported
-		if !ok {
-			http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "text/event-stream")
-		w.Header().Set("Cache-Control", "no-cache")
-		w.Header().Set("Connection", "keep-alive")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		if err := h(w, r); err != nil {
-			Warning("Error calling:", runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name())
-		}
-	}
-}
-
-func formatEventData(msg string, user string, color string) (data []byte) {
-	json := strings.Join([]string{
-		fmt.Sprintf("data: {\"msg\": \"%s\",", msg),
-		fmt.Sprintf("\"name\": \"%s\",", user),
-		fmt.Sprintf("\"color\": \"%s\"}\n", color),
-		"\n\n",
-	}, "")
-	data = []byte(json)
-
-	return
 }

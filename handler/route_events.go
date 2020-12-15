@@ -4,10 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
+	"runtime"
+	"strings"
 	"time"
 
 	"github.com/DavidSchott/chitchat/data"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
+)
+
+var (
+	upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
 )
 
 // /chats/{titleOrID}/ws/broadcast
@@ -151,6 +162,34 @@ func wsHandler(w http.ResponseWriter, r *http.Request) (err error) {
 		errorMessage(w, r, "Critical error creating SSE: "+err.Error())
 		Danger("error creating SSE: ", err)
 	}
+
+	return
+}
+
+// convenience function to be chained with another HandlerFunc
+// Checks if streaming via Server-Side Events is supported by the device
+func checkWebSocketSupport(h errHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			Danger("Unable to upgrade to websockets", err.Error())
+			http.Error(w, "Unable to upgrade to websockets", http.StatusBadRequest)
+			return
+		}
+		if err := h(w, r); err != nil {
+			Warning("Error calling:", runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name())
+		}
+	}
+}
+
+func formatEventData(msg string, user string, color string) (data []byte) {
+	json := strings.Join([]string{
+		fmt.Sprintf("data: {\"msg\": \"%s\",", msg),
+		fmt.Sprintf("\"name\": \"%s\",", user),
+		fmt.Sprintf("\"color\": \"%s\"}\n", color),
+		"\n\n",
+	}, "")
+	data = []byte(json)
 
 	return
 }
