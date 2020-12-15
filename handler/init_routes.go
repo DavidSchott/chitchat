@@ -62,12 +62,15 @@ func registerHandlers() *mux.Router {
 	// Chat Sessions (Client sent events)
 	api.HandleFunc("/chats/{titleOrID}/sse/broadcast", checkStreamingSupport(errHandler(authorize(sseActionHandler)))).Methods(http.MethodPost)
 
+	// Error page
+	api.HandleFunc("/err", logConsole(handleError)).Methods(http.MethodGet)
 	return api
 }
 
 func init() {
 	loadConfig()
 	loadLog()
+	loadEnvs()
 	Mux = registerHandlers()
 	// initialize chat server
 	data.CS.Init()
@@ -98,5 +101,11 @@ func loadConfig() {
 	err = decoder.Decode(&Config)
 	if err != nil {
 		log.Fatalln("Cannot get configuration from file", err)
+	}
+}
+
+func loadEnvs() {
+	if key, ok := os.LookupEnv("SECRET_KEY"); ok {
+		secretKey = key
 	}
 }

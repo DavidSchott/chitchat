@@ -15,10 +15,10 @@ import (
 
 var logger *log.Logger
 
-// Convenience function for printing to stdout
+/* Convenience function for printing to stdout
 func p(a ...interface{}) {
 	fmt.Println(a...)
-}
+}*/
 
 // for logging
 func info(args ...interface{}) {
@@ -51,7 +51,9 @@ func ReportStatus(w http.ResponseWriter, success bool, err *data.APIError) {
 		}
 	}
 	response, _ := json.Marshal(res)
-	w.Write(response)
+	if _, err := w.Write(response); err != nil {
+		danger("Error writing", response)
+	}
 }
 
 func generateHTML(writer http.ResponseWriter, data interface{}, filenames ...string) {
@@ -60,13 +62,17 @@ func generateHTML(writer http.ResponseWriter, data interface{}, filenames ...str
 		files = append(files, fmt.Sprintf("templates/%s.html", file))
 	}
 	templates := template.Must(template.ParseFiles(files...))
-	templates.ExecuteTemplate(writer, "layout", data)
+	if err := templates.ExecuteTemplate(writer, "layout", data); err != nil {
+		danger("Error generating HTML template", data, err.Error())
+	}
 }
 
 func generateHTMLContent(writer http.ResponseWriter, data interface{}, file string) {
 	writer.Header().Set("Content-Type", "text/html")
 	t, _ := template.ParseFiles(fmt.Sprintf("templates/content/%s.html", file))
-	t.Execute(writer, data)
+	if err := t.Execute(writer, data); err != nil {
+		danger("Error executing HTML template", data, err.Error())
+	}
 }
 
 // convenience function to be chained with another HandlerFunc
@@ -94,7 +100,9 @@ func checkStreamingSupport(h errHandler) http.HandlerFunc {
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		h(w, r)
+		if err := h(w, r); err != nil {
+			warning("Error calling:", runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name())
+		}
 	}
 }
 

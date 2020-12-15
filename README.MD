@@ -2,13 +2,14 @@
 ![Go](https://github.com/DavidSchott/chitchat/workflows/Go/badge.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/DavidSchott/chitchat)](https://goreportcard.com/report/github.com/DavidSchott/chitchat)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/DavidSchott/chitchat/blob/master/LICENSE)
+[![codecov](https://codecov.io/gh/DavidSchott/chitchat/branch/master/graph/badge.svg?token=G6AOS5QVHR)](https://codecov.io/gh/DavidSchott/chitchat)
 
-ChitChat is a simple chat application that helps you connect with other people around the world.
+ChitChat is a simple chat app with basic features such as password protection and real-time communication.
 
 ## Install ##
-All that you need is [Golang](https://golang.org/). Once you run the application, it will expose [port 8080](./config.json) on the host.
+All that you need is [Golang](https://golang.org/). Once you run the application, it will expose a [target port](./config.json) on the host.
 ```
-20:5:13 app         | ChitChat 0.3 started at 127.0.0.1:8080
+20:5:13 app         | ChitChat 0.3 started at 127.0.0.1:443
 ```
 
 ## Configuration ##
@@ -63,15 +64,7 @@ The minimum required fields to create a public chat room are `"title"` and `"vis
   {
    "secret":"my_secret",
    "name":"david"
-<<<<<<< HEAD
-<<<<<<< HEAD
-}
-=======
   }
->>>>>>> da4bc1b61bad9699e0e6c2e68b9bf8b629c220ef
-=======
-  }
->>>>>>> f1668c8a1e41e204f04baa8b1e92248b86b86452
   ```
   If successful, the server will respond with the token in the response body.
 ```json
@@ -97,7 +90,7 @@ For added convenience, it is also possible to request a new token before the cur
 
 ## Chatting ##
 Chatting is implemented using server-sent events (SSE) as a step-by-step procedure. Any endpoints that mandate `text/event-stream` content type as opposed to JSON are behind the `chats/<room_id>/sse/` subpath. The steps are:
-  1. Send a HTTP POST with room password to `/chats/<room_id>/token` to obtain authorization (only required for private and hidden rooms)
+  1. Send a HTTP POST to `/chats/<room_id>/token` to obtain [authorization](#authorization) (only required for private and hidden rooms)
   2. Subscribe to chat event stream via HTTP GET request to `/chats/<room_id>/sse/subscribe`
   3. Send a HTTP POST to `/chats/<room_id>/sse/broadcast` to broadcast messages in the following format:
   ```
@@ -124,4 +117,4 @@ Chatting is implemented using server-sent events (SSE) as a step-by-step procedu
   5. Need to improve reliability of chatting sessions
       * Adding heartbeat pings as keep-alives
       * Can also move to WebSockets instead of SSE
-  6. Setup CI/CD pipeline
+  6. Switch to a proper logging library such as logrus

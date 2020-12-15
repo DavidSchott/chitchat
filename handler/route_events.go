@@ -23,7 +23,9 @@ func sseActionHandler(w http.ResponseWriter, r *http.Request) (err error) {
 		// read in request
 		len := r.ContentLength
 		body := make([]byte, len)
-		r.Body.Read(body)
+		if _, err := r.Body.Read(body); err != nil {
+			danger("Error reading", r, err.Error())
+		}
 		// create ChatEvent obj
 		var ce data.ChatEvent
 		if err := json.Unmarshal(body, &ce); err != nil {
@@ -82,14 +84,15 @@ func subscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent, cr *da
 		time.Sleep(200 * time.Millisecond)
 		cr.Broker.Notifier <- formatEventData(fmt.Sprintf("%s entered the room.", c.User), c.User, c.Color)
 	}()
-	return
 }
 
 func unsubscribe(w http.ResponseWriter, r *http.Request, c *data.ChatEvent, cr *data.ChatRoom) {
 	flusher, _ := w.(http.Flusher)
 	// Remove Client from tracked list
 	//delete(cr.Clients, c.User)
-	cr.RemoveClient(c.User)
+	if err := cr.RemoveClient(c.User); err != nil {
+		danger("Error removing client", err.Error())
+	}
 	info(fmt.Sprintf("Unsubscribing %s in room %d", c.User, cr.ID))
 	go func() {
 		time.Sleep(200 * time.Millisecond)
@@ -128,11 +131,11 @@ func sseHandler(w http.ResponseWriter, r *http.Request) (err error) {
 		}()
 
 		// Listen to connection close and un-register messageChan
-		notify := w.(http.CloseNotifier).CloseNotify()
+		done := r.Context().Done()
 
 		for {
 			select {
-			case <-notify:
+			case <-done:
 				info("Closed connection in ", cr.Title)
 				return err
 			default:
