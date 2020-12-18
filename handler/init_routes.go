@@ -9,7 +9,6 @@ import (
 
 	"github.com/DavidSchott/chitchat/data"
 	"github.com/gorilla/mux"
-	"github.com/heroku/x/hredis/redigo"
 )
 
 // Configuration stores config info of server
@@ -28,8 +27,6 @@ var Config Configuration
 var (
 	Mux         *mux.Router
 	waitTimeout = time.Duration(Config.ReadTimeout * int64(time.Minute))
-	rr          data.RedisReceiver
-	rw          data.RedisWriter
 )
 
 // registerHandlers will register all HTTP handlers
@@ -58,10 +55,11 @@ func registerHandlers() *mux.Router {
 	api.HandleFunc("/chats/{titleOrID}/chatbox", logConsole(chatbox)).Methods(http.MethodGet)
 
 	// Chat Sessions (initialize WebSocket)
-	api.HandleFunc("/chats/{titleOrID}/ws/subscribe", checkWebSocketSupport(errHandler((wsHandler)))).Methods(http.MethodGet)
+	// Do not authorize since you can't add headers to WebSockets. We will do authorization when actually receiving chat messages
+	api.Handle("/chats/{titleOrID}/ws/subscribe", errHandler(wsInitHandler)).Methods(http.MethodGet)
 
 	// Chat Sessions (WebSocket events)
-	api.HandleFunc("/chats/{titleOrID}/ws/broadcast", checkWebSocketSupport(errHandler(authorize(wsEventHandler)))).Methods(http.MethodPost)
+	//api.Handle("/chats/{titleOrID}/ws/broadcast", errHandler(authorize(wsEventHandler))).Methods(http.MethodPost)
 
 	// Error page
 	api.HandleFunc("/err", logConsole(handleError)).Methods(http.MethodGet)
@@ -72,7 +70,6 @@ func init() {
 	loadConfig()
 	loadEnvs()
 	loadLog()
-	loadRedis()
 	// initialize chat server
 	data.CS.Init()
 	Mux = registerHandlers()
@@ -110,47 +107,4 @@ func loadEnvs() {
 	if key, ok := os.LookupEnv("SECRET_KEY"); ok {
 		secretKey = key
 	}
-}
-
-func loadRedis() {
-	redisURL := Config.RedisURL
-	if _, ok := os.LookupEnv("REDIS_URL"); ok {
-		redisURL = os.Getenv("REDIS_URL")
-	}
-	redisPool, err := redigo.NewRedisPoolFromURL(redisURL)
-	if err != nil {
-		Danger("Unable to create Redis pool", "url:", redisURL)
-	}
-
-	rr = data.NewRedisReceiver(redisPool)
-	rw = data.NewRedisWriter(redisPool)
-
-	go func() {
-		for {
-			waited, err := redigo.WaitForAvailability(redisURL, waitTimeout, rr.Wait)
-			if !waited || err != nil {
-				Danger("Redis not available by timeout", "waitTimeout", waitTimeout, "err:", err.Error())
-			}
-			rr.Broadcast(data.AvailableMessage)
-			err = rr.Run()
-			if err == nil {
-				break
-			}
-			Warning(err.Error())
-		}
-	}()
-
-	go func() {
-		for {
-			waited, err := redigo.WaitForAvailability(redisURL, waitTimeout, nil)
-			if !waited || err != nil {
-				Danger("Redis not available by timeout!", "waitTimeout", waitTimeout, "err", err.Error())
-			}
-			err = rw.Run()
-			if err == nil {
-				break
-			}
-			Warning(err.Error())
-		}
-	}()
 }

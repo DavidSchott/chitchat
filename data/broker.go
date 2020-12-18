@@ -9,66 +9,60 @@ import (
 // a slow client or a client that closed after `range Clients` started.
 const patience time.Duration = time.Second * 1
 
-// Broker maintains the client connections and handles events using a notification goroutine
+// Broker maintains the client connections and handles events using a listener goroutine
 type Broker struct {
+	// Registered Clients.
+	Clients map[*Client]bool
 
-	// Events are pushed to this channel by the main events-gathering routine
-	Notifier chan []byte
+	// Inbound messages from the Clients.
+	Notification chan []byte
 
-	// New client connections
-	NewClients chan chan []byte
+	// Register requests from the Clients.
+	OpenClient chan *Client
 
-	// Closed client connections
-	ClosingClients chan chan []byte
-
-	// Client connections registry
-	Clients map[chan []byte]bool
+	// Unregister requests from Clients.
+	CloseClient chan *Client
 }
 
-// NewBroker will initialize a new Broker that is listening/broadcasting events
-func NewBroker() (broker *Broker) {
-	// Instantiate a broker
-	broker = &Broker{
-		Notifier:       make(chan []byte, 1),
-		NewClients:     make(chan chan []byte),
-		ClosingClients: make(chan chan []byte),
-		Clients:        make(map[chan []byte]bool),
+func newBroker() *Broker {
+	return &Broker{
+		Notification: make(chan []byte),
+		OpenClient:   make(chan *Client),
+		CloseClient:  make(chan *Client),
+		Clients:      make(map[*Client]bool),
 	}
-
-	// Set it running - listening and broadcasting events
-	go broker.listen()
-	return
 }
 
-func (broker *Broker) listen() {
+func (br *Broker) listen() {
 	for {
 		select {
-		case s := <-broker.NewClients:
-
+		case c := <-br.OpenClient:
 			// A new client has connected.
 			// Register their message channel
-			broker.Clients[s] = true
-			log.Printf("Client added. %d registered Clients", len(broker.Clients))
-			//broker.Notifier <- []byte(fmt.Sprintf("Client added. %d registered Clients", len(broker.Clients)))
-		case s := <-broker.ClosingClients:
-
+			br.Clients[c] = true
+			log.Printf("Client added. %d registered Clients", len(br.Clients))
+		case c := <-br.CloseClient:
 			// A client has dettached and we want to
 			// stop sending them messages.
-			delete(broker.Clients, s)
-			log.Printf("Removed client. %d registered Clients", len(broker.Clients))
-			//broker.Notifier <- []byte(fmt.Sprintf("Removed client. %d registered Clients", len(broker.Clients)))
-		case event := <-broker.Notifier:
-
-			// We got a new event from the outside!
+			if _, ok := br.Clients[c]; ok {
+				delete(br.Clients, c)
+				close(c.Send)
+				log.Printf("Removed client. %d registered Clients", len(br.Clients))
+			}
+		case evt := <-br.Notification:
+			// We got a new event from the outside
 			// Send event to all connected Clients
-			for clientMessageChan := range broker.Clients {
+			for client := range br.Clients {
 				select {
-				case clientMessageChan <- event:
+				case client.Send <- evt:
 				case <-time.After(patience):
-					log.Print("Skipping client.")
+					log.Print("Skipping client: " + client.Username)
+				default:
+					log.Print("Deleting client: " + client.Username)
+					close(client.Send)
+					delete(br.Clients, client)
 				}
 			}
 		}
 	}
-
 }

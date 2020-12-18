@@ -10,13 +10,12 @@ import (
 )
 
 func main() {
-	//handler.Init()
 	// handle static assets by routing requests from /static/ => "public" directory
 	staticDir := "/static/"
 	handler.Mux.PathPrefix(staticDir).Handler(http.StripPrefix(staticDir, http.FileServer(http.Dir(handler.Config.Static))))
 
 	address := handler.Config.Address
-	// If port env var is not set, Heroku is not being used
+	// If port env var is set, PaaS platform (Heroku) is being used
 	if port, ok := os.LookupEnv("PORT"); ok {
 		address = "0.0.0.0:" + port
 	}
@@ -33,7 +32,7 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		fmt.Println("Error starting server", err.Error())
 	}
-	/* TLS is already enabled on PaaS platform, so this is commented out:
+	/* TLS is already enabled on Heroku PaaS platform, so this is commented out:
 	if err := server.ListenAndServeTLS("gencert/cert.pem", "gencert/key.pem"); err != nil {
 		fmt.Println("Error starting server", err.Error())
 	}*/
