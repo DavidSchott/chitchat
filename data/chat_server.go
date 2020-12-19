@@ -33,8 +33,8 @@ func (cs ChatServer) Init() {
 		Password:    "",
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
-		ID:          0,
-		Broker:      newBroker(),
+		ID:          1,
+		Broker:      newBroker(1),
 		Clients:     make(map[string]*Client),
 	})
 }
@@ -46,7 +46,7 @@ func (cs ChatServer) push(cr *ChatRoom) {
 	cr.ID = *cs.Index
 	cr.Clients = make(map[string]*Client)
 	cr.Type = strings.ToLower(cr.Type)
-
+	cr.Broker = newBroker(cr.ID)
 	// Start broker for rooms
 	go cr.Broker.listen()
 	// Push to chat server
@@ -141,7 +141,6 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 
 	cr.CreatedAt = time.Now()
 	cr.UpdatedAt = time.Now()
-	cr.Broker = newBroker()
 	cs.push(cr)
 	return
 }

@@ -34,6 +34,9 @@ func registerHandlers() *mux.Router {
 	api := mux.NewRouter()
 	// index
 	api.HandleFunc("/", logConsole(index))
+	// handle static assets by routing requests from /static/ => "public" directory
+	staticDir := "/static/"
+	api.PathPrefix(staticDir).Handler(http.StripPrefix(staticDir, http.FileServer(http.Dir(Config.Static))))
 
 	//REST-API for chat room [JSON]
 	api.Handle("/chats", errHandler(handlePost)).Methods(http.MethodPost)
@@ -60,6 +63,8 @@ func registerHandlers() *mux.Router {
 
 	// Chat Sessions (WebSocket events)
 	//api.Handle("/chats/{titleOrID}/ws/broadcast", errHandler(authorize(wsEventHandler))).Methods(http.MethodPost)
+
+	api.HandleFunc("/favicon.ico", faviconHandler)
 
 	// Error page
 	api.HandleFunc("/err", logConsole(handleError)).Methods(http.MethodGet)
@@ -107,4 +112,9 @@ func loadEnvs() {
 	if key, ok := os.LookupEnv("SECRET_KEY"); ok {
 		secretKey = key
 	}
+}
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	//w.Header().Set("Content-Type", "image/x-icon")
+	//w.Header().Set("Cache-Control", "public, max-age=7776000")
+	http.ServeFile(w, r, "public/img/favicon.ico")
 }

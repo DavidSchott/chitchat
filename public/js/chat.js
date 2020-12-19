@@ -65,7 +65,8 @@ var chat = function () {
     // Functions for WebSockets
     // Start event source for current Room ID
     function startSession(id, token = "", resolve = console.log) {
-        conn = new WebSocket("ws://" + document.location.host + "/chats/" + id + "/ws/subscribe");
+        //conn = new WebSocket("ws://" + document.location.host + "/chats/" + id + "/ws/subscribe");
+        conn = new ReconnectingWebSocket("ws://" + document.location.host + "/chats/" + id + "/ws/subscribe");
         // Web Socket is opened
         conn.onopen = function () {
             console.log('Entered session');
@@ -90,8 +91,7 @@ var chat = function () {
             appendLog(item);
             console.log("connection closed:", code, reason)
         };
-
-        conn.addEventListener('error', function (event) {
+        conn.onerror = function (event){
             console.log("WebSocket Error:", event);
             switch (event.target.readyState) {
                 case WebSocket.CONNECTING:
@@ -101,10 +101,25 @@ var chat = function () {
                 case WebSocket.CLOSED:
                     console.log('Connection failed, will try to re-register in ' + (delay / 1000.0) + "seconds");
                     delay += 500;
-                    setTimeout(function () { startSession(ID, Token) }, delay);
+                    setTimeout(function () { startSession(id, token) }, delay);
+                    break;
+            }
+        }
+ /*       conn.addEventListener('error', function (event) {
+            console.log("WebSocket Error:", event);
+            switch (event.target.readyState) {
+                case WebSocket.CONNECTING:
+                    console.log('Reconnecting...');
+                    break;
+
+                case WebSocket.CLOSED:
+                    console.log('Connection failed, will try to re-register in ' + (delay / 1000.0) + "seconds");
+                    delay += 500;
+                    setTimeout(function () { startSession(id, token) }, delay);
                     break;
             }
         }, false);
+*/
         resolve(conn);
     }
     // Send notification to server

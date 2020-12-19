@@ -10,10 +10,6 @@ import (
 )
 
 func main() {
-	// handle static assets by routing requests from /static/ => "public" directory
-	staticDir := "/static/"
-	handler.Mux.PathPrefix(staticDir).Handler(http.StripPrefix(staticDir, http.FileServer(http.Dir(handler.Config.Static))))
-
 	address := handler.Config.Address
 	// If port env var is set, PaaS platform (Heroku) is being used
 	if port, ok := os.LookupEnv("PORT"); ok {

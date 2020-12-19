@@ -2,6 +2,7 @@ package data
 
 import (
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -22,14 +23,17 @@ type Broker struct {
 
 	// Unregister requests from Clients.
 	CloseClient chan *Client
+
+	RoomID int
 }
 
-func newBroker() *Broker {
+func newBroker(ID int) *Broker {
 	return &Broker{
 		Notification: make(chan []byte),
 		OpenClient:   make(chan *Client),
 		CloseClient:  make(chan *Client),
 		Clients:      make(map[*Client]bool),
+		RoomID:       ID,
 	}
 }
 
@@ -47,6 +51,8 @@ func (br *Broker) listen() {
 			if _, ok := br.Clients[c]; ok {
 				delete(br.Clients, c)
 				close(c.Send)
+				cr, _ := CS.Retrieve(strconv.Itoa(br.RoomID))
+				cr.RemoveClient(c.Username)
 				log.Printf("Removed client. %d registered Clients", len(br.Clients))
 			}
 		case evt := <-br.Notification:
