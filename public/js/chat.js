@@ -42,7 +42,7 @@ var chat = function () {
     // Start WebSocket Connection
     new Promise(
         function (resolve) {
-            startSession(ID, Token, resolve);
+            startSession(ID, resolve);
         }).then(function (result) {
             conn = result;
             // Handle msg send events
@@ -60,13 +60,25 @@ var chat = function () {
                     endSession();
                 }
             }
+            document.getElementById('join-chats-btn').onclick = function () {
+                try{
+                    endSession();
+                } catch{}
+                setInnerContent('/chats');
+            };
+
         });
 
     // Functions for WebSockets
     // Start event source for current Room ID
-    function startSession(id, token = "", resolve = console.log) {
-        //conn = new WebSocket("ws://" + document.location.host + "/chats/" + id + "/ws/subscribe");
-        conn = new ReconnectingWebSocket("ws://" + document.location.host + "/chats/" + id + "/ws/subscribe");
+    function startSession(id, resolve = console.log) {
+        if (Token != "") {
+            conn = new WebSocket("ws://" + document.location.host + "/chats/" + id + "/ws", Token);
+            console.log("Opening websocket with token: " + Token);
+        } else {
+            conn = new WebSocket("ws://" + document.location.host + "/chats/" + id + "/ws");
+            console.log("Opening websocket without token");
+        }
         // Web Socket is opened
         conn.onopen = function () {
             console.log('Entered session');
@@ -91,7 +103,7 @@ var chat = function () {
             appendLog(item);
             console.log("connection closed:", code, reason)
         };
-        conn.onerror = function (event){
+        conn.onerror = function (event) {
             console.log("WebSocket Error:", event);
             switch (event.target.readyState) {
                 case WebSocket.CONNECTING:
@@ -101,25 +113,10 @@ var chat = function () {
                 case WebSocket.CLOSED:
                     console.log('Connection failed, will try to re-register in ' + (delay / 1000.0) + "seconds");
                     delay += 500;
-                    setTimeout(function () { startSession(id, token) }, delay);
+                    setTimeout(function () { startSession(id, resolve) }, delay);
                     break;
             }
         }
- /*       conn.addEventListener('error', function (event) {
-            console.log("WebSocket Error:", event);
-            switch (event.target.readyState) {
-                case WebSocket.CONNECTING:
-                    console.log('Reconnecting...');
-                    break;
-
-                case WebSocket.CLOSED:
-                    console.log('Connection failed, will try to re-register in ' + (delay / 1000.0) + "seconds");
-                    delay += 500;
-                    setTimeout(function () { startSession(id, token) }, delay);
-                    break;
-            }
-        }, false);
-*/
         resolve(conn);
     }
     // Send notification to server
@@ -129,7 +126,7 @@ var chat = function () {
     }
     // Close WebSocket Connection
     function endSession() {
-        sendClientEvent("leave", username, id, "", color);
+        // TODO: Check conn is not closed already
         conn.close();
     }
     // Submit a chat message to broadcast

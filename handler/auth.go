@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -172,30 +171,33 @@ func authorize(h errHandler) errHandler {
 }
 
 // Strips 'Token' or 'Bearer' prefix from token string
-func stripTokenPrefix(tok string) (string, error) {
+func stripTokenPrefix(tok string) string {
 	// split token to 2 parts
 	tokenParts := strings.Split(tok, " ")
 	if len(tokenParts) < 2 {
-		return tokenParts[0], nil
+		return tokenParts[0]
 	}
-	return tokenParts[1], nil
+	return tokenParts[1]
 }
 
 // extractJwtToken extracts token from Authorization header
 func extractJwtToken(req *http.Request) (string, error) {
-	tokenString := req.Header.Get("Authorization")
+	// Strip "Bearer" from Authorization: Bearer <token>
+	tokenString := stripTokenPrefix(req.Header.Get("Authorization"))
 	if tokenString == "" {
-		return "", fmt.Errorf("Could not find token")
+		// Want to check
+		tokenString = req.Header.Get("Sec-WebSocket-Protocol")
 	}
-	tokenString, err := stripTokenPrefix(tokenString)
-	if err != nil {
-		return "", err
+
+	if tokenString == "" {
+		return "", &data.APIError{Code: 403, Field: "token"}
 	}
+
 	return tokenString, nil
 }
 
 // Generate unique key should ensure that the generated key is unique for a given room
-// TODO: Enforce providing user ID to make this unique per user in room?
+// This key does not need to be unique per user necessarily since the token will be unique
 func generateUniqueKey(cr *data.ChatRoom) string {
 	return secretKey + cr.Password + strconv.Itoa(cr.ID)
 }

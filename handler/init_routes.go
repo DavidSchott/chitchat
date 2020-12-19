@@ -57,9 +57,9 @@ func registerHandlers() *mux.Router {
 	// Load chat box [HTML]
 	api.HandleFunc("/chats/{titleOrID}/chatbox", logConsole(chatbox)).Methods(http.MethodGet)
 
-	// Chat Sessions (initialize WebSocket)
+	// Chat Sessions (WebSocket)
 	// Do not authorize since you can't add headers to WebSockets. We will do authorization when actually receiving chat messages
-	api.Handle("/chats/{titleOrID}/ws/subscribe", errHandler(wsInitHandler)).Methods(http.MethodGet)
+	api.Handle("/chats/{titleOrID}/ws", errHandler(authorize(webSocketHandler))).Methods(http.MethodGet)
 
 	// Chat Sessions (WebSocket events)
 	//api.Handle("/chats/{titleOrID}/ws/broadcast", errHandler(authorize(wsEventHandler))).Methods(http.MethodPost)
