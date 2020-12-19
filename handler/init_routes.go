@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/DavidSchott/chitchat/data"
 	"github.com/gorilla/mux"
@@ -25,8 +24,7 @@ var Config Configuration
 
 // Mux contains all the HTTP handlers
 var (
-	Mux         *mux.Router
-	waitTimeout = time.Duration(Config.ReadTimeout * int64(time.Minute))
+	Mux *mux.Router
 )
 
 // registerHandlers will register all HTTP handlers
@@ -60,9 +58,6 @@ func registerHandlers() *mux.Router {
 	// Chat Sessions (WebSocket)
 	// Do not authorize since you can't add headers to WebSockets. We will do authorization when actually receiving chat messages
 	api.Handle("/chats/{titleOrID}/ws", errHandler(authorize(webSocketHandler))).Methods(http.MethodGet)
-
-	// Chat Sessions (WebSocket events)
-	//api.Handle("/chats/{titleOrID}/ws/broadcast", errHandler(authorize(wsEventHandler))).Methods(http.MethodPost)
 
 	api.HandleFunc("/favicon.ico", faviconHandler)
 

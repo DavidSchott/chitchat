@@ -45,8 +45,15 @@ func (c *Client) ReadPump() {
 		c.Conn.Close()
 	}()
 	c.Conn.SetReadLimit(maxMessageSize)
-	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.Conn.SetPongHandler(func(string) error { c.Conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	if err := c.Conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+		log.Println("Error setting pongWait read deadline", err.Error())
+	}
+	c.Conn.SetPongHandler(func(string) error {
+		if err := c.Conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+			log.Println("Error setting pongWait read deadline", err.Error())
+		}
+		return nil
+	})
 	for {
 		mt, data, err := c.Conn.ReadMessage()
 		if err != nil {
@@ -103,10 +110,14 @@ func (c *Client) WritePump() {
 	for {
 		select {
 		case message, ok := <-c.Send:
-			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.Conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				log.Println("Error setting writeWait write deadline", err.Error())
+			}
 			if !ok {
-				// The hub closed the channel.
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				// The broker closed the channel.
+				if err := c.Conn.WriteMessage(websocket.CloseMessage, []byte{}); err != nil {
+					log.Println("Error writing WebSocket closing message:", err.Error())
+				}
 				return
 			}
 
@@ -114,19 +125,25 @@ func (c *Client) WritePump() {
 			if err != nil {
 				return
 			}
-			w.Write(message)
+			if _, err := w.Write(message); err != nil {
+				log.Printf("Error writing message. Error: %s", err.Error())
+			}
 
 			// Add queued chat messages to the current websocket message.
 			n := len(c.Send)
 			for i := 0; i < n; i++ {
-				w.Write(<-c.Send)
+				if _, err := w.Write(<-c.Send); err != nil {
+					log.Printf("Error writing sent message. Error: %s", err.Error())
+				}
 			}
 
 			if err := w.Close(); err != nil {
 				return
 			}
 		case <-ticker.C:
-			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.Conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				log.Println("Error setting writeWait write deadline", err.Error())
+			}
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}

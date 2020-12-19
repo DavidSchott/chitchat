@@ -7,3 +7,6 @@
 
   ##### v0.3
   Added authorization using JWT
+
+  ##### v0.4
+  Chatting is now WebSocket-based instead of using server-sent events 

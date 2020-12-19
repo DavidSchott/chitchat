@@ -89,20 +89,19 @@ Otherwise an error will be returned if the secret is missing, does not match the
 For added convenience, it is also possible to request a new token before the current one expires by sending an authorized request to `/chats/<room_id>/token/renew`.
 
 ## Chatting ##
-Chatting is implemented using server-sent events (SSE) as a step-by-step procedure. Any endpoints that mandate `text/event-stream` content type as opposed to JSON are behind the `chats/<room_id>/sse/` subpath. The steps are:
+Chatting is implemented using WebSockets through the `chats/<room_id>/ws` endpoint. The steps are:
   1. Send a HTTP POST to `/chats/<room_id>/token` to obtain [authorization](#authorization) (only required for private and hidden rooms)
-  2. Subscribe to chat event stream via HTTP GET request to `/chats/<room_id>/sse/subscribe`
-  3. Send a HTTP POST to `/chats/<room_id>/sse/broadcast` to broadcast messages in the following format:
+  2. Open WebSocket to `/chats/<room_id>/ws` with the auth token set in the `Sec-WebSocket-Protocol` header
+  3.  Broadcast messages in the following format:
   ```
   {
       "event_type": "join/leave/send",
       "name": "my-username",
       "color": "color of chat message",
-      "msg": "message to send",
-      "secret": "password" # (only needed for private or secret rooms token request to /chats/<room_id>/token)
+      "msg": "message to send"
   }
   ```
-  It is recommended to send a `join` and `leave` event broadcast when joining/leaving chat rooms so everyone else is notified.
+  It is recommended to send a `join` event broadcast when joining chat rooms so everyone else is notified. The server will send a "leave" event upon disconnect
   4. Send a HTTP GET to `/chats/<room_id>/token/renew` to renew the authorization token before expiration.
 
 
@@ -114,18 +113,4 @@ Chatting is implemented using server-sent events (SSE) as a step-by-step procedu
       * Hide password field showing the salted hash from public-facing API response?
   3. Generate proper UUIDs instead of integers as IDs?
   4. Need to store chat server data models in a DB, right now everything is stored in memory to allow for rapid development and testing
-  5. Need to improve reliability of chatting sessions
-      * Adding heartbeat pings as keep-alives
-      * Can also move to WebSockets instead of SSE
-  6. Switch to a proper logging library such as logrus
-
-
-  ### Helpful links
-  https://github.com/gomodule/redigo
-  https://github.com/gorilla/websocket/blob/master/examples/chat/client.go
-https://devcenter.heroku.com/articles/go-websockets 
-  https://github.com/joewalnes/reconnecting-websocket
-https://scotch.io/bar-talk/build-a-realtime-chat-server-with-go-and-websockets
-
-  Security: https://stackoverflow.com/questions/4361173/http-headers-in-websockets-client-api
-  https://devcenter.heroku.com/articles/websocket-security
+  5. Switch to a proper logging library such as logrus

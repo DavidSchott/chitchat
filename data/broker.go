@@ -52,7 +52,9 @@ func (br *Broker) listen() {
 				delete(br.Clients, c)
 				close(c.Send)
 				cr, _ := CS.Retrieve(strconv.Itoa(br.RoomID))
-				cr.RemoveClient(c.Username)
+				if err := cr.RemoveClient(c.Username); err != nil {
+					log.Printf("Error removing client: %s from room %s. Error: %s", c.Username, cr.Title, err.Error())
+				}
 				log.Printf("Removed client. %d registered Clients", len(br.Clients))
 			}
 		case evt := <-br.Notification:
