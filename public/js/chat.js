@@ -2,13 +2,13 @@ var username = "";
 var password = "";
 var msg;
 var log;
-var stream;
+var conn;
 var ID;
 var Token = "";
 var validNavigation = false;
 
 $(document).ready(function () {
-    ID =  window.location.pathname.split("/chats/").pop().slice(0,-9) // Slice off "entrance from" /chats/<id>/entrance
+    ID = window.location.pathname.split("/chats/").pop().slice(0, -9) // Slice off "entrance from" /chats/<id>/entrance
     msg = document.getElementById("msg");
     log = document.getElementById("chat-box");
 });
@@ -17,159 +17,131 @@ var chat = function () {
     msg = document.getElementById("msg");
     log = document.getElementById("chat-box");
     var delay = 500;
-    // Check if SSE isn't supported
-    if (typeof (EventSource) == "undefined") {
-        var item = document.createElement("div");
-        item.innerHTML = "<b>Sorry, your browser does not support Server-Sent Events!" + "</b>";
-        appendLog(item);
-        // TODO: Use WebSockets or PolyFill instead?
-    }
-    else {
-        // Start EventSource
-        register(ID, Token);
-        window.onbeforeunload = function () {
-            if (!validNavigation) {
-                endSession();
-            }
+    // Attach the event keypress to exclude the F5 refresh
+    $(document).bind('keypress', function (e) {
+        if (e.keyCode == 116) {
+            validNavigation = true;
         }
-        // Attach the event keypress to exclude the F5 refresh
-        $(document).bind('keypress', function (e) {
-            if (e.keyCode == 116) {
-                validNavigation = true;
-            }
-        });
+    });
 
-        // Attach the event click for all links in the page
-        $("a").bind("click", function () {
-            validNavigation = true;
-        });
+    // Attach the event click for all links in the page
+    $("a").bind("click", function () {
+        validNavigation = true;
+    });
 
-        // Attach the event submit for all forms in the page
-        $("form").bind("submit", function () {
-            validNavigation = true;
-        });
+    // Attach the event submit for all forms in the page
+    $("form").bind("submit", function () {
+        validNavigation = true;
+    });
 
-        // Attach the event click for all inputs in the page
-        $("input[type=submit]").bind("click", function () {
-            validNavigation = true;
-        });
+    // Attach the event click for all inputs in the page
+    $("input[type=submit]").bind("click", function () {
+        validNavigation = true;
+    });
 
-        // Handle msg send events
-        document.getElementById("send-btn").onclick = send;
-        // Press enter to send chat
-        msg.onkeydown = function (evt) {
-            if (evt.which == 13 || evt.keyCode == 13) {
-                send();
-                return false;
-            }
-            return true;
-        }
-        //testChat();
-
-        // Functions for Event sources
-        // Start event source for current Room ID
-        function startSession(id,token) {
-            if (token.length > 1){
-            var stream = new EventSourcePolyfill("/chats/"+ id +"/sse/subscribe", {
-                headers: {
-                  'Authorization': "Bearer " + token
+    // Start WebSocket Connection
+    new Promise(
+        function (resolve) {
+            startSession(ID, resolve);
+        }).then(function (result) {
+            conn = result;
+            // Handle msg send events
+            document.getElementById("send-btn").onclick = submit;
+            // Press enter to send chat
+            msg.onkeydown = function (evt) {
+                if (evt.which == 13 || evt.keyCode == 13) {
+                    submit();
+                    return false;
                 }
-              });
-            } else{
-                var stream = new EventSource("/chats/"+ id +"/sse/subscribe");
+                return true;
             }
-            //stream = new EventSource("/chats/"+ id +"/sse/subscribe");
-            sendClientEvent("join", username, id, "", color);
-            return stream;
-        }
-        // Stop event source
-        function endSession() {
-            stream.close();
-            sendClientEvent("leave", username, id, "", color);
-        }
-        // Start session and notify onopen
-        function register(id, token) {
-            stream = startSession(id, token)
-            // Event Source is opened
-            stream.onopen = function () {
-                console.log('Entered session');
-                // TODO: Use send to announce?
-                // TODO: Remove Modal once joined
-                // TODO: Display errors
-            };
-
-            // Received server notification (chat message)
-            stream.onmessage = function (evt) {
-                json = JSON.parse(evt.data);
-                var message = json.msg;
-                var usr = json.name;
-                var color = json.color;
-                pushBalon(message, usr, new Date().toLocaleTimeString(), color);
-            };
-            /* TODO: Implement proper binding
-            stream.addEventListener('join', function (e) {
-                var data = JSON.parse(e.data);
-                console.log('User login:' + data.username);
-            }, false);
-            stream.addEventListener('leave', function (e) {
-                var data = JSON.parse(e.data);
-                console.log('User login:' + data.username);
-            }, false);
-            */
-
-            // Server connection closed
-            stream.onclose = function (code, reason) {
-                var item = document.createElement("div");
-                item.innerHTML = "<b>Connection closed.</b>";
-                appendLog(item);
-                console.log("connection closed:", code,reason)
-            };
-
-            stream.addEventListener('error', function (event) {
-                console.log("Streaming Error:", event);
-                switch (event.target.readyState) {
-                    case EventSource.CONNECTING:
-                        console.log('Reconnecting...');
-                        break;
-
-                    case EventSource.CLOSED:
-                        console.log('Connection failed, will try to re-register in ' +(delay/1000.0) + "seconds");
-                        delay += 500;
-                        setTimeout(function() {register(ID, Token)},delay);
-                        //register(ID);
-                        break;
+            window.onbeforeunload = function () {
+                if (!validNavigation) {
+                    endSession();
                 }
-
-            }, false);
-        }
-        // Send notification to server
-        function sendClientEvent(action, user, room, message = "", col = "") {
-            broadcast = JSON.stringify({ event_type: action, name: user, room_id: parseInt(room), color: col, msg: message })
-            $.post('/chats/'+room+'/sse/broadcast', broadcast, "json")
-                .done(function (data) {
-                    if (data.hasOwnProperty('error')) {
-                        console.log("error sending client event", broadcast, data)
-                    }
-                })
-                .fail(function (xhr) {
-                    console.log("Failed sending client event:", broadcast);
-                });
-        }
-
-        // Submit a chat message to broadcast
-        function send() {
-            if (!stream) {
-                return false;
             }
-            if (!msg.value) {
-                return false;
-            }
-            sendClientEvent("send", username, ID, msg.value, color);
-            msg.value = "";
-            return false;
+            document.getElementById('join-chats-btn').onclick = function () {
+                try{
+                    endSession();
+                } catch{}
+                setInnerContent('/chats');
+            };
+
+        });
+
+    // Functions for WebSockets
+    // Start event source for current Room ID
+    function startSession(id, resolve = console.log) {
+        if (Token != "") {
+            conn = new WebSocket("wss://" + document.location.host + "/chats/" + id + "/ws", Token);
+            console.log("Opening websocket with token: " + Token);
+        } else {
+            conn = new WebSocket("wss://" + document.location.host + "/chats/" + id + "/ws");
+            console.log("Opening websocket without token");
+        }
+        // Web Socket is opened
+        conn.onopen = function () {
+            console.log('Entered session');
+            sendClientEvent("join", username, ID, "", color);
+            // TODO: Use send to announce?
+            // TODO: Remove Modal once joined
+            // TODO: Display errors
         };
+        // Received server notification (chat message)
+        conn.onmessage = function (evt) {
+            json = JSON.parse(evt.data);
+            var message = json.msg;
+            var usr = json.name;
+            var color = json.color;
+            pushBalon(message, usr, new Date().toLocaleTimeString(), color); // TODO: Use the actual time?
+        };
+
+        // Server connection closed
+        conn.onclose = function (code, reason) {
+            var item = document.createElement("div");
+            item.innerHTML = "<b>Connection closed.</b>";
+            appendLog(item);
+            console.log("connection closed:", code, reason)
+        };
+        conn.onerror = function (event) {
+            console.log("WebSocket Error:", event);
+            switch (event.target.readyState) {
+                case WebSocket.CONNECTING:
+                    console.log('Reconnecting...');
+                    break;
+
+                case WebSocket.CLOSED:
+                    console.log('Connection failed, will try to re-register in ' + (delay / 1000.0) + "seconds");
+                    delay += 500;
+                    setTimeout(function () { startSession(id, resolve) }, delay);
+                    break;
+            }
+        }
+        resolve(conn);
+    }
+    // Send notification to server
+    function sendClientEvent(action, user, room, message = "", col = "") {
+        var evt = JSON.stringify({ event_type: action, name: user, room_id: parseInt(room), color: col, msg: message })
+        conn.send(evt);
+    }
+    // Close WebSocket Connection
+    function endSession() {
+        conn.close();
+    }
+    // Submit a chat message to broadcast
+    function submit() {
+        if (!conn) {
+            return false;
+        }
+        if (!msg.value) {
+            return false;
+        }
+        sendClientEvent("send", username, ID, msg.value, color);
+        msg.value = "";
+        return false;
     }
 }
+
 // Chat-related cosmetic functions
 function appendLog(item) {
     var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
@@ -267,7 +239,7 @@ function loadChat() {
 
     new Promise(
         function (resolve, reject) {
-            setInnerContent("/chats/"+ ID + "/chatbox",'', resolve, reject);
+            setInnerContent("/chats/" + ID + "/chatbox", '', resolve, reject);
         })
         .then(function (result) {
             if (result.outcome) {
@@ -278,7 +250,7 @@ function loadChat() {
             // Log the rejection reason (Room is invalid')
             function (outcome) {
                 console.log(outcome);
-                displayAlert(outcome.reason);
+                //displayAlert(outcome.reason);
             });
 }
 
@@ -306,8 +278,8 @@ function userExists(user, roomID, resolve = console.log, reject = console.log) {
 }
 
 function checkPassword(password, user, resolve = console.log, reject = console.log) {
-    request_token = JSON.stringify({ room_id: parseInt(ID), secret: password, name:user })
-    $.post('/chats/'+ ID + '/token', request_token, "json")
+    request_token = JSON.stringify({ room_id: parseInt(ID), secret: password, name: user })
+    $.post('/chats/' + ID + '/token', request_token, "json")
         .done(function (data) {
             if (data.hasOwnProperty('error')) {
                 // Authorization error!
@@ -315,10 +287,10 @@ function checkPassword(password, user, resolve = console.log, reject = console.l
             } else {
                 // Success! Store token
                 console.log("Logged in successfully", data);
-                if (data.token){
+                if (data.token) {
                     storeToken(data.token);
                 }
-                resolve(JSON.stringify({ outcome: "success", token: data.token}));
+                resolve(JSON.stringify({ outcome: "success", token: data.token }));
             }
         })
         .catch(
@@ -333,14 +305,14 @@ function checkPassword(password, user, resolve = console.log, reject = console.l
 }
 
 function storeToken(token) {
-    if (token.length > 1){
-    Token = token
-    $.ajaxSetup({
-        headers: {
-            "Authorization": "Bearer " + token
-           }
-       });
-       // TODO: Store token in session storage or as a cookie?
+    if (token.length > 1) {
+        Token = token
+        $.ajaxSetup({
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+        // TODO: Store token in session storage or as a cookie?
     }
 }
 
@@ -378,21 +350,21 @@ function validateChatEntrance() {
             // Define new promise to retrieve room
             new Promise(
                 function (resolve, reject) {
-                    checkPassword(passwordDOM.value,userDOM.value, resolve, reject);
+                    checkPassword(passwordDOM.value, userDOM.value, resolve, reject);
                 })
                 .then(function (pwd) {
                     // Success! All conditions passed
-                    if (valid){
+                    if (valid) {
                         loadChat();
                     }
-                    if (passwordDOM.value != undefined){
+                    if (passwordDOM.value != undefined) {
                         passwordDOM.setCustomValidity("");
                     }
 
                 }).catch(function (reason) {
                     console.log(reason);
-                        passwordDOM.setCustomValidity("invalid-password");
-                        form.classList.add('was-validated');
+                    passwordDOM.setCustomValidity("invalid-password");
+                    form.classList.add('was-validated');
                 });
         })
         .catch(function (issue) {
@@ -402,7 +374,7 @@ function validateChatEntrance() {
             // Define new promise to retrieve room
             new Promise(
                 function (resolve, reject) {
-                    checkPassword(passwordDOM.value,userDOM.value, resolve, reject);
+                    checkPassword(passwordDOM.value, userDOM.value, resolve, reject);
                 }).then(function (data) {
                     // Success! Password ok
                     passwordDOM.setCustomValidity("");

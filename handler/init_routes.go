@@ -13,6 +13,7 @@ import (
 // Configuration stores config info of server
 type Configuration struct {
 	Address      string
+	RedisURL     string
 	ReadTimeout  int64
 	WriteTimeout int64
 	Static       string
@@ -22,20 +23,18 @@ type Configuration struct {
 var Config Configuration
 
 // Mux contains all the HTTP handlers
-var Mux *mux.Router
+var (
+	Mux *mux.Router
+)
 
 // registerHandlers will register all HTTP handlers
 func registerHandlers() *mux.Router {
 	api := mux.NewRouter()
-	// TODO: Uncomment again in prod
-	//api := router.Host(Config.Address).Subrouter()
 	// index
 	api.HandleFunc("/", logConsole(index))
-
-	// Random junk for experimentation
-	//api.Handle("/test", errHandler(test))
-	// test error
-	//api.HandleFunc("/err", logConsole(err))
+	// handle static assets by routing requests from /static/ => "public" directory
+	staticDir := "/static/"
+	api.PathPrefix(staticDir).Handler(http.StripPrefix(staticDir, http.FileServer(http.Dir(Config.Static))))
 
 	//REST-API for chat room [JSON]
 	api.Handle("/chats", errHandler(handlePost)).Methods(http.MethodPost)
@@ -53,14 +52,14 @@ func registerHandlers() *mux.Router {
 	// Check password matches room
 	api.Handle("/chats/{titleOrID}/token/renew", errHandler(renewToken)).Methods(http.MethodGet)
 
-	// Load chat box
+	// Load chat box [HTML]
 	api.HandleFunc("/chats/{titleOrID}/chatbox", logConsole(chatbox)).Methods(http.MethodGet)
 
-	// Chat Sessions (init)
-	api.HandleFunc("/chats/{titleOrID}/sse/subscribe", checkStreamingSupport(errHandler(authorize(sseHandler)))).Methods(http.MethodGet)
+	// Chat Sessions (WebSocket)
+	// Do not authorize since you can't add headers to WebSockets. We will do authorization when actually receiving chat messages
+	api.Handle("/chats/{titleOrID}/ws", errHandler(authorize(webSocketHandler))).Methods(http.MethodGet)
 
-	// Chat Sessions (Client sent events)
-	api.HandleFunc("/chats/{titleOrID}/sse/broadcast", checkStreamingSupport(errHandler(authorize(sseActionHandler)))).Methods(http.MethodPost)
+	api.HandleFunc("/favicon.ico", faviconHandler)
 
 	// Error page
 	api.HandleFunc("/err", logConsole(handleError)).Methods(http.MethodGet)
@@ -69,11 +68,11 @@ func registerHandlers() *mux.Router {
 
 func init() {
 	loadConfig()
-	loadLog()
 	loadEnvs()
-	Mux = registerHandlers()
+	loadLog()
 	// initialize chat server
 	data.CS.Init()
+	Mux = registerHandlers()
 }
 
 func loadLog() {
@@ -108,4 +107,9 @@ func loadEnvs() {
 	if key, ok := os.LookupEnv("SECRET_KEY"); ok {
 		secretKey = key
 	}
+}
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	//w.Header().Set("Content-Type", "image/x-icon")
+	//w.Header().Set("Cache-Control", "public, max-age=7776000")
+	http.ServeFile(w, r, "public/img/favicon.ico")
 }

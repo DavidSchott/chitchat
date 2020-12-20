@@ -26,6 +26,7 @@ import (
   - 304 = unauthorized
   - 305 = unsupported client device
   - 306 = invalid signing method
+
 -40* = token errors
   - 401 = Invalid signature
   - 402 = Unauthorized signing method
