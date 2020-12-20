@@ -26,8 +26,8 @@ type ChatEvent struct {
 	Timestamp time.Time `json:"time,omitempty"`
 }
 
-// validateEvent so that we know it's a valid JSON representation of Chat event
-func validateEvent(data []byte) (ChatEvent, error) {
+// ValidateEvent ensures data is a valid JSON representation of Chat Event and can be parsed as such
+func ValidateEvent(data []byte) (ChatEvent, error) {
 	var evt ChatEvent
 
 	if err := json.Unmarshal(data, &evt); err != nil {

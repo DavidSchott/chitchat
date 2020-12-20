@@ -19,17 +19,19 @@ func p(a ...interface{}) {
 	fmt.Println(a...)
 }*/
 
-// for logging
+// Info will log information with "INFO" prefix to logger
 func Info(args ...interface{}) {
 	logger.SetPrefix("INFO ")
 	logger.Println(args...)
 }
 
+// Danger will log information with "ERROR" prefix to logger
 func Danger(args ...interface{}) {
 	logger.SetPrefix("ERROR ")
 	logger.Println(args...)
 }
 
+// Warning will log information with "WARNING" prefix to logger
 func Warning(args ...interface{}) {
 	logger.SetPrefix("WARNING ")
 	logger.Println(args...)

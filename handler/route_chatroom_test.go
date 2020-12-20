@@ -34,11 +34,22 @@ func setUp() {
 	}); err != nil {
 		Danger("Error setting up tests", err.Error())
 	}
+	if err := data.CS.Add(&data.ChatRoom{
+		Title:       "Public Test Chat",
+		Description: "This is the public chat!",
+		Type:        "public",
+	}); err != nil {
+		Danger("Error setting up tests", err.Error())
+	}
 }
 
 func tearDown() {
 	cr, _ := data.CS.Retrieve("2")
 	if err := data.CS.Delete(cr); err != nil {
+		Danger("Error tearing down tests", err.Error())
+	}
+	cr2, _ := data.CS.Retrieve("3")
+	if err := data.CS.Delete(cr2); err != nil {
 		Danger("Error tearing down tests", err.Error())
 	}
 }
@@ -88,12 +99,12 @@ func TestHandlePost(t *testing.T) {
 				if err := json.Unmarshal(writer.Body.Bytes(), &res); err != nil {
 					t.Fatal("Error parsing", writer.Body.String(), err.Error())
 				}
-				matchConditions = assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID > 1)
+				matchConditions = assertTrue(t, res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID > 1)
 			} else {
 				if err := json.Unmarshal(writer.Body.Bytes(), &failedOutcome); err != nil {
 					t.Fatal("Error parsing", writer.Body.String(), err.Error())
 				}
-				matchConditions = assertTrue(!failedOutcome.Status, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
+				matchConditions = assertTrue(t, !failedOutcome.Status, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
 			}
 
 			// TODO: Check all fields
@@ -146,7 +157,7 @@ func TestHandleGet(t *testing.T) {
 					matchConditions = false
 				}
 				// Check error return code is as expected
-				matchConditions = assertTrue(failOutcome.Error.Code == 101, !failOutcome.Status)
+				matchConditions = assertTrue(t, failOutcome.Error.Code == 101, !failOutcome.Status)
 			}
 			// If assumed test checks fail
 			if !matchConditions {
@@ -169,9 +180,9 @@ func TestHandlePut(t *testing.T) {
 	}{
 		{"1", "default chat room", "renamed", "public", true, 200, 0},
 		{"public room", "public chat renamed", "renamed", "public", true, 200, 0},
-		{"4", "private room renamed", "renamed", "private", true, 200, 0},
-		{"4", "private room renamed failure", "bad password", "private", false, 403, 403},
-		{"5", "hidden room renamed", "renamed", "hidden", true, 200, 0},
+		{"5", "private room renamed", "renamed", "private", true, 200, 0},
+		{"5", "private room renamed failure", "bad password", "private", false, 403, 403},
+		{"6", "hidden room renamed", "renamed", "hidden", true, 200, 0},
 	}
 	var res data.ChatRoom
 	var failedOutcome data.Outcome
@@ -190,7 +201,7 @@ func TestHandlePut(t *testing.T) {
 			request, _ := http.NewRequest("PUT", fmt.Sprintf("/chats/%s", tc.titleOrID), requestBody)
 			request.Header.Set("Content-Type", "application/json")
 			if cr.Type != data.PublicRoom {
-				setJWTHeaders(request, tc.titleOrID, tc.expectedOutcome)
+				setJWTHeaders(t, request, tc.titleOrID, tc.expectedOutcome)
 			}
 			// Send request
 			router.ServeHTTP(writer, request)
@@ -202,12 +213,12 @@ func TestHandlePut(t *testing.T) {
 				if err := json.Unmarshal(writer.Body.Bytes(), &res); err != nil {
 					t.Fatal("Error parsing", writer.Body.String(), err.Error())
 				}
-				matchConditions = assertTrue(res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID >= 1)
+				matchConditions = assertTrue(t, res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID >= 1)
 			} else {
 				if err := json.Unmarshal(writer.Body.Bytes(), &failedOutcome); err != nil {
 					t.Fatal("Error parsing", writer.Body.String(), err.Error())
 				}
-				matchConditions = assertTrue(!failedOutcome.Status, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
+				matchConditions = assertTrue(t, !failedOutcome.Status, failedOutcome.Error.Code == tc.expectedAPIErrorCode)
 			}
 
 			// TODO: Check all fields
@@ -227,7 +238,7 @@ func TestHandleDelete(t *testing.T) {
 		{"1", 200, true},
 		{"public room", 200, true},
 		{"private room", 403, false},
-		{"4", 403, false},
+		{"5", 403, false},
 		{"private room", 200, true},
 		{"secret room", 200, true},
 		{"does not exist", 404, false},
@@ -243,7 +254,7 @@ func TestHandleDelete(t *testing.T) {
 			request, _ := http.NewRequest("DELETE", fmt.Sprintf("/chats/%s", tc.titleOrID), nil)
 			request.Header.Set("Content-Type", "application/json")
 			if tc.titleOrID != "does not exist" {
-				setJWTHeaders(request, tc.titleOrID, tc.expectedOutcome)
+				setJWTHeaders(t, request, tc.titleOrID, tc.expectedOutcome)
 			}
 			router.ServeHTTP(writer, request)
 			// Check assertions
@@ -264,7 +275,8 @@ func TestHandleDelete(t *testing.T) {
 	}
 }
 
-func assertTrue(vals ...bool) bool {
+func assertTrue(t *testing.T, vals ...bool) bool {
+	t.Helper()
 	allTrue := true
 	for _, val := range vals {
 		allTrue = allTrue && val

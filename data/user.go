@@ -24,7 +24,7 @@ const (
 // Client represents a user in a ChatRoom
 type Client struct {
 	Username     string    `json:"username"`
-	Color        string    `json:"color"` // Not being used due to possible connection failure...
+	Color        string    `json:"color"`
 	LastActivity time.Time `json:"last_activity"`
 	// The websocket Connection.
 	Conn *websocket.Conn `json:"-"`
@@ -37,7 +37,7 @@ type Client struct {
 // ReadPump pumps messages from the websocket connection to the broker.
 //
 // The application runs ReadPump in a per-connection goroutine. The application
-// ensures that there is at most one reader on a Connection by executing all
+// ensures that there is at most one reader on a connection by executing all
 // reads from this goroutine.
 func (c *Client) ReadPump() {
 	defer func() {
@@ -55,7 +55,7 @@ func (c *Client) ReadPump() {
 		return nil
 	})
 	for {
-		mt, data, err := c.Conn.ReadMessage()
+		mt, data, err := c.Conn.ReadMessage() // TODO: Switch to ReadJSON
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || err == io.EOF {
 				res, _ := json.Marshal(&ChatEvent{User: c.Username, Msg: fmt.Sprintf("%s has left the room.", c.Username), Color: c.Color})
@@ -66,7 +66,7 @@ func (c *Client) ReadPump() {
 		}
 		switch mt {
 		case websocket.TextMessage:
-			ce, err := validateEvent(data)
+			ce, err := ValidateEvent(data)
 			if err != nil {
 				log.Printf("Error parsing JSON ChatEvent: %v", err)
 				break
@@ -84,10 +84,15 @@ func (c *Client) ReadPump() {
 			case Subscribe:
 				// LastActivity will be populated in subscribe
 				c.subscribe(&ce)
-			default:
+			case Broadcast:
 				// Populate activity
 				c.Room.Clients[ce.User].LastActivity = ce.Timestamp
 				c.broadcast(&ce)
+			default:
+				// Populate activity
+				//c.Room.Clients[ce.User].LastActivity = ce.Timestamp
+				//c.broadcast(&ce)
+				log.Printf("Warning: unknown event type %s", ce.EventType)
 			}
 
 		default:
@@ -96,10 +101,10 @@ func (c *Client) ReadPump() {
 	}
 }
 
-// WritePump pumps messages from the hub to the websocket Connection.
+// WritePump pumps messages from the broker to the websocket connection.
 //
-// A goroutine running WritePump is started for each Connection. The
-// application ensures that there is at most one writer to a Connection by
+// A goroutine running WritePump is started for each connection. The
+// application ensures that there is at most one writer to a connection by
 // executing all writes from this goroutine.
 func (c *Client) WritePump() {
 	ticker := time.NewTicker(pingPeriod)

@@ -25,13 +25,19 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 	fmt.Println("ChitChat", version(), "started at", server.Addr)
-	if err := server.ListenAndServe(); err != nil {
-		fmt.Println("Error starting server", err.Error())
+	if _, exist := os.LookupEnv("PORT"); exist {
+		// TLS is already enabled on Heroku PaaS platform
+		if err := server.ListenAndServe(); err != nil {
+			fmt.Println("Error starting server", err.Error())
+		}
+	} else {
+		if err := server.ListenAndServeTLS("gencert/cert.pem", "gencert/key.pem"); err != nil {
+			// If TLS fails e.g. because certs are missing on CI test env, we will fallback to regular HTTP
+			if err := server.ListenAndServe(); err != nil {
+				fmt.Println("Error starting server", err.Error())
+			}
+		}
 	}
-	/* TLS is already enabled on Heroku PaaS platform, so this is commented out:
-	if err := server.ListenAndServeTLS("gencert/cert.pem", "gencert/key.pem"); err != nil {
-		fmt.Println("Error starting server", err.Error())
-	}*/
 }
 
 // version

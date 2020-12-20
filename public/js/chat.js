@@ -73,10 +73,10 @@ var chat = function () {
     // Start event source for current Room ID
     function startSession(id, resolve = console.log) {
         if (Token != "") {
-            conn = new WebSocket("ws://" + document.location.host + "/chats/" + id + "/ws", Token);
+            conn = new WebSocket("wss://" + document.location.host + "/chats/" + id + "/ws", Token);
             console.log("Opening websocket with token: " + Token);
         } else {
-            conn = new WebSocket("ws://" + document.location.host + "/chats/" + id + "/ws");
+            conn = new WebSocket("wss://" + document.location.host + "/chats/" + id + "/ws");
             console.log("Opening websocket without token");
         }
         // Web Socket is opened
