@@ -15,7 +15,7 @@ func handleRoom(w http.ResponseWriter, r *http.Request) (err error) {
 	if titleOrID, ok := queries["titleOrID"]; ok {
 		cr, err := data.CS.Retrieve(titleOrID)
 		if err != nil {
-			info("erroneous chats API request", r, err)
+			Info("erroneous chats API request", r, err)
 			return err
 		}
 		switch r.Method {
@@ -45,9 +45,9 @@ func handleGet(w http.ResponseWriter, r *http.Request, cr *data.ChatRoom) (err e
 	if err != nil {
 		return
 	}
-	info("retrieved chat room:", cr.Title)
+	Info("retrieved chat room:", cr.Title)
 	if _, err := w.Write(res); err != nil {
-		danger("Error writing", res)
+		Danger("Error writing", res)
 	}
 	return
 }
@@ -60,16 +60,16 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	len := r.ContentLength
 	body := make([]byte, len)
 	if _, err := r.Body.Read(body); err != nil {
-		danger("Error reading", r, err.Error())
+		Danger("Error reading", r, err.Error())
 	}
 	// create ChatRoom obj
 	var cr data.ChatRoom
 	if err = json.Unmarshal(body, &cr); err != nil {
-		warning("error encountered reading POST:", err.Error())
+		Warning("error encountered reading POST:", err.Error())
 		return err
 	}
 	if err = data.CS.Add(&cr); err != nil {
-		warning("error encountered adding chat room:", err.Error())
+		Warning("error encountered adding chat room:", err.Error())
 		return err
 	}
 	// Retrieve updated object
@@ -80,7 +80,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	res, _ := createdChatRoom.ToJSON()
 	w.WriteHeader(201)
 	if _, err := w.Write(res); err != nil {
-		danger("Error writing", res)
+		Danger("Error writing", res)
 	}
 	return
 }
@@ -92,14 +92,14 @@ func handlePut(w http.ResponseWriter, r *http.Request, currentChatRoom *data.Cha
 	len := r.ContentLength
 	body := make([]byte, len)
 	if _, err := r.Body.Read(body); err != nil {
-		danger("Error reading", r, err.Error())
+		Danger("Error reading", r, err.Error())
 	}
 	if err = json.Unmarshal(body, &cr); err != nil {
-		warning("error encountered updating chat room:", err.Error())
+		Warning("error encountered updating chat room:", err.Error())
 		return
 	}
 	if err = data.CS.Update(title, &cr); err != nil {
-		warning("error encountered updating chat room:", cr, err.Error())
+		Warning("error encountered updating chat room:", cr, err.Error())
 		return
 	}
 	// Retrieve updated object
@@ -107,10 +107,10 @@ func handlePut(w http.ResponseWriter, r *http.Request, currentChatRoom *data.Cha
 	if err != nil {
 		return err
 	}
-	info("updated chat room:", title)
+	Info("updated chat room:", title)
 	res, _ := modifiedChatRoom.ToJSON()
 	if _, err := w.Write(res); err != nil {
-		danger("Error writing", res)
+		Danger("Error writing", res)
 	}
 	return
 }
@@ -120,11 +120,11 @@ func handlePut(w http.ResponseWriter, r *http.Request, currentChatRoom *data.Cha
 func handleDelete(w http.ResponseWriter, r *http.Request, cr *data.ChatRoom) (err error) {
 	err = data.CS.Delete(cr)
 	if err != nil {
-		warning("error encountered deleting chat room:", err.Error())
+		Warning("error encountered deleting chat room:", err.Error())
 		return
 	}
 	// report on status
-	info("deleted chat room:", cr.Title)
+	Info("deleted chat room:", cr.Title)
 	ReportStatus(w, true, nil)
 	return
 }

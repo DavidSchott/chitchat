@@ -87,7 +87,7 @@ func TestRenewToken(t *testing.T) {
 			request, _ := http.NewRequest("GET", fmt.Sprintf("/chats/%s/token/renew", tc.roomID), nil)
 			request.Header.Set("Content-Type", "application/json")
 			if tc.roomID != "does not exist" && cr.Type != data.PublicRoom {
-				setJWTHeaders(request, tc.roomID, tc.expectedOutcome)
+				setJWTHeaders(t, request, tc.roomID, tc.expectedOutcome)
 			}
 			// Send request
 			router.ServeHTTP(writer, request)
@@ -116,7 +116,8 @@ func TestRenewToken(t *testing.T) {
 // Generates a token and sets it in the request Authorization HTTP header under Bearer scheme
 // If intendedValidity is set to false, this will set a faulty token
 // This should only be used as a band-aid to keep tests simple and independent for now
-func setJWTHeaders(r *http.Request, id string, intendedValidity bool) {
+func setJWTHeaders(t *testing.T, r *http.Request, id string, intendedValidity bool) {
+	t.Helper()
 	cr, _ := data.CS.Retrieve(id)
 	var myCr *data.ChatRoom = &data.ChatRoom{Password: cr.Password, ID: cr.ID, Title: cr.Title}
 	if !intendedValidity {

@@ -33,8 +33,8 @@ func (cs ChatServer) Init() {
 		Password:    "",
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
-		ID:          0,
-		Broker:      NewBroker(),
+		ID:          1,
+		Broker:      newBroker(1),
 		Clients:     make(map[string]*Client),
 	})
 }
@@ -42,9 +42,13 @@ func (cs ChatServer) Init() {
 func (cs ChatServer) push(cr *ChatRoom) {
 	// Update indices, create new session
 	*cs.Index++
+	// TODO: Generate UUIDs?
 	cr.ID = *cs.Index
 	cr.Clients = make(map[string]*Client)
 	cr.Type = strings.ToLower(cr.Type)
+	cr.Broker = newBroker(cr.ID)
+	// Start broker for rooms
+	go cr.Broker.listen()
 	// Push to chat server
 	cs.Rooms[strings.ToLower(cr.Title)] = cr
 	cs.RoomsID[cr.ID] = cr
@@ -137,7 +141,6 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 
 	cr.CreatedAt = time.Now()
 	cr.UpdatedAt = time.Now()
-	cr.Broker = NewBroker()
 	cs.push(cr)
 	return
 }

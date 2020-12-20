@@ -4,12 +4,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/DavidSchott/chitchat/blob/master/LICENSE)
 [![codecov](https://codecov.io/gh/DavidSchott/chitchat/branch/master/graph/badge.svg?token=G6AOS5QVHR)](https://codecov.io/gh/DavidSchott/chitchat)
 
-ChitChat is a simple chat app with basic features such as password protection and real-time communication.
+ChitChat is a simple chat app with basic features such as private rooms, authorization, and real-time messaging. 
+
+A live version of the current master branch is deployed to [daschott-chitchat.herokuapp.com](https://daschott-chitchat.herokuapp.com).
 
 ## Install ##
 All that you need is [Golang](https://golang.org/). Once you run the application, it will expose a [target port](./config.json) on the host.
 ```
-20:5:13 app         | ChitChat 0.3 started at 127.0.0.1:443
+20:5:13 app         | ChitChat 0.4 started at 127.0.0.1:443
 ```
 
 ## Configuration ##
@@ -30,7 +32,7 @@ E.g. A basic chat room POST request could look as follows:
    "visibility":"public"
 }
 ```
-If successful, server should respond with code 201 and the newly created resource:
+If successful, the server will respond with HTTP code 201 and the newly created chat room resource:
 ```json
 {
     "title": "My chat room",
@@ -43,7 +45,7 @@ If successful, server should respond with code 201 and the newly created resourc
 }
 ```
 
-If unsuccessful, the server will return an error with a [custom code](./data/apierror.go), e.g. if a room with the same title already exists: 
+If unsuccessful, the server will return [an error](./data/apierror.go) in its response body, e.g. if a room with the same title already exists HTTP code 400 will be sent along with the following body content: 
 ```json
 {
     "status": false,
@@ -54,10 +56,10 @@ If unsuccessful, the server will return an error with a [custom code](./data/api
     }
 }
 ```
-The minimum required fields to create a public chat room are `"title"` and `"visibility"`. "Private" and "hidden" chat rooms also require a password.
+The required fields to create a public chat room are `"title"` and `"visibility"`. "Private" and "hidden" chat rooms also require a password.
 
   ## Authorization
-  Authorization is implemented using [JSON Web Tokens](https://jwt.io/introduction/) in an attempt to achieve statelessness and scalability. In order to authorize chatting access to a password-protected chat room, users will need to pass in a token in the `Authorization` HTTP header using the Bearer scheme. 
+  Authorization is implemented using [JSON Web Tokens](https://jwt.io/introduction/) in an attempt to achieve statelessness and scalability. In order to authorize access or modification of a password-protected chat room, users will need to pass in a token in the `Authorization` HTTP header using the Bearer scheme.
   
   The token can be requested by sending a JSON body containing the password to the `/chats/<room_id>/token` endpoint. For example:
   ```json
@@ -75,7 +77,7 @@ The minimum required fields to create a public chat room are `"title"` and `"vis
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImRhdmlkIiwicm9vbV9pZCI6MiwiZXhwIjoxNjA3NTg1MjQ5fQ.b6XnNqrFnFmuUMhTBKfyR3PAyCQkxbUaPupBXgknl8w"
 }
 ```  
-Otherwise an error will be returned if the supplied password is invalid or missing.
+Otherwise an error will be returned if the secret is missing, does not match the password hash, or is invalid.
 ```json
 {
     "status": false,
@@ -89,20 +91,19 @@ Otherwise an error will be returned if the supplied password is invalid or missi
 For added convenience, it is also possible to request a new token before the current one expires by sending an authorized request to `/chats/<room_id>/token/renew`.
 
 ## Chatting ##
-Chatting is implemented using server-sent events (SSE) as a step-by-step procedure. Any endpoints that mandate `text/event-stream` content type as opposed to JSON are behind the `chats/<room_id>/sse/` subpath. The steps are:
+Chatting is implemented using WebSockets through the `chats/<room_id>/ws` endpoint. The steps are:
   1. Send a HTTP POST to `/chats/<room_id>/token` to obtain [authorization](#authorization) (only required for private and hidden rooms)
-  2. Subscribe to chat event stream via HTTP GET request to `/chats/<room_id>/sse/subscribe`
-  3. Send a HTTP POST to `/chats/<room_id>/sse/broadcast` to broadcast messages in the following format:
+  2. Open WebSocket to `/chats/<room_id>/ws` with the auth token set in the `Sec-WebSocket-Protocol` header
+  3.  Broadcast messages in the following format:
   ```
   {
       "event_type": "join/leave/send",
       "name": "my-username",
       "color": "color of chat message",
-      "msg": "message to send",
-      "secret": "password" # (only needed for private or secret rooms token request)
+      "msg": "message to send"
   }
   ```
-  It is recommended to send a `join` and `leave` event broadcast when joining/leaving chat rooms so everyone else is notified.
+  It is recommended to send a `join` event broadcast when joining chat rooms so everyone else is notified. The server will send a "leave" event upon disconnect
   4. Send a HTTP GET to `/chats/<room_id>/token/renew` to renew the authorization token before expiration.
 
 
@@ -114,7 +115,4 @@ Chatting is implemented using server-sent events (SSE) as a step-by-step procedu
       * Hide password field showing the salted hash from public-facing API response?
   3. Generate proper UUIDs instead of integers as IDs?
   4. Need to store chat server data models in a DB, right now everything is stored in memory to allow for rapid development and testing
-  5. Need to improve reliability of chatting sessions
-      * Adding heartbeat pings as keep-alives
-      * Can also move to WebSockets instead of SSE
-  6. Switch to a proper logging library such as logrus
+  5. Switch to a proper logging library such as logrus

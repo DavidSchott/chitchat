@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -23,17 +22,17 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 	len := r.ContentLength
 	body := make([]byte, len)
 	if _, err := r.Body.Read(body); err != nil {
-		danger("Error reading request", r)
+		Danger("Error reading request", r)
 	}
 	var c data.ChatEvent
 	if err := json.Unmarshal(body, &c); err != nil {
-		danger("Error parsing token request", r)
+		Danger("Error parsing token request", r)
 	}
 	queries := mux.Vars(r)
 	if titleOrID, ok := queries["titleOrID"]; ok {
 		cr, err := data.CS.Retrieve(titleOrID)
 		if err != nil {
-			info("erroneous chats API request", r, err)
+			Info("erroneous chats API request", r, err)
 			return err
 		}
 		if cr.Type == data.PublicRoom {
@@ -65,7 +64,7 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 			})
 			w.WriteHeader(http.StatusCreated)
 			if _, err := w.Write(jsonEncoding); err != nil {
-				danger("Error writing", jsonEncoding)
+				Danger("Error writing", jsonEncoding)
 			}
 
 		} else {
@@ -86,7 +85,7 @@ func renewToken(w http.ResponseWriter, r *http.Request) (err error) {
 	if titleOrID, ok := queries["titleOrID"]; ok {
 		cr, err := data.CS.Retrieve(titleOrID)
 		if err != nil {
-			info("erroneous chats API request", r, err)
+			Info("erroneous chats API request", r, err)
 			return err
 		}
 		if cr.Type == data.PublicRoom {
@@ -125,7 +124,7 @@ func renewToken(w http.ResponseWriter, r *http.Request) (err error) {
 			})
 			w.WriteHeader(http.StatusCreated)
 			if _, err := w.Write(jsonEncoding); err != nil {
-				danger("Error writing", jsonEncoding)
+				Danger("Error writing", jsonEncoding)
 			}
 		}
 	}
@@ -144,7 +143,7 @@ func authorize(h errHandler) errHandler {
 		if titleOrID, ok := queries["titleOrID"]; ok {
 			cr, err := data.CS.Retrieve(titleOrID)
 			if err != nil {
-				info("erroneous chats API request", r, err)
+				Info("erroneous chats API request", r, err)
 				return err
 			}
 			if cr.Type != data.PublicRoom {
@@ -172,30 +171,33 @@ func authorize(h errHandler) errHandler {
 }
 
 // Strips 'Token' or 'Bearer' prefix from token string
-func stripTokenPrefix(tok string) (string, error) {
+func stripTokenPrefix(tok string) string {
 	// split token to 2 parts
 	tokenParts := strings.Split(tok, " ")
 	if len(tokenParts) < 2 {
-		return tokenParts[0], nil
+		return tokenParts[0]
 	}
-	return tokenParts[1], nil
+	return tokenParts[1]
 }
 
 // extractJwtToken extracts token from Authorization header
 func extractJwtToken(req *http.Request) (string, error) {
-	tokenString := req.Header.Get("Authorization")
+	// Strip "Bearer" from Authorization: Bearer <token>
+	tokenString := stripTokenPrefix(req.Header.Get("Authorization"))
 	if tokenString == "" {
-		return "", fmt.Errorf("Could not find token")
+		// Want to check
+		tokenString = req.Header.Get("Sec-WebSocket-Protocol")
 	}
-	tokenString, err := stripTokenPrefix(tokenString)
-	if err != nil {
-		return "", err
+
+	if tokenString == "" {
+		return "", &data.APIError{Code: 403, Field: "token"}
 	}
+
 	return tokenString, nil
 }
 
 // Generate unique key should ensure that the generated key is unique for a given room
-// TODO: Enforce providing user ID to make this unique per user in room?
+// This key does not need to be unique per user necessarily since the token will be unique
 func generateUniqueKey(cr *data.ChatRoom) string {
 	return secretKey + cr.Password + strconv.Itoa(cr.ID)
 }
