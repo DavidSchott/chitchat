@@ -3,7 +3,6 @@ package data
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"time"
 
@@ -57,10 +56,11 @@ func (c *Client) ReadPump() {
 	for {
 		mt, data, err := c.Conn.ReadMessage() // TODO: Switch to ReadJSON
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || err == io.EOF {
+			/*if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || err == io.EOF {
 				res, _ := json.Marshal(&ChatEvent{User: c.Username, Msg: fmt.Sprintf("%s has left the room.", c.Username), Color: c.Color})
 				c.Room.Broker.Notification <- res
-			}
+			}*/
+			c.unsubscribe(&ChatEvent{User: c.Username, Color: c.Color})
 			log.Printf("error: %v", err)
 			break
 		}
@@ -191,7 +191,7 @@ func (c *Client) unsubscribe(evt *ChatEvent) {
 	}
 	log.Println(fmt.Sprintf("Unsubscribing %s in room %d", evt.User, c.Room.ID))
 	evt.EventType = Unsubscribe
-	evt.Msg = fmt.Sprintf("%s left the room.", evt.User)
+	evt.Msg = fmt.Sprintf("%s has left the room.", evt.User)
 	go func() {
 		time.Sleep(200 * time.Millisecond)
 		c.Room.Broker.Notification <- formatEventData(evt)

@@ -126,7 +126,6 @@ var chat = function () {
     }
     // Close WebSocket Connection
     function endSession() {
-        // TODO: Check conn is not closed already
         conn.close();
     }
     // Submit a chat message to broadcast

@@ -2,7 +2,6 @@ package data
 
 import (
 	"log"
-	"strconv"
 	"time"
 )
 
@@ -51,10 +50,11 @@ func (br *Broker) listen() {
 			if _, ok := br.Clients[c]; ok {
 				delete(br.Clients, c)
 				close(c.Send)
-				cr, _ := CS.Retrieve(strconv.Itoa(br.RoomID))
-				if err := cr.RemoveClient(c.Username); err != nil {
+				//cr, _ := CS.Retrieve(strconv.Itoa(br.RoomID))
+				//c.unsubscribe(&ChatEvent{User: c.Username})
+				/*if err := cr.RemoveClient(c.Username); err != nil {
 					log.Printf("Error removing client: %s from room %s. Error: %s", c.Username, cr.Title, err.Error())
-				}
+				}*/
 				log.Printf("Removed client. %d registered Clients", len(br.Clients))
 			}
 		case evt := <-br.Notification:
