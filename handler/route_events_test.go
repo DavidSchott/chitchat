@@ -25,10 +25,10 @@ func TestHandleWebSocket(t *testing.T) {
 		titleOrID       string
 	}{
 		{
-			name:            "Public Test Chat",
+			name:            PublicTestChatTitle,
 			user:            "Test User",
 			eventIterations: 10,
-			titleOrID:       "3",
+			titleOrID:       PublicTestChatTitle,
 		},
 	}
 

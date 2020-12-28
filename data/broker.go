@@ -23,10 +23,10 @@ type Broker struct {
 	// Unregister requests from Clients.
 	CloseClient chan *Client
 
-	RoomID int
+	RoomID string
 }
 
-func newBroker(ID int) *Broker {
+func newBroker(ID string) *Broker {
 	return &Broker{
 		Notification: make(chan []byte),
 		OpenClient:   make(chan *Client),
@@ -50,11 +50,6 @@ func (br *Broker) listen() {
 			if _, ok := br.Clients[c]; ok {
 				delete(br.Clients, c)
 				close(c.Send)
-				//cr, _ := CS.Retrieve(strconv.Itoa(br.RoomID))
-				//c.unsubscribe(&ChatEvent{User: c.Username})
-				/*if err := cr.RemoveClient(c.Username); err != nil {
-					log.Printf("Error removing client: %s from room %s. Error: %s", c.Username, cr.Title, err.Error())
-				}*/
 				log.Printf("Removed client. %d registered Clients", len(br.Clients))
 			}
 		case evt := <-br.Notification:

@@ -1,7 +1,6 @@
 package data
 
 import (
-	"strconv"
 	"strings"
 	"time"
 
@@ -10,7 +9,7 @@ import (
 
 // ChatServer maintains all ChatRooms. TODO: This will be replaced by a database soon
 type ChatServer struct {
-	RoomsID map[int]*ChatRoom
+	RoomsID map[string]*ChatRoom
 	Rooms   map[string]*ChatRoom // TODO: Remove this duplication once data layer moves to DB
 	Index   *int
 }
@@ -19,7 +18,7 @@ var index int
 
 // CS is the global ChatServer referencing all chat room objects
 var CS ChatServer = ChatServer{
-	RoomsID: make(map[int]*ChatRoom),
+	RoomsID: make(map[string]*ChatRoom),
 	Rooms:   make(map[string]*ChatRoom),
 	Index:   &index,
 }
@@ -28,13 +27,11 @@ var CS ChatServer = ChatServer{
 func (cs ChatServer) Init() {
 	CS.push(&ChatRoom{
 		Title:       "Public Chat",
-		Description: "This is the default chat, available to everyone!",
+		Description: "This is the default chat, available for everyone!",
 		Type:        "public",
 		Password:    "",
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
-		ID:          1,
-		Broker:      newBroker(1),
 		Clients:     make(map[string]*Client),
 	})
 }
@@ -42,8 +39,7 @@ func (cs ChatServer) Init() {
 func (cs ChatServer) push(cr *ChatRoom) {
 	// Update indices, create new session
 	*cs.Index++
-	// TODO: Generate UUIDs?
-	cr.ID = *cs.Index
+	cr.ID = generateUUID()
 	cr.Clients = make(map[string]*Client)
 	cr.Type = strings.ToLower(cr.Type)
 	cr.Broker = newBroker(cr.ID)
@@ -54,7 +50,7 @@ func (cs ChatServer) push(cr *ChatRoom) {
 	cs.RoomsID[cr.ID] = cr
 }
 
-func (cs ChatServer) pop(title string, ID int) {
+func (cs ChatServer) pop(title string, ID string) {
 	delete(cs.Rooms, strings.ToLower(title))
 	delete(cs.RoomsID, ID)
 	*cs.Index--
@@ -79,37 +75,36 @@ func (cs ChatServer) Retrieve(title string) (cr *ChatRoom, err error) {
 			Field: title,
 		}
 	}
-	if id := isInt(title); id != -1 {
-		cr = cs.RoomsID[id]
+	title = strings.ToLower(title)
+	if cr, ok := cs.RoomsID[title]; ok {
+		return cr, nil
 	} else {
-		cr = cs.Rooms[strings.ToLower(title)]
+		return cs.Rooms[title], nil
 	}
 	//err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
-	return cr, nil
 }
 
 // RetrieveID returns a single chat room based on ID. NOTE: This has no error handling unlike cs.Retrieve()
-func (cs ChatServer) RetrieveID(ID int) (cr *ChatRoom, err error) {
+func (cs ChatServer) RetrieveID(ID string) (cr *ChatRoom, err error) {
 	cr = cs.RoomsID[ID]
 	//err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
 	return
 }
 
 func (cs ChatServer) roomExists(titleorID string) bool {
-	if id, err := strconv.Atoi(titleorID); err == nil {
-		for k := range CS.RoomsID {
-			if k == id {
-				return true
-			}
-		}
-	} else {
-		titleorID = strings.ToLower(titleorID)
-		for k := range CS.Rooms {
-			if strings.ToLower(k) == titleorID {
-				return true
-			}
+	// TODO: This can obviously be optimized
+	titleorID = strings.ToLower(titleorID)
+	for k := range CS.RoomsID {
+		if strings.ToLower(k) == titleorID {
+			return true
 		}
 	}
+	for k := range CS.Rooms {
+		if strings.ToLower(k) == titleorID {
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -119,7 +114,7 @@ func (cs ChatServer) Add(cr *ChatRoom) (err error) {
 	if apierr, valid := cr.IsValid(); !valid {
 		return apierr
 	}
-	if cs.roomExists(cr.Title) { // TODO: What if the room is hidden? Return unspecified error or inform user?
+	if cs.roomExists(cr.Title) { // TODO: What if the room is hidden? Return unspecified error instead of showing information?
 		return &APIError{
 			Code:  102,
 			Field: "title",
@@ -152,13 +147,13 @@ func (cs ChatServer) Update(titleOrID string, modifiedChatRoom *ChatRoom) (err e
 	if err != nil {
 		return
 	}
-	// Update password for validation
+	// Do not currently allow changing Password.
+	// TODO: Allow updating Password?
 	modifiedChatRoom.Password = currentChatRoom.Password
 	if apierr, valid := modifiedChatRoom.IsValid(); !valid {
 		return apierr
 	}
 	// Update chat room
-	// TODO: Allow updating Password?
 	modifiedChatRoom.ID = currentChatRoom.ID
 	modifiedChatRoom.UpdatedAt = time.Now()
 	*currentChatRoom = *modifiedChatRoom

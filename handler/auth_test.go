@@ -18,10 +18,10 @@ func TestLogin(t *testing.T) {
 		expectedOutcome        bool
 		expectedHTTPStatusCode int
 	}{
-		{"1", "", true, 200},
-		{"2", "incorrect_pwd", false, 401},
-		{"2", "123abc123abc", true, 201},
-		{"hidden chat", "123abc123abc", true, 201},
+		{PublicTestChatTitle, "", true, 200},
+		{PrivateTestChatTitle, "incorrect_pwd", false, 401},
+		{PrivateTestChatTitle, "123abc123abc", true, 201},
+		{HiddenTestChatTitle, "123abc123abc", true, 201},
 		{"does not exist", "123abc123abc", false, 404},
 	}
 
@@ -70,10 +70,10 @@ func TestRenewToken(t *testing.T) {
 		expectedOutcome        bool
 		expectedHTTPStatusCode int
 	}{
-		{"1", true, 200},
-		{"2", false, 403},
-		{"2", true, 201},
-		{"hidden chat", true, 201},
+		{PublicTestChatTitle, true, 200},
+		{PrivateTestChatTitle, false, 403},
+		{PrivateTestChatTitle, true, 201},
+		{HiddenTestChatTitle, true, 201},
 		{"does not exist", false, 404},
 	}
 	var result map[string]interface{}

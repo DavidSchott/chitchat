@@ -1,7 +1,10 @@
 package data
 
 import (
+	"crypto/rand"
 	"encoding/json"
+	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -21,12 +24,12 @@ const (
 // TODO:  Add Administrator
 type ChatRoom struct {
 	Title       string             `json:"title"`
+	ID          string             `json:"id"`
 	Description string             `json:"description,omitempty"`
 	Type        string             `json:"visibility"`
 	Password    string             `json:"password,omitempty"`
 	CreatedAt   time.Time          `json:"createdAt"`
 	UpdatedAt   time.Time          `json:"updatedAt"`
-	ID          int                `json:"id"`
 	Broker      *Broker            `json:"-"`
 	Clients     map[string]*Client `json:"-"`
 }
@@ -60,6 +63,8 @@ func (cr ChatRoom) AddClient(c *Client) (err error) {
 			Field: c.Username,
 		}
 	}
+	c.LastActivity = time.Now()
+	c.UserID = generateUUID()
 	cr.Clients[strings.ToLower(c.Username)] = c
 	return
 }
@@ -136,6 +141,24 @@ func (cr ChatRoom) clientExists(name string) bool {
 		}
 	}
 	return false
+}
+
+// create a random UUID (adheres to RFC 4122)
+// adapted from http://github.com/nu7hatch/gouuid
+func generateUUID() (uuid string) {
+	u := new([16]byte)
+	_, err := rand.Read(u[:])
+	if err != nil {
+		log.Fatalln("Cannot generate UUID", err)
+	}
+
+	// 0x40 is reserved variant from RFC 4122
+	u[8] = (u[8] | 0x40) & 0x7F
+	// Set the four most significant bits (bits 12 through 15) of the
+	// time_hi_and_version field to the 4-bit version number.
+	u[6] = (u[6] & 0xF) | (0x4 << 4)
+	uuid = fmt.Sprintf("%x-%x-%x-%x-%x", u[0:4], u[4:6], u[6:8], u[8:10], u[10:])
+	return
 }
 
 // PrettyTime prints the creation date in a pretty format

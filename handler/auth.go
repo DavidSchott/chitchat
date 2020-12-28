@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/DavidSchott/chitchat/data"
@@ -54,7 +53,7 @@ func login(w http.ResponseWriter, r *http.Request) (err error) {
 			jsonEncoding, _ := json.Marshal(struct {
 				Outcome  bool   `json:"status"`
 				Username string `json:"name"`
-				RoomID   int    `json:"room_id"`
+				RoomID   string `json:"room_id"`
 				Token    string `json:"token"`
 			}{
 				Outcome:  true,
@@ -114,7 +113,7 @@ func renewToken(w http.ResponseWriter, r *http.Request) (err error) {
 			jsonEncoding, _ := json.Marshal(struct {
 				Outcome  bool   `json:"status"`
 				Username string `json:"name"`
-				RoomID   int    `json:"room_id"`
+				RoomID   string `json:"room_id"`
 				Token    string `json:"token"`
 			}{
 				Outcome:  true,
@@ -197,7 +196,7 @@ func extractJwtToken(req *http.Request) (string, error) {
 }
 
 // Generate unique key should ensure that the generated key is unique for a given room
-// This key does not need to be unique per user necessarily since the token will be unique
+// This key does not need to be unique per user necessarily since the token will be unique, even if the same key is used
 func generateUniqueKey(cr *data.ChatRoom) string {
-	return secretKey + cr.Password + strconv.Itoa(cr.ID)
+	return secretKey + cr.Password + cr.ID
 }

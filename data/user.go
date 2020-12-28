@@ -23,18 +23,19 @@ const (
 // Client represents a user in a ChatRoom
 type Client struct {
 	Username     string    `json:"username"`
+	UserID       string    `json:"id"`
 	Color        string    `json:"color"`
 	LastActivity time.Time `json:"last_activity"`
+	// The Room a given user is associated with
+	Room *ChatRoom `json:"-"`
 	// The websocket Connection.
 	Conn *websocket.Conn `json:"-"`
 	// Buffered channel of outbound messages.
 	Send chan []byte `json:"-"`
-	// ChatRoom that client is registered with
-	Room *ChatRoom `json:"-"`
 }
 
 // ReadPump pumps messages from the websocket connection to the broker.
-//
+// Adapted from https://github.com/gorilla/websocket/blob/master/examples/chat/client.go
 // The application runs ReadPump in a per-connection goroutine. The application
 // ensures that there is at most one reader on a connection by executing all
 // reads from this goroutine.
@@ -54,7 +55,7 @@ func (c *Client) ReadPump() {
 		return nil
 	})
 	for {
-		mt, data, err := c.Conn.ReadMessage() // TODO: Switch to ReadJSON
+		mt, data, err := c.Conn.ReadMessage() // TODO: Switch to ReadJSON?
 		if err != nil {
 			/*if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || err == io.EOF {
 				res, _ := json.Marshal(&ChatEvent{User: c.Username, Msg: fmt.Sprintf("%s has left the room.", c.Username), Color: c.Color})
@@ -89,9 +90,6 @@ func (c *Client) ReadPump() {
 				c.Room.Clients[ce.User].LastActivity = ce.Timestamp
 				c.broadcast(&ce)
 			default:
-				// Populate activity
-				//c.Room.Clients[ce.User].LastActivity = ce.Timestamp
-				//c.broadcast(&ce)
 				log.Printf("Warning: unknown event type %s", ce.EventType)
 			}
 
@@ -102,7 +100,7 @@ func (c *Client) ReadPump() {
 }
 
 // WritePump pumps messages from the broker to the websocket connection.
-//
+// Adapted from https://github.com/gorilla/websocket/blob/master/examples/chat/client.go
 // A goroutine running WritePump is started for each connection. The
 // application ensures that there is at most one writer to a connection by
 // executing all writes from this goroutine.
@@ -170,7 +168,6 @@ func (c *Client) subscribe(evt *ChatEvent) {
 	// Init client values
 	c.Username = evt.User
 	c.Color = evt.Color
-	c.LastActivity = time.Now()
 	if err := c.Room.AddClient(c); err != nil {
 		log.Println("error adding client:", err.Error())
 		return
@@ -189,7 +186,7 @@ func (c *Client) unsubscribe(evt *ChatEvent) {
 	if err := c.Room.RemoveClient(evt.User); err != nil {
 		log.Println("Error removing client", err.Error())
 	}
-	log.Println(fmt.Sprintf("Unsubscribing %s in room %d", evt.User, c.Room.ID))
+	log.Println(fmt.Sprintf("Unsubscribing \"%s\" in room \"%s\" with ID \"%s\"", evt.User, c.Room.Title, c.Room.ID))
 	evt.EventType = Unsubscribe
 	evt.Msg = fmt.Sprintf("%s has left the room.", evt.User)
 	go func() {

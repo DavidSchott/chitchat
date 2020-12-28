@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -16,6 +15,12 @@ import (
 
 var writer *httptest.ResponseRecorder
 var router *mux.Router
+
+const (
+	HiddenTestChatTitle  = "Hidden Test Chat"
+	PublicTestChatTitle  = "Public Test Chat"
+	PrivateTestChatTitle = "Private Test Chat"
+)
 
 func TestMain(m *testing.M) {
 	setUp()
@@ -27,29 +32,44 @@ func TestMain(m *testing.M) {
 func setUp() {
 	router = Mux
 	if err := data.CS.Add(&data.ChatRoom{
-		Title:       "Hidden Chat",
+		Title:       HiddenTestChatTitle,
 		Description: "This is the hidden chat!",
 		Type:        "hidden",
 		Password:    "123abc123abc",
 	}); err != nil {
 		Danger("Error setting up tests", err.Error())
 	}
+
 	if err := data.CS.Add(&data.ChatRoom{
-		Title:       "Public Test Chat",
+		Title:       PublicTestChatTitle,
 		Description: "This is the public chat!",
 		Type:        "public",
+	}); err != nil {
+		Danger("Error setting up tests", err.Error())
+	}
+
+	if err := data.CS.Add(&data.ChatRoom{
+		Title:       PrivateTestChatTitle,
+		Description: "This is the private chat!",
+		Type:        "private",
+		Password:    "123abc123abc",
 	}); err != nil {
 		Danger("Error setting up tests", err.Error())
 	}
 }
 
 func tearDown() {
-	cr, _ := data.CS.Retrieve("2")
+	cr, _ := data.CS.Retrieve(PublicTestChatTitle)
 	if err := data.CS.Delete(cr); err != nil {
 		Danger("Error tearing down tests", err.Error())
 	}
-	cr2, _ := data.CS.Retrieve("3")
+	cr2, _ := data.CS.Retrieve(HiddenTestChatTitle)
 	if err := data.CS.Delete(cr2); err != nil {
+		Danger("Error tearing down tests", err.Error())
+	}
+
+	cr3, _ := data.CS.Retrieve(PrivateTestChatTitle)
+	if err := data.CS.Delete(cr3); err != nil {
 		Danger("Error tearing down tests", err.Error())
 	}
 }
@@ -99,7 +119,7 @@ func TestHandlePost(t *testing.T) {
 				if err := json.Unmarshal(writer.Body.Bytes(), &res); err != nil {
 					t.Fatal("Error parsing", writer.Body.String(), err.Error())
 				}
-				matchConditions = assertTrue(t, res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID > 1)
+				matchConditions = assertTrue(t, res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility)
 			} else {
 				if err := json.Unmarshal(writer.Body.Bytes(), &failedOutcome); err != nil {
 					t.Fatal("Error parsing", writer.Body.String(), err.Error())
@@ -122,7 +142,7 @@ func TestHandleGet(t *testing.T) {
 		expectedHTTPStatusCode int
 		expectedOutcome        bool
 	}{
-		{"1", "This is the default chat, available to everyone!", 200, true},
+		{"public chat", "This is the default chat, available for everyone!", 200, true},
 		{"public room", "this is a public room", 200, true},
 		{"private room", "this is a private room", 200, true},
 		{"secret room", "this is a secret room", 200, true},
@@ -149,8 +169,9 @@ func TestHandleGet(t *testing.T) {
 				if err := json.Unmarshal(writer.Body.Bytes(), &cr); err != nil {
 					t.Fatal("Error parsing", writer.Body.String(), err.Error())
 				}
-				matchConditions = strings.ToLower(cr.Title) == tc.titleOrID || strconv.Itoa(cr.ID) == tc.titleOrID
+				matchConditions = strings.ToLower(cr.Title) == tc.titleOrID || cr.ID == tc.titleOrID
 			} else {
+				// Error encountered!
 				err := json.Unmarshal(writer.Body.Bytes(), &failOutcome)
 				if err != nil {
 					t.Log(err.Error())
@@ -178,11 +199,11 @@ func TestHandlePut(t *testing.T) {
 		expectedHTTPStatusCode int
 		expectedAPIErrorCode   int
 	}{
-		{"1", "default chat room", "renamed", "public", true, 200, 0},
+		{"Public Chat", "default chat room", "renamed", "public", true, 200, 0},
 		{"public room", "public chat renamed", "renamed", "public", true, 200, 0},
-		{"5", "private room renamed", "renamed", "private", true, 200, 0},
-		{"5", "private room renamed failure", "bad password", "private", false, 403, 403},
-		{"6", "hidden room renamed", "renamed", "hidden", true, 200, 0},
+		{"private room", "private room renamed", "renamed", "private", true, 200, 0},
+		{"private room", "private room renamed failure", "bad password", "private", false, 403, 403},
+		{"secret room", "hidden room renamed", "renamed", "hidden", true, 200, 0},
 	}
 	var res data.ChatRoom
 	var failedOutcome data.Outcome
@@ -213,7 +234,7 @@ func TestHandlePut(t *testing.T) {
 				if err := json.Unmarshal(writer.Body.Bytes(), &res); err != nil {
 					t.Fatal("Error parsing", writer.Body.String(), err.Error())
 				}
-				matchConditions = assertTrue(t, res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID >= 1)
+				matchConditions = assertTrue(t, res.Title == tc.title, res.Description == tc.description, res.Type == tc.visibility, res.ID != "")
 			} else {
 				if err := json.Unmarshal(writer.Body.Bytes(), &failedOutcome); err != nil {
 					t.Fatal("Error parsing", writer.Body.String(), err.Error())
@@ -235,10 +256,10 @@ func TestHandleDelete(t *testing.T) {
 		expectedHTTPStatusCode int
 		expectedOutcome        bool
 	}{
-		{"1", 200, true},
+		{"Public Chat", 200, true},
 		{"public room", 200, true},
 		{"private room", 403, false},
-		{"5", 403, false},
+		{HiddenTestChatTitle, 403, false},
 		{"private room", 200, true},
 		{"secret room", 200, true},
 		{"does not exist", 404, false},

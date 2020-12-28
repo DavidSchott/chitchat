@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	expirationConstantMinutes            int = 60  // TODO: Change to 10 minutes?
-	minimumRefreshDurationAllowedMinutes int = 300 // TODO: Change to 5 minutes?
+	expirationConstantMinutes                   int = 60  // TODO: Change to 10 minutes
+	minimumElapsedTimeToRefreshToleranceMinutes int = 300 // TODO: Change to 5 minutes
 )
 
 // Claims is a model that represents JSON web tokens used for authentication by users
 type Claims struct {
 	Username string `json:"username"`
-	RoomID   int    `json:"room_id,omitempty"`
+	RoomID   string `json:"room_id,omitempty"`
 	jwt.StandardClaims
 }
 
@@ -83,7 +83,7 @@ func ParseJWT(tokenString string, c *Claims, secretKey string) (err error) {
 //RefreshJWT will refresh return a signed token with new expiration time
 func (c Claims) RefreshJWT(secretKey string) (tokenString string, err error) {
 	// Ensure enough time has elapsed since last token was generated
-	if time.Until(time.Unix(c.ExpiresAt, 0)) > time.Duration(minimumRefreshDurationAllowedMinutes)*time.Minute {
+	if time.Until(time.Unix(c.ExpiresAt, 0)) > time.Duration(minimumElapsedTimeToRefreshToleranceMinutes)*time.Minute {
 		return "", &APIError{
 			Code:  403,
 			Field: "token",
